@@ -17,13 +17,13 @@ findmax <- function(sens, min, max, grid.length) {
 
 # Función para actualizar los pesos de un diseño para el algoritmo WF D opt
 updateWeights <- function(design, sens, k, delta) {
-  weights <- design$Weight*(map_dbl(design$Point, sens)/k)^delta
+  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/k)^delta
   return(weights/sum(weights))
 }
 
 # Función para actualizar los pesos de un diseño para el algoritmo WF Ds opt
 updateWeightsDS <- function(design, sens, s, delta) {
-  weights <- design$Weight*(map_dbl(design$Point, sens)/s)^delta
+  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/s)^delta
   # print(length(design$Weight))
   # print(length((map_dbl(des$Point, sens)/k)^delta))
   return(weights)
@@ -31,7 +31,7 @@ updateWeightsDS <- function(design, sens, s, delta) {
 
 # Función para actualizar los pesos de un diseño para el algoritmo WF I opt
 updateWeightsI <- function(design, sens, crit, delta) {
-  weights <- design$Weight*(map_dbl(design$Point, sens)/crit)^delta
+  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/crit)^delta
   # print(length(design$Weight))
   # print(length((map_dbl(des$Point, sens)/k)^delta))
   return(weights)
@@ -89,13 +89,13 @@ tr <- function(m) {
 # Dibuja la función de sensibilidad (y el diseño?)
 plot_sens <- function(min, max, sens_function, criterion_value){
   grid <- seq(212, 422, length.out = 10000)
-  sens_grid <- map_dbl(grid, sens_function)
+  sens_grid <- purrr::map_dbl(grid, sens_function)
 
-  sensibility <- ggplot(data = data.frame(x = grid, y = sens_grid), mapping = aes(x = x)) +
-    theme_bw() +
-    geom_line(mapping = aes(x = x, y = y), color = "steelblue3") +
-    stat_function(fun = function(x) criterion_value, col = "goldenrod3") +
-    xlim(min, max) +
-    labs(x = "X", y = "Y")
+  sensibility <- ggplot2::ggplot(data = data.frame(x = grid, y = sens_grid), mapping = ggplot2::aes(x = x)) +
+    ggplot2::theme_bw() +
+    ggplot2::geom_line(mapping = ggplot2::aes(x = x, y = y), color = "steelblue3") +
+    ggplot2::stat_function(fun = function(x) criterion_value, col = "goldenrod3") +
+    ggplot2::xlim(min, max) +
+    ggplot2::labs(x = "X", y = "Y")
 }
 

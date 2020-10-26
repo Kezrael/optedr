@@ -79,7 +79,7 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
-    if(i%%5 == 0)
+    if(i %% 5 == 0)
       initDes <- updateDesignTotal(initDes, 8)
   }
   # critVal[index] <- dscrit(M, s, intPar)
@@ -118,7 +118,7 @@ IWFMult <- function(initDes, grad, matB = diag(3), min, max, grid.length, joinTh
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
-    if(i%%5 == 0)
+    if(i %% 5 == 0)
       initDes <- updateDesignTotal(initDes, 8)
   }
   # M <- dmatrixAntoine(A, B, C, initDes)
@@ -133,6 +133,34 @@ IWFMult <- function(initDes, grad, matB = diag(3), min, max, grid.length, joinTh
 
 # Función accesible para el usuario que llama a las necesarias para calcular el diseño óptimo según las
 # opciones especificadas
+
+
+#' Calculates the optimal design for a specified Criterion
+#'
+#' @description
+#' The opt_des function calculates the optimal design for an optimality Criterion and a model input from the user.
+#' The parameters allows for the user to customize the parameters for the cocktail algorithm in case the default
+#' set don't provide a satisfactory output. Depending on the criterion
+#'
+#' @param Criterion
+#' @param model
+#' @param parameters
+#' @param par_values
+#' @param design_space
+#' @param init_design
+#' @param joinThresh
+#' @param deleteThresh
+#' @param delta
+#' @param tol
+#' @param matB
+#' @param par_int
+#' @param reg_int
+#' @param desired_output
+#'
+#' @return
+#' @export
+#'
+#' @examples
 opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     init_design = NA,
                     joinThresh = -1,
@@ -152,19 +180,31 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
   output <- WFMult(init_design, grad, Criterion, intPars = par_int, matB, design_space[[1]], design_space[[2]], 1000, joinThresh, deleteThresh, k, delta, tol)
 }
 
-# test <- opt_des("A-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422), par_int = c(1))
-#
-# test$optdes
-#
-# test$sens
 
-# plot_opt <- plot_sens(min, max, sensM, k)
-
-# val <- sensM(422)
-# init_design <- data.frame("Point" = seq(212, 422,length.out = 2), "Weight" = rep(1/2, times = 2))
+# library(devtools)
 #
-# grad <- gradient(y ~ a*exp(-b/x), c("a", "b"), c(1, 1500))
-# DsWFMult(init_design, grad, intPar, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol)
+# install_github("kezrael/optedr")
 #
+# library(optedr)
+#
+# result <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
+#
+# result$optdes
+#
+# result$sens
+#
+#
+# result1 <- opt_des("A-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
+#
+# result1$optdes
+#
+# result1$sens
+#
+#
+# result2 <- opt_des("Ds-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422), par_int = c(1))
+#
+# result2$optdes
+#
+# result2$sens
 
-# test2 <- DsWFMult(init_design, grad, c(1), 212, 422, 1000, 20, 0.02, 1/2, 0.00001)
+

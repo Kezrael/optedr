@@ -24,7 +24,7 @@ inf_mat <- function(grad, design){
   # USE MAP???
   for(i in seq_along(design$Weight)){
     f_col <- as.matrix(grad(design$Point[[i]]), nrow = 1, ncol = 3, byrow = TRUE, dimnames = NULL)
-    matrix_ret <- matrix_ret + (t(f_col) %*% f_col)*design$Weight[[i]]
+    matrix_ret <- matrix_ret + (t(f_col) %*% f_col) * design$Weight[[i]]
   }
   return(matrix_ret)
 }
