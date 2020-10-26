@@ -3,6 +3,47 @@
 # Llama, en función de crit, al algoritmo de WF pertinente
 # A futuro: admitir también matriz de la región de interés/parámetros de interés
 # POSIBLE: ofrecer outputs -> diseño, plot y convergencia, con un vector? Sin convergencia y un parámetro para el plot?
+
+#' Master function for the cocktail algorithm, that calls the appropriate one given the criterion.
+#'
+#' @description
+#' Depending on the \code{Criterion} the cocktail algorithm for the chosen criterion is called,
+#' and the necessary parameters for the functions are given from the user input.
+#'
+#' @param initDes with the initial design for the algorithm. A dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param grad function of partial derivatives of the model.
+#' @param Criterion character with the chosen optimality criterion. Can be one of the following:
+#'   * 'D-Optimality'
+#'   * 'Ds-Optimality'
+#'   * 'A-Optimality'
+#'   * 'I-Optimality'
+#' @param intPars numeric vector with the index of the \code{parameters} of interest. Only necessary when
+#'   the \code{Criterion} chosen is 'Ds-Optimality'.
+#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
+#'   interest region.
+#' @param min numeric value with the inferior bound of the space of the design.
+#' @param max numeric value with the upper bound of the space of the design.
+#' @param grid.length numeric value that gives the grid to evaluate the sensitivity function when looking for a
+#'   maximum.
+#' @param joinThresh numeric value that states how close, in real units, two points must be in order to
+#'   be joined together by the join heuristic.
+#' @param deleteThresh numeric value with the minimum weight, over 1 total, that a point needs to have
+#'   in order to not be deleted from the design.
+#' @param k number of unknown parameters of the model.
+#' @param deltaW numeric value in (0, 1), parameter of the algorithm.
+#' @param tol numeric value for the convergence of the weight optimizing algorithm.
+#'
+#' @return list correspondent to the output of the correspondent algorithm called, dependent on the criterion.
+#'   A list of two objects:
+#'   * optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
+#'   * sens: a plot with the sensitivity function to check for optimality of the design.
+#'
+#' @examples
+#' \dontrun{
+#'   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
+#' }
 WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol){
   if(identical(Criterion, "D-Optimality")){
     return(DWFMult(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol))
@@ -18,7 +59,15 @@ WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, 
   }
 }
 
-# Algoritmo WF multiplicativo para D-opt
+
+#' Cocktail Algorithm implementation for D-Optimality
+#'
+#' @description
+#' Function that calculates the DsOptimal design. The rest of the parameters can help the convergence of the
+#' algorithm.
+#'
+#' @inherit WFMult return params examples
+#'
 DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol) {
   # critVal <- numeric(2122)
   # index <- 1
@@ -53,7 +102,14 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
        ,"sens" = plot_opt)
 }
 
-# Algoritmo WF multiplicativo para Ds-opt
+#' Cocktail Algorithm implementation for Ds-Optimality
+#'
+#' @description
+#' Function that calculates the Ds-Optimal designs for the interest parameters given by \code{intPar}. The
+#' rest of the parameters can help the convergence of the algorithm.
+#'
+#' @inherit WFMult return params examples
+#'
 DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
   # critVal <- numeric(2122)
   # index <- 1
@@ -91,8 +147,16 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
 }
 
 
-# Algoritmo WF multiplicativo para I-opt (A-opt con B=diag(n))
-IWFMult <- function(initDes, grad, matB = diag(3), min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
+#' Cocktail Algorithm implementation for I-Optimality and A-Optimality (with matB = diag(k))
+#'
+#' @description
+#' Function that calculates the I-Optimal designs given the matrix B (should be integral of the information matrix
+#' over the interest region), or A-Optimal if given diag(k). The rest of the parameters can help the convergence
+#' of the algorithm.
+#'
+#' @inherit WFMult return params examples
+#'
+IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
   # critVal <- numeric(2122)
   # index <- 1
   # Maximum iterations for the optimize weights loop
@@ -131,44 +195,56 @@ IWFMult <- function(initDes, grad, matB = diag(3), min, max, grid.length, joinTh
 }
 
 
-# Función accesible para el usuario que llama a las necesarias para calcular el diseño óptimo según las
-# opciones especificadas
-
 
 #' Calculates the optimal design for a specified Criterion
 #'
 #' @description
 #' The opt_des function calculates the optimal design for an optimality Criterion and a model input from the user.
 #' The parameters allows for the user to customize the parameters for the cocktail algorithm in case the default
-#' set don't provide a satisfactory output. Depending on the criterion
+#' set don't provide a satisfactory output. Depending on the criterion, additional details are necessary.
+#' For 'Ds-Optimality' the par_int parameter is necessary. For 'I-Optimality' either the matB or reg_int must
+#' be provided.
 #'
-#' @param Criterion
-#' @param model
-#' @param parameters
-#' @param par_values
-#' @param design_space
-#' @param init_design
-#' @param joinThresh
-#' @param deleteThresh
-#' @param delta
-#' @param tol
-#' @param matB
-#' @param par_int
-#' @param reg_int
-#' @param desired_output
+#' @param Criterion character with the chosen optimality criterion. Can be one of the following:
+#'   * 'D-Optimality'
+#'   * 'Ds-Optimality'
+#'   * 'A-Optimality'
+#'   * 'I-Optimality'
+#' @param model formula describing the model to calculate the optimal design. Must use x as the variable.
+#' @param parameters character vector with the parameters of the models, as written in the \code{formula}.
+#' @param par_values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
+#' @param design_space numeric vector of length 2, first component with the minimum of the space of the design and
+#'   second component with the maximum.
+#' @param init_design optimal dataframe with the initial design for the algorithm. A dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param joinThresh optional numeric value that states how close, in real units, two points must be in order to
+#'   be joined together by the join heuristic.
+#' @param deleteThresh optional numeric value with the minimum weight, over 1 total, that a point needs to have
+#'   in order to not be deleted from the design.
+#' @param delta optional numeric value in (0, 1), parameter of the algorithm.
+#' @param tol optional numeric value for the convergence of the weight optimizing algorithm.
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
+#'   interest region.
+#' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
+#' @param desired_output not functional yet: decide which kind of output you want.
 #'
-#' @return
+#' @return a list of two objects:
+#'   * optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
+#'   * sens: a plot with the sensitivity function to check for optimality of the design.
 #' @export
 #'
 #' @examples
+#' opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
 opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     init_design = NA,
                     joinThresh = -1,
                     deleteThresh = 0.02,
                     delta = 1/2,
                     tol = 0.00001,
-                    matB = NA,
                     par_int = NA,
+                    matB = NA,
                     reg_int = NA,
                     desired_output = c(1, 2)
 ){
