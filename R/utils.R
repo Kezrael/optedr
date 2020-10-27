@@ -1,7 +1,20 @@
 # Auxiliar function for algorithms --------------------------------------
-# Funciones auxiliares para el algoritmo
 
-# Busca el máximo de una función a través de una rejilla
+
+#' Find Maximum
+#'
+#' @description
+#' Searches the maximum of a function over a grid on a given interval.
+#'
+#' @param sens A single variable numeric function to evaluate.
+#' @param min Minimum value of the search interval.
+#' @param max Maximum value of the search interval.
+#' @param grid.length Length of the search interval.
+#'
+#' @return The value at which the maximum is obtained
+#'
+#' @examples
+#' optedr:::findmax(function(x) x^2-x^3, 0, 1, 1000)
 findmax <- function(sens, min, max, grid.length) {
   if(min <= max){
     grid <- seq(min, max, length.out = grid.length)
@@ -9,36 +22,101 @@ findmax <- function(sens, min, max, grid.length) {
   else {
     grid <- seq(max, min, length.out = grid.length)
   }
-  xmax <- grid[which.max(map(grid, sens))]
+  xmax <- grid[which.max(purrr::map(grid, sens))]
   return(xmax)
 }
 
 
 
-# Función para actualizar los pesos de un diseño para el algoritmo WF D opt
+
+#' Update weight D-Optimality
+#'
+#' @description
+#' Implementation of the weight update formula for D-Optimality used to optimize the weights of a design,
+#' which is to be applied iteratively until no sizable changes happen.
+#'
+#' @param design Design to optimize the weights from. It's a dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param sens Sensibility function for the design and model.
+#' @param k Number of parameters of the model.
+#' @param delta A parameter of the algorithm that can be tunned. Must be \eqn{0< delta < 1}.
+#'
+#' @return returns the new weights of the design after one iteration.
+#'
+#' @examples
+#' \dontrun{updateWeights(design, sens, k, delta)}
 updateWeights <- function(design, sens, k, delta) {
   weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/k)^delta
   return(weights/sum(weights))
 }
 
-# Función para actualizar los pesos de un diseño para el algoritmo WF Ds opt
+
+#' Update weight Ds-Optimality
+#'
+#' @description
+#' Implementation of the weight update formula for Ds-Optimality used to optimize the weights of a design,
+#' which is to be applied iteratively until no sizable changes happen.
+#'
+#'
+#' @param s Number of interest parameters of the model
+#' @inheritParams updateWeights
+#'
+#' @return returns the new weights of the design after one iteration.
+#'
+#' @examples
+#' \dontrun{updateWeightsDS(design, sens, s, delta)}
 updateWeightsDS <- function(design, sens, s, delta) {
   weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/s)^delta
-  # print(length(design$Weight))
-  # print(length((map_dbl(des$Point, sens)/k)^delta))
   return(weights)
 }
 
-# Función para actualizar los pesos de un diseño para el algoritmo WF I opt
+#' Update weight I-Optimality
+#'
+#' @description
+#' Implementation of the weight update formula for I-Optimality used to optimize the weights of a design,
+#' which is to be applied iteratively until no sizable changes happen. A-Optimality if instead of the
+#' integral matrix the identity function is used.
+#'
+#'
+#' @param crit Value of the criterion function for I-Optimality.
+#' @inheritParams updateWeights
+#'
+#' @return returns the new weights of the design after one iteration.
+#'
+#'
+#' @examples
+#' \dontrun{updateWeightsI(design, sens, crit, delta)}
 updateWeightsI <- function(design, sens, crit, delta) {
   weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/crit)^delta
-  # print(length(design$Weight))
-  # print(length((map_dbl(des$Point, sens)/k)^delta))
   return(weights)
 }
 
 
-# Función para actualizar un diseño añadiendo un nuevo punto (o peso al mismo si está cerca de otro ya en el diseño)
+#' Update Design with new point
+#'
+#' @description
+#' Updates a design adding a new point to it. If the added point is closer than \code{delta} to an existing
+#' point of the design, the two points are merged together as their arithmetic average. Then updates the weights
+#' to be equal to all points of the design.
+#'
+#' @param design Design to update. It's a dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param xmax The point to add as a numeric value.
+#' @param delta Threshold which defines how close the new point has to be to any of the existing ones in order to
+#'   merge with them.
+#'
+#' @return The updated design.
+#'
+#' @examples
+#' # Without merging:
+#' design <- data.frame("Point" = c(1,5, 9), "Weight" = rep(1/3, times = 3))
+#' optedr:::updateDesign(design, 2, 0.5)
+#'
+#' # Merging:
+#' design <- data.frame("Point" = c(1,5, 9), "Weight" = rep(1/3, times = 3))
+#' optedr:::updateDesign(design, 2, 1.1)
 updateDesign <- function(design, xmax, delta){
   absdiff <- abs(design$Point - xmax) < delta
   if (any(absdiff))
@@ -54,7 +132,23 @@ updateDesign <- function(design, xmax, delta){
   return(design)
 }
 
-# Actualizar un diseño sin añadir puntos
+
+#' Merge close points of a design
+#'
+#' @description
+#' Takes a design and merge together all points that are closer between them than a certain threshold \code{delta}.
+#'
+#' @param design The design to update. It's a dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param delta Threshold which defines how close two points have to be to any of the existing ones in order to
+#'   merge with them.
+#'
+#' @return The updated design.
+#'
+#' @examples
+#' design <- data.frame("Point" = c(1, 5, 11, 12), "Weight" = rep(1/4, times = 4))
+#' optedr:::updateDesignTotal(design, 1.1)
 updateDesignTotal <- function(design, delta){
   updated <- FALSE
   finished <- FALSE
@@ -73,7 +167,24 @@ updateDesignTotal <- function(design, delta){
   return(design)
 }
 
-# Función para eliminar los puntos con menos de un determinado peso, delta
+
+#' Remove low weight points
+#'
+#' @description
+#' Removes the points of a design with a weight lower than a threshold, \code{delta}, and distributes that weights
+#' proportionally to the rest of the points.
+#'
+#' @param design The design from which to remove points as a dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param delta The threshold from which the points with such a weight or lower will be removed.
+#'
+#' @return The design without the removed points.
+#'
+#'
+#' @examples
+#' design <- data.frame("Point" = seq(1, 100,length.out = 8), "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
+#' optedr:::deletePoints(design, 0.09)
 deletePoints <- function(design, delta) {
   updatedDesign <- design[design$Weight > delta, ]
   updatedDesign$Weight <- updatedDesign$Weight/sum(updatedDesign$Weight)
@@ -82,11 +193,38 @@ deletePoints <- function(design, delta) {
 
 # General auxiliar functions --------------------------
 # Cálculo de la traza de una matriz
-tr <- function(m) {
-  return(sum(diag(m)))
+#' Trace
+#'
+#' @description
+#' Return the mathematical trace of a matrix, the sum of its diagonal elements.
+#'
+#'
+#' @param M The matrix from which to calculate the trace.
+#'
+#' @return The trace of the matrix.
+#'
+#' @examples
+#' optedr:::tr(matrix(c(1, 0, 0, 1), nrow = 2))
+tr <- function(M) {
+  return(sum(diag(M)))
 }
 
 # Dibuja la función de sensibilidad (y el diseño?)
+#' Plot sensitivity function
+#'
+#' @description
+#' Plots the sensitivity function and the value of the Equivalence Theorem as an horizontal line, which helps
+#' assess the optimality of the design of the given sensitivity function.
+#'
+#' @param min Minimum of the space of the design, used in the limits of the representation.
+#' @param max Maximum of the space of the design, used in the limits of the representation.
+#' @param sens_function A single variable function, the sensitivity function.
+#' @param criterion_value A numeric value representing the other side of the inequality of the Equivalence Theorem.
+#'
+#' @return A `ggplot` object that represents the sensitivity function
+#'
+#' @examples
+#' \dontrun{plot_sens(1, 100, sens, crit)}
 plot_sens <- function(min, max, sens_function, criterion_value){
   grid <- seq(212, 422, length.out = 10000)
   sens_grid <- purrr::map_dbl(grid, sens_function)

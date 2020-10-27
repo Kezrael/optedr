@@ -64,3 +64,10 @@ of the algorithm.
   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
 }
 }
+\seealso{
+Other cocktail algorithms: 
+\code{\link{DWFMult}()},
+\code{\link{DsWFMult}()},
+\code{\link{WFMult}()}
+}
+\concept{cocktail algorithms}

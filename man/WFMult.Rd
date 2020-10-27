@@ -79,3 +79,10 @@ and the necessary parameters for the functions are given from the user input.
   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
 }
 }
+\seealso{
+Other cocktail algorithms: 
+\code{\link{DWFMult}()},
+\code{\link{DsWFMult}()},
+\code{\link{IWFMult}()}
+}
+\concept{cocktail algorithms}

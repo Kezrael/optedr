@@ -1,12 +1,33 @@
 # Optimality Criteria -----------------------
-# Calcula la función criterio para la matriz de información determinada en función del criterio
-# Llama a las funciones particulares
-crit <- function(Criterion, mat, k = 3, intPars = 2, matB = NA){
+
+#' Master function for the criterion function
+#'
+#' @description
+#' Depending on the Criterion input, the function returns the output of the corresponding criterion function given
+#' the information matrix.
+#'
+#' @param Criterion Character with the chosen optimality criterion. Can be one of the following:
+#'   * 'D-Optimality'
+#'   * 'Ds-Optimality'
+#'   * 'A-Optimality'
+#'   * 'I-Optimality'
+#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#' @param intPars Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
+#' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
+#'
+#' @return Numeric value of the optimality criterion for the information matrix.
+#'
+#'
+#' @examples
+#' M <- matrix(c(1, 0.75, 0.75, 0.625), nrow = 2)
+#' optedr:::crit("D-Optimality", M, k = 2)
+crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA){
   if(identical(Criterion, "D-Optimality")){
     return(dcrit(mat, k))
   }
   else if(identical(Criterion, "Ds-Optimality")){
-    return(dscrit(mat, length(intPars), intPars))
+    return(dscrit(mat, intPars))
   }
   else if(identical(Criterion, "A-Optimality")){
     return(icrit(mat, diag(k)))
@@ -16,61 +37,113 @@ crit <- function(Criterion, mat, k = 3, intPars = 2, matB = NA){
   }
 }
 
-# Calcula la función criterio para D-opt
+
+#' Criterion function for D-Optimality
+#'
+#' @description
+#' Calculates the value of the D-Optimality criterion, which follows the expression:
+#' \deqn{\phi_D = \frac{1}{|M|}^{1/k}}
+#'
+#'
+#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#'
+#'
+#' @return numeric value of the D-optimality criterion for the information matrix.
+#'
+#' @examples
+#' optedr:::dcrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), k = 2)
 dcrit <- function(mat, k) {
+  if (k == 0) k <- nrow(mat)
   return((1/det(mat))^(1/k))
 }
 
-# Valor del criterio de Ds-Optimalidad para la matriz
-dscrit <- function(mat, s, intPars) {
+
+#' Criterion function for Ds-Optimality
+#'
+#' @description
+#' Calculates the value of the Ds-Optimality criterion, which follows the expression:
+#' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+#'
+#'
+#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param intPars Numeric vector with the index of the parameters of interest of the model.
+#'
+#'
+#' @return Numeric value of the Ds-optimality criterion for the information matrix.
+#'
+#' @examples
+#' optedr:::dscrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), c(2))
+dscrit <- function(mat, intPars) {
   if(length(mat[-intPars, -intPars]) == 1){
-    return((mat[-intPars, -intPars]/det(mat))^(1/s))
+    return((mat[-intPars, -intPars]/det(mat))^(1/length(intPars)))
   }
   else{
-    return((det(mat[-intPars, -intPars])/det(mat))^(1/s))
+    return((det(mat[-intPars, -intPars])/det(mat))^(1/length(intPars)))
   }
 }
 
-icrit <- function(mat, matB = diag(3)) {
+#' Criterion function for I-Optimality
+#'
+#' @description
+#' Calculates the value of the Ds-Optimality criterion, which follows the expression:
+#' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+#'
+#'
+#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param matB Matrix of the integral of the information matrix over the interest region. Identity matrix for
+#'   A-Optimality.
+#'
+#'
+#' @return Numeric value of the Ds-optimality criterion for the information matrix.
+#'
+#' @examples
+#' optedr:::icrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), diag(2))
+icrit <- function(mat, matB) {
   return(tr(matB %*% solve(mat)))
 }
 
 
+
 # Efficiency-------- -----------------------
 
-# Calcula la eficiencia entre dos diseños a partir de las matrices de información dependiendo del criterio
-# Llama a las funciones particulares
-eff <- function(Criterion, mat1, mat2, k = 3, intPars = 2, matB = NA){
+
+#' Efficiency between two Information Matrices
+#'
+#' @param Criterion Character with the chosen optimality criterion. Can be one of the following:
+#'   * 'D-Optimality'
+#'   * 'Ds-Optimality'
+#'   * 'A-Optimality'
+#'   * 'I-Optimality'
+#' @param mat1 First information matrix, for the numerator.
+#' @param mat2 Second information matrix, for the denominator.
+#' @param k Number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#' @param intPars Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
+#' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
+#'
+#' @return Efficiency of first design with respect to the second design, as a decimal number.
+#'
+#' @examples
+#' optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
+eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA){
   if(identical(Criterion, "D-Optimality")){
-    return(deff(mat1, mat2, k))
+    if(k == 0) k <- nrow(mat1)
+    return((det(mat1)/det(mat2))^(1/k))
   }
   else if(identical(Criterion, "Ds-Optimality")){
-    return(dseff(mat1, mat2, length(intPars), intPars))
+    if(length(mat1[-intPars, -intPars]) == 1){
+      return((mat2[-intPars, -intPars]/det(mat2)/(mat1[-intPars, -intPars]/det(mat1)))^(1/length(intPars)))
+    }
+    else {
+      return((det(mat2[-intPars, -intPars])/det(mat2)/(det(mat1[-intPars, -intPars])/det(mat1)))^(1/length(intPars)))
+    }
   }
   else if(identical(Criterion, "A-Optimality")){
-    return(ieff(mat1, mat2, diag(k)))
+    if(k == 0) k <- nrow(mat1)
+    return(tr(diag(k) %*% solve(mat2))/tr(diag(k) %*% solve(mat1)))
   }
   else if(identical(Criterion, "I-Optimality")){
-    return(ieff(mat1, mat2, matB))
+    return(tr(matB %*% solve(mat2))/tr(matB %*% solve(mat1)))
   }
 }
 
-# Cálculo de D-Eficiencia de la matriz 1 respecto a la matriz 2
-deff <- function(mat1, mat2, k) {
-  return((det(mat1)/det(mat2))^(1/k))
-}
-
-# Cálculo de D-Eficiencia de la matriz 1 respecto a la matriz 2
-dseff <- function(mat1, mat2, s, intPars) {
-  if(length(mat1[-intPars, -intPars]) == 1){
-    return((mat2[-intPars, -intPars]/det(mat2)/(mat1[-intPars, -intPars]/det(mat1)))^(1/s))
-  }
-  else {
-    return((det(mat2[-intPars, -intPars])/det(mat2)/(det(mat1[-intPars, -intPars])/det(mat1)))^(1/s))
-  }
-}
-
-# Cálculo de D-Eficiencia de la matriz 1 respecto a la matriz 2
-ieff <- function(mat1, mat2, matB = NA){
-  return(tr(matB %*% solve(mat2))/tr(matB %*% solve(mat1)))
-}

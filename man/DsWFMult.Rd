@@ -7,7 +7,7 @@
 DsWFMult(
   initDes,
   grad,
-  intPar,
+  intPars,
   min,
   max,
   grid.length,
@@ -25,6 +25,9 @@ DsWFMult(
 }}
 
 \item{grad}{function of partial derivatives of the model.}
+
+\item{intPars}{numeric vector with the index of the \code{parameters} of interest. Only necessary when
+the \code{Criterion} chosen is 'Ds-Optimality'.}
 
 \item{min}{numeric value with the inferior bound of the space of the design.}
 
@@ -60,3 +63,10 @@ rest of the parameters can help the convergence of the algorithm.
   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
 }
 }
+\seealso{
+Other cocktail algorithms: 
+\code{\link{DWFMult}()},
+\code{\link{IWFMult}()},
+\code{\link{WFMult}()}
+}
+\concept{cocktail algorithms}

@@ -40,6 +40,8 @@
 #'   * optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
 #'   * sens: a plot with the sensitivity function to check for optimality of the design.
 #'
+#' @family cocktail algorithms
+#'
 #' @examples
 #' \dontrun{
 #'   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
@@ -67,6 +69,8 @@ WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, 
 #' algorithm.
 #'
 #' @inherit WFMult return params examples
+#'
+#' @family cocktail algorithms
 #'
 DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol) {
   # critVal <- numeric(2122)
@@ -110,7 +114,9 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
 #'
 #' @inherit WFMult return params examples
 #'
-DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
+#' @family cocktail algorithms
+#'
+DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
   # critVal <- numeric(2122)
   # index <- 1
   # Maximum iterations for the optimize weights loop
@@ -119,7 +125,7 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
     M <- inf_mat(grad, initDes)
     # critVal[index] <- dscrit(M, s, intPar)
     # index <- index + 1
-    sensDs <- dssens(grad, M, intPar)
+    sensDs <- dssens(grad, M, intPars)
     xmax <- findmax(sensDs, min, max, grid.length)
     initDes <- updateDesign(initDes, xmax, joinThresh)
     iter <- 1
@@ -129,8 +135,8 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
       # critVal[index] <- dscrit(M, s, intPar)
       # index <- index + 1
       M <- inf_mat(grad, initDes)
-      sensDs <- dssens(grad, M, intPar)
-      initDes$Weight <- updateWeightsDS(initDes, sensDs, length(intPar), deltaW)
+      sensDs <- dssens(grad, M, intPars)
+      initDes$Weight <- updateWeightsDS(initDes, sensDs, length(intPars), deltaW)
       stopw <- max(abs(weightsInit - initDes$Weight)) < tol || iter >= maxiter
       iter <- iter + 1
     }
@@ -141,7 +147,7 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
   # critVal[index] <- dscrit(M, s, intPar)
   # critVal <- critVal[1:(length(critVal)-sum(critVal == 0))]
   # conv <- data.frame("criteria" = critVal, "step" = seq(1, length(critVal), 1))
-  plot_opt <-plot_sens(min, max, sensDs, length(intPar))
+  plot_opt <-plot_sens(min, max, sensDs, length(intPars))
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
 }
@@ -155,6 +161,8 @@ DsWFMult <- function(initDes, grad, intPar, min, max, grid.length, joinThresh, d
 #' of the algorithm.
 #'
 #' @inherit WFMult return params examples
+#'
+#' @family cocktail algorithms
 #'
 IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol) {
   # critVal <- numeric(2122)
