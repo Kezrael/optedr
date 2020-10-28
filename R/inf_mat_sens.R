@@ -53,7 +53,7 @@ gradient <- function(model, char_vars, values)
 inf_mat <- function(grad, design){
   matrix_ret <- 0*diag(length(grad(design$Point[[1]])))
   for(i in seq_along(design$Weight)){
-    f_col <- as.matrix(grad(design$Point[[i]]), nrow = 1, ncol = 3, byrow = TRUE, dimnames = NULL)
+    f_col <- as.matrix(grad(design$Point[[i]]), nrow = 1, byrow = TRUE, dimnames = NULL)
     matrix_ret <- matrix_ret + (t(f_col) %*% f_col) * design$Weight[[i]]
   }
   return(matrix_ret)

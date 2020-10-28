@@ -108,33 +108,35 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must be numeric vector")
     }
     # Check that all are indexes
-    if(any(par_int %% 1 != 0)){
-      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must contain only integers")
-    }
-    if(any(par_int > length(parameters))){
-      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int index out of bonds")
-    }
-    if(length(par_int) >= length(parameters)){
-      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int has length equal or greater than the number of parameters. Consider using D-Optimality")
+    if(!is.na(par_int)){
+      if(any(par_int %% 1 != 0)){
+        error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must contain only integers")
+      }
+      if(any(par_int > length(parameters))){
+        error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int index out of bonds")
+      }
+      if(length(par_int) >= length(parameters)){
+        error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int has length equal or greater than the number of parameters. Consider using D-Optimality")
+      }
     }
   }
 
   # If I-Optimality check matB and reg_int
   if(Criterion == "I-Optimality"){
     #Check that matB or reg_int are provided
-    if(is.na(matB) && is.na(reg_int)){
+    if(is.null(matB) && is.null(reg_int)){
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " either matB or reg_int must be provided for I-Optimality")
     }
     # Send message if both are provided
-    if(!is.na(matB) && !is.na(reg_int)){
+    if(!is.null(matB) && !is.null(reg_int)){
       warning(error_msg <- paste0("\n", crayon::blue(cli::symbol$info), " matB and reg_int are provided, matB will be used."))
     }
     # Check that matB is a matrix with the correct length
-    if(!is.na(matB) && (!is.matrix(matB) || nrow(matB) != length(parameters) || ncol(matB) != length(parameters))){
+    if(!is.null(matB) && (!is.matrix(matB) || nrow(matB) != length(parameters) || ncol(matB) != length(parameters))){
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " matB must be a square matrix with as many rows as parameters")
     }
     # Check that reg_int is a numeric vector of length 2
-    if(!is.na(reg_int) && (!is.numeric(reg_int) || !is.atomic(reg_int) || !is.vector(reg_int) || length(reg_int) != 2)){
+    if(!is.null(reg_int) && (!is.numeric(reg_int) || !is.atomic(reg_int) || !is.vector(reg_int) || length(reg_int) != 2)){
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be numeric vector of length 2")
     }
 

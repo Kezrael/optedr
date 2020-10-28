@@ -237,3 +237,40 @@ plot_sens <- function(min, max, sens_function, criterion_value){
     ggplot2::labs(x = "X", y = "Y")
 }
 
+
+
+#' Integrate IM
+#'
+#' @description
+#' Integrates the information matrix over the region of interest to calculate matrix B to be used in I-Optimality
+#' calculation.
+#'
+#' @param grad function of partial derivatives of the model.
+#' @param k number of unknown parameters of the model.
+#' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
+#'
+#' @return The integrated information matrix.
+#'
+#'
+#' @examples
+#' grad <- optedr:::gradient(y ~ a + b*x, c("a", "b"), c(1,1))
+#' optedr:::integrate_reg_int(grad, 2, c(0,3))
+integrate_reg_int <- function(grad, k, reg_int){
+  matrix_int <- 0*diag(k)
+  for(i in 1:k){
+    for(j in 1:k){
+      if(j>=i){
+        int_part <- function(x_value){
+          purrr::map_dbl(x_value, function(x_value) grad(x_value)[i]*grad(x_value)[j]/(reg_int[2] - reg_int[1]))
+        }
+        matrix_int[i, j] <- integrate(int_part, lower = reg_int[1], upper = reg_int[2])$value
+      }
+      else{
+        matrix_int[i, j] <- matrix_int[j, i]
+      }
+    }
+  }
+  return(matrix_int)
+}
+
+

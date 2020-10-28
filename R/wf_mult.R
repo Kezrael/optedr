@@ -104,6 +104,13 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
   # critVal[index] <- dcrit(M, k)
   # critVal <- critVal[1:(length(critVal)-sum(critVal == 0))]
   # conv <- data.frame("criteria" = critVal, "step" = seq(1, length(critVal), 1))
+
+  M <- inf_mat(grad, initDes)
+  sensM <- dsens(grad, M)
+  xmax <- findmax(sensM, min, max, grid.length*10)
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", k/sensM(xmax)*100, "%")
+
   plot_opt <- plot_sens(min, max, sensM, k)
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
@@ -153,6 +160,14 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
   initDes <- initDes %>%
     dplyr::arrange(Point)
   rownames(initDes) <- NULL
+
+  M <- inf_mat(grad, initDes)
+  sensM <- dssens(grad, M, intPars)
+  xmin <- findmax(function(x) 1/sensM(x), min, max, grid.length*10)
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1+sensM(xmin)/dscrit(M, intPars))*100, "%")
+
+
   plot_opt <-plot_sens(min, max, sensDs, length(intPars))
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
@@ -206,6 +221,14 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
   initDes <- initDes %>%
     dplyr::arrange(Point)
   rownames(initDes) <- NULL
+
+  M <- inf_mat(grad, initDes)
+  sensM <- isens(grad, M, matB)
+  xmax <- findmax(sensM, min, max, grid.length*10)
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2-sensM(xmax)/icrit(M, matB))*100, "%")
+
+
   plot_opt <-plot_sens(min, max, sensI, icrit(M, matB))
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
@@ -261,8 +284,8 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     delta = 1/2,
                     tol = 0.00001,
                     par_int = NA,
-                    matB = NA,
-                    reg_int = NA,
+                    matB = NULL,
+                    reg_int = NULL,
                     desired_output = c(1, 2)
 ){
   k <- length(par_values)
@@ -272,6 +295,11 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
   if(design_space[1] > design_space[2]) design_space <- rev(design_space)
   grad <- gradient(model, parameters, par_values)
   if(joinThresh == -1) joinThresh <- (design_space[[2]] - design_space[[1]])/10
+  if(identical(Criterion, "I-Optimality") && is.null(matB)){
+    if(!is.null(reg_int)){
+      matB <- integrate_reg_int(grad, k, reg_int)
+    }
+  }
   output <- WFMult(init_design, grad, Criterion, intPars = par_int, matB, design_space[[1]], design_space[[2]], 1000, joinThresh, deleteThresh, k, delta, tol)
 }
 
