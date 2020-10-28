@@ -98,6 +98,9 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
     }
     initDes <- deletePoints(initDes, deleteThresh)
   }
+  initDes <- initDes %>%
+    dplyr::arrange(Point)
+  rownames(initDes) <- NULL
   # critVal[index] <- dcrit(M, k)
   # critVal <- critVal[1:(length(critVal)-sum(critVal == 0))]
   # conv <- data.frame("criteria" = critVal, "step" = seq(1, length(critVal), 1))
@@ -147,6 +150,9 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
   # critVal[index] <- dscrit(M, s, intPar)
   # critVal <- critVal[1:(length(critVal)-sum(critVal == 0))]
   # conv <- data.frame("criteria" = critVal, "step" = seq(1, length(critVal), 1))
+  initDes <- initDes %>%
+    dplyr::arrange(Point)
+  rownames(initDes) <- NULL
   plot_opt <-plot_sens(min, max, sensDs, length(intPars))
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
@@ -197,6 +203,9 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
   # critVal[index] <- icrit(M, matB)
   # critVal <- critVal[1:(length(critVal)-sum(critVal == 0))]
   # conv <- data.frame("criteria" = critVal, "step" = seq(1, length(critVal), 1))
+  initDes <- initDes %>%
+    dplyr::arrange(Point)
+  rownames(initDes) <- NULL
   plot_opt <-plot_sens(min, max, sensI, icrit(M, matB))
   list("optdes" = initDes#, "convergence" = conv
        ,"sens" = plot_opt)
@@ -246,7 +255,7 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 #' @examples
 #' opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
 opt_des <- function(Criterion, model, parameters, par_values, design_space,
-                    init_design = NA,
+                    init_design = NULL,
                     joinThresh = -1,
                     deleteThresh = 0.02,
                     delta = 1/2,
@@ -257,7 +266,7 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     desired_output = c(1, 2)
 ){
   k <- length(par_values)
-  if(is.na(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]],length.out = k), "Weight" = rep(1/k, times = k))
+  if(is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]],length.out = k*(k+1)/2 + 1), "Weight" = rep(1/k*(k+1)/2 + 1, times = k*(k+1)/2 + 1))
   check_inputs(Criterion, model, parameters, par_values, design_space, init_design, joinThresh, deleteThresh,
     delta, tol, par_int, matB, reg_int, desired_output)
   if(design_space[1] > design_space[2]) design_space <- rev(design_space)

@@ -226,7 +226,7 @@ tr <- function(M) {
 #' @examples
 #' \dontrun{plot_sens(1, 100, sens, crit)}
 plot_sens <- function(min, max, sens_function, criterion_value){
-  grid <- seq(212, 422, length.out = 10000)
+  grid <- seq(min, max, length.out = 10000)
   sens_grid <- purrr::map_dbl(grid, sens_function)
 
   sensibility <- ggplot2::ggplot(data = data.frame(x = grid, y = sens_grid), mapping = ggplot2::aes(x = x)) +

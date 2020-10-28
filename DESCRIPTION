@@ -19,4 +19,7 @@ Suggests:
     testthat
 Imports: 
     ggplot2,
-    purrr
+    purrr,
+    rlang,
+    crayon,
+    cli
