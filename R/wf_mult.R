@@ -256,9 +256,11 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     reg_int = NA,
                     desired_output = c(1, 2)
 ){
-  # check_inputs()
   k <- length(par_values)
   if(is.na(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]],length.out = k), "Weight" = rep(1/k, times = k))
+  check_inputs(Criterion, model, parameters, par_values, design_space, init_design, joinThresh, deleteThresh,
+    delta, tol, par_int, matB, reg_int, desired_output)
+  if(design_space[1] > design_space[2]) design_space <- rev(design_space)
   grad <- gradient(model, parameters, par_values)
   if(joinThresh == -1) joinThresh <- (design_space[[2]] - design_space[[1]])/10
   output <- WFMult(init_design, grad, Criterion, intPars = par_int, matB, design_space[[1]], design_space[[2]], 1000, joinThresh, deleteThresh, k, delta, tol)
