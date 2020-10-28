@@ -22,4 +22,5 @@ Imports:
     purrr,
     rlang,
     crayon,
-    cli
+    cli,
+    magrittr
