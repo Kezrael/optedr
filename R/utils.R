@@ -209,7 +209,7 @@ tr <- function(M) {
   return(sum(diag(M)))
 }
 
-# Dibuja la función de sensibilidad (y el diseño?)
+
 #' Plot sensitivity function
 #'
 #' @description
@@ -237,6 +237,26 @@ plot_sens <- function(min, max, sens_function, criterion_value){
     ggplot2::labs(x = "X", y = "Y")
 }
 
+#' Plot Convergence of the algorithm
+#'
+#' @description
+#' Plots the criterion value on each of the steps of the algorithm, both for optimizing weights and points,
+#' against the total step number.
+#'
+#' @param convergence A dataframe with two columns:
+#'   * \code{criteria} contains value of the criterion on each step.
+#'   * \code{step} contains number of the step.
+#'
+#' @return A ggplot object with the \code{criteria} in the \code{y} axis and \code{step} in the \code{x} axis.
+#'
+#' @examples
+#' conv <- data.frame("criteria" = c(24, 23, 20, 15, 14.9, 14.8, 14.7), "step" = 1:7)
+#' optedr:::plot_convergence(conv)
+plot_convergence <- function(convergence){
+  ggplot2::ggplot(data = convergence, ggplot2::aes(x=step, y=criteria)) +
+    ggplot2::geom_line(color="coral1") +
+    ggplot2::theme_bw()
+}
 
 
 #' Integrate IM

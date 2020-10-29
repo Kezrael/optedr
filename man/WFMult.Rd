@@ -17,7 +17,8 @@ WFMult(
   deleteThresh,
   k,
   deltaW,
-  tol
+  tol,
+  tol2
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ in order to not be deleted from the design.}
 \item{deltaW}{numeric value in (0, 1), parameter of the algorithm.}
 
 \item{tol}{numeric value for the convergence of the weight optimizing algorithm.}
+
+\item{tol2}{numeric value for the stop condition of the algorithm.}
 }
 \value{
 list correspondent to the output of the correspondent algorithm called, dependent on the criterion.
@@ -76,7 +79,7 @@ and the necessary parameters for the functions are given from the user input.
 }
 \examples{
 \dontrun{
-  WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol)
+  WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2)
 }
 }
 \seealso{

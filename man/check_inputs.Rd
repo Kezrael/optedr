@@ -15,6 +15,7 @@ check_inputs(
   deleteThresh,
   delta,
   tol,
+  tol2,
   par_int,
   matB,
   reg_int,

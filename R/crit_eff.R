@@ -147,3 +147,53 @@ eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA){
   }
 }
 
+
+#' Efficiency between optimal design and a user given design
+#'
+#' @description
+#' Takes a optimal design provided from the function \code{opt_des} and a user given design and compares their
+#' efficiency
+#'
+#' @seealso opt_des
+#'
+#' @param opt_des_obj An object given by the function \code{opt_des}.
+#' @param design A dataframe that represents the design. Must have two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#'
+#' @return The efficiency as a value between 0 and 1
+#' @export
+#'
+#' @examples
+#' result <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
+#' design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
+#' design_efficiency(result, design)
+design_efficiency <- function(opt_des_obj, design){
+  #check_efficiency_input(opt_des_obj, design) COMPROBAR QUE EL NUMERO DE POUNTOS ES >= LENGTH GRAD/NROW MAT
+  mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design)
+  mat2 <- inf_mat(attr(opt_des_obj, "gradient"), opt_des_obj$optdes)
+  if(identical(opt_des_obj$criterion, "D-Optimality")){
+    eff <- (det(mat1)/det(mat2))^(1/attr(opt_des_obj, "hidden_value"))
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+    return(eff)
+  }
+  else if(identical(opt_des_obj$criterion, "Ds-Optimality")){
+    int_pars <- attr(opt_des_obj, "hidden_value")
+    if(length(mat1[-int_pars, -int_pars]) == 1){
+      eff <- (mat2[-int_pars, -int_pars]/det(mat2)/(mat1[-int_pars, -int_pars]/det(mat1)))^(1/length(int_pars))
+      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+      return(eff)
+    }
+    else {
+      eff <- (det(mat2[-int_pars, -int_pars])/det(mat2)/(det(mat1[-int_pars, -int_pars])/det(mat1)))^(1/length(int_pars))
+      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+      return(eff)
+    }
+  }
+  else if(identical(opt_des_obj$criterion, "I-Optimality")){
+    eff <- tr(attr(opt_des_obj, "hidden_value") %*% solve(mat2))/tr(attr(opt_des_obj, "hidden_value") %*% solve(mat1))
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+    return(eff)
+  }
+}
+

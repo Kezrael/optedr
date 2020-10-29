@@ -10,14 +10,15 @@ opt_des(
   parameters,
   par_values,
   design_space,
-  init_design = NA,
+  init_design = NULL,
   joinThresh = -1,
   deleteThresh = 0.02,
   delta = 1/2,
   tol = 1e-05,
+  tol2 = 1e-05,
   par_int = NA,
-  matB = NA,
-  reg_int = NA,
+  matB = NULL,
+  reg_int = NULL,
   desired_output = c(1, 2)
 )
 }

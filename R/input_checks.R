@@ -13,6 +13,7 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
                          deleteThresh,
                          delta,
                          tol,
+                         tol2,
                          par_int,
                          matB,
                          reg_int,
@@ -98,6 +99,15 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
 
   if(tol <= 0){
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " tol must be in greater than 0")
+  }
+
+  # Check that tol2 is numeric and greater than 0
+  if(!is.numeric(tol2)){
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " tol2 must be numeric")
+  }
+
+  if(tol2 <= 0){
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " tol2 must be in greater than 0")
   }
 
 
