@@ -3,5 +3,3 @@
 S3method(print,optdes)
 export(design_efficiency)
 export(opt_des)
-
-importFrom(magrittr, "%>%")

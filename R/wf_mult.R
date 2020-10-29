@@ -114,8 +114,7 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  init_design <- init_design %>%
-    dplyr::arrange(Point)
+  init_design <- dplyr::arrange(init_design, Point)
   rownames(init_design) <- NULL
 
   M <- inf_mat(grad, init_design)
@@ -186,8 +185,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  init_design <- init_design %>%
-    dplyr::arrange(Point)
+  init_design <- dplyr::arrange(init_design, Point)
   rownames(init_design) <- NULL
 
   M <- inf_mat(grad, init_design)
@@ -263,8 +261,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  init_design <- init_design %>%
-    dplyr::arrange(Point)
+  init_design <- dplyr::arrange(init_design, Point)
   rownames(init_design) <- NULL
 
 
