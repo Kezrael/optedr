@@ -45,19 +45,19 @@
 #'
 #' @examples
 #' \dontrun{
-#'   WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2)
+#' WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2)
 #' }
-WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2){
-  if(identical(Criterion, "D-Optimality")){
+WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2) {
+  if (identical(Criterion, "D-Optimality")) {
     return(DWFMult(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2))
   }
-  else if(identical(Criterion, "Ds-Optimality")){
+  else if (identical(Criterion, "Ds-Optimality")) {
     return(DsWFMult(initDes, grad, intPars, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
   }
-  else if(identical(Criterion, "A-Optimality")){
-    return(IWFMult(initDes, grad, diag(k),min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
+  else if (identical(Criterion, "A-Optimality")) {
+    return(IWFMult(initDes, grad, diag(k), min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
   }
-  else if(identical(Criterion, "I-Optimality")){
+  else if (identical(Criterion, "I-Optimality")) {
     return(IWFMult(initDes, grad, matB, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
   }
 }
@@ -78,20 +78,20 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
-  for(i in 1:21) {
+  for (i in 1:21) {
     M <- inf_mat(grad, initDes)
     crit_val[index] <- dcrit(M, k)
     index <- index + 1
     sensM <- dsens(grad, M)
     xmax <- findmax(sensM, min, max, grid.length)
-    if((sensM(xmax)-k)/k < tol2) {
+    if ((sensM(xmax) - k) / k < tol2) {
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     initDes <- updateDesign(initDes, xmax, joinThresh)
     iter <- 1
     stopw <- FALSE
-    while(!stopw) {
+    while (!stopw) {
       weightsInit <- initDes$Weight
       M <- inf_mat(grad, initDes)
       crit_val[index] <- dcrit(M, k)
@@ -102,14 +102,15 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
-    if(i %% 5 == 0)
+    if (i %% 5 == 0) {
       initDes <- updateDesignTotal(initDes, joinThresh)
-    if(i == 21){
+    }
+    if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
   crit_val[index] <- dcrit(M, k)
-  crit_val <- crit_val[1:(length(crit_val)-sum(crit_val == 0))]
+  crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
@@ -119,15 +120,17 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
 
   M <- inf_mat(grad, initDes)
   sensM <- dsens(grad, M)
-  xmax <- findmax(sensM, min, max, grid.length*10)
+  xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", k/sensM(xmax)*100, "%")
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", k / sensM(xmax) * 100, "%")
 
   plot_opt <- plot_sens(min, max, sensM, k)
-  l_return <- list("optdes" = initDes, "convergence" = conv_plot
-       ,"sens" = plot_opt, "criterion" = "D-Optimality", "crit_value" = crit_val[length(crit_val)])
-  attr(l_return,"hidden_value") <- k
-  attr(l_return,"gradient") <- grad
+  l_return <- list(
+    "optdes" = initDes, "convergence" = conv_plot,
+    "sens" = plot_opt, "criterion" = "D-Optimality", "crit_value" = crit_val[length(crit_val)]
+  )
+  attr(l_return, "hidden_value") <- k
+  attr(l_return, "gradient") <- grad
   class(l_return) <- "optdes"
   l_return
 }
@@ -147,20 +150,20 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
-  for(i in 1:21) {
+  for (i in 1:21) {
     M <- inf_mat(grad, initDes)
     crit_val[index] <- dscrit(M, intPars)
     index <- index + 1
     sensDs <- dssens(grad, M, intPars)
     xmax <- findmax(sensDs, min, max, grid.length)
-    if((sensDs(xmax)-length(intPars))/length(intPars) < tol2) {
+    if ((sensDs(xmax) - length(intPars)) / length(intPars) < tol2) {
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     initDes <- updateDesign(initDes, xmax, joinThresh)
     iter <- 1
     stopw <- FALSE
-    while(!stopw) {
+    while (!stopw) {
       weightsInit <- initDes$Weight
       crit_val[index] <- dscrit(M, intPars)
       index <- index + 1
@@ -171,14 +174,15 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
-    if(i %% 5 == 0)
+    if (i %% 5 == 0) {
       initDes <- updateDesignTotal(initDes, joinThresh)
-    if(i == 21){
+    }
+    if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
   crit_val[index] <- dscrit(M, intPars)
-  crit_val <- crit_val[1:(length(crit_val)-sum(crit_val == 0))]
+  crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
@@ -188,16 +192,18 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
 
   M <- inf_mat(grad, initDes)
   sensM <- dssens(grad, M, intPars)
-  xmin <- findmax(function(x) 1/sensM(x), min, max, grid.length*10)
+  xmin <- findmax(function(x) 1 / sensM(x), min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1+sensM(xmin)/dscrit(M, intPars))*100, "%")
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1 + sensM(xmin) / dscrit(M, intPars)) * 100, "%")
 
 
-  plot_opt <-plot_sens(min, max, sensDs, length(intPars))
-  l_return <- list("optdes" = initDes, "convergence" = conv_plot
-       ,"sens" = plot_opt, "criterion" = "Ds-Optimality", "crit_value" = crit_val[length(crit_val)])
-  attr(l_return,"hidden_value") <- intPars
-  attr(l_return,"gradient") <- grad
+  plot_opt <- plot_sens(min, max, sensDs, length(intPars))
+  l_return <- list(
+    "optdes" = initDes, "convergence" = conv_plot,
+    "sens" = plot_opt, "criterion" = "Ds-Optimality", "crit_value" = crit_val[length(crit_val)]
+  )
+  attr(l_return, "hidden_value") <- intPars
+  attr(l_return, "gradient") <- grad
   class(l_return) <- "optdes"
   l_return
 }
@@ -219,20 +225,20 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
-  for(i in 1:21) {
+  for (i in 1:21) {
     M <- inf_mat(grad, initDes)
     crit_val[index] <- icrit(M, matB)
     index <- index + 1
     sensI <- isens(grad, M, matB)
     xmax <- findmax(sensI, min, max, grid.length)
-    if((sensI(xmax)-crit_val[index]) < tol2) {
+    if ((sensI(xmax) - crit_val[index]) < tol2) {
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     initDes <- updateDesign(initDes, xmax, joinThresh)
     iter <- 1
     stopw <- FALSE
-    while(!stopw) {
+    while (!stopw) {
       weightsInit <- initDes$Weight
       M <- inf_mat(grad, initDes)
       crit <- icrit(M, matB)
@@ -244,15 +250,16 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
-    if(i %% 5 == 0)
+    if (i %% 5 == 0) {
       initDes <- updateDesignTotal(initDes, joinThresh)
-    if(i == 21){
+    }
+    if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
   M <- inf_mat(grad, initDes)
   crit_val[index] <- icrit(M, matB)
-  crit_val <- crit_val[1:(length(crit_val)-sum(crit_val == 0))]
+  crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
@@ -263,16 +270,18 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 
   M <- inf_mat(grad, initDes)
   sensM <- isens(grad, M, matB)
-  xmax <- findmax(sensM, min, max, grid.length*10)
+  xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2-sensM(xmax)/icrit(M, matB))*100, "%")
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2 - sensM(xmax) / icrit(M, matB)) * 100, "%")
 
 
-  plot_opt <-plot_sens(min, max, sensI, icrit(M, matB))
-  l_return <- list("optdes" = initDes, "convergence" = conv_plot
-       ,"sens" = plot_opt, "criterion" = "I-Optimality", "crit_value" = crit_val[length(crit_val)])
-  attr(l_return,"hidden_value") <- matB
-  attr(l_return,"gradient") <- grad
+  plot_opt <- plot_sens(min, max, sensI, icrit(M, matB))
+  l_return <- list(
+    "optdes" = initDes, "convergence" = conv_plot,
+    "sens" = plot_opt, "criterion" = "I-Optimality", "crit_value" = crit_val[length(crit_val)]
+  )
+  attr(l_return, "hidden_value") <- matB
+  attr(l_return, "gradient") <- grad
   class(l_return) <- "optdes"
   l_return
 }
@@ -319,28 +328,29 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 #' @export
 #'
 #' @examples
-#' opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
+#' opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     init_design = NULL,
                     joinThresh = -1,
                     deleteThresh = 0.02,
-                    delta = 1/2,
+                    delta = 1 / 2,
                     tol = 0.00001,
                     tol2 = 0.00001,
                     par_int = NULL,
                     matB = NULL,
                     reg_int = NULL,
-                    desired_output = c(1, 2)
-){
+                    desired_output = c(1, 2)) {
   k <- length(par_values)
-  if(is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]],length.out = k*(k+1)/2 + 1), "Weight" = rep(1/(k*(k+1)/2 + 1), times = k*(k+1)/2 + 1))
-  check_inputs(Criterion, model, parameters, par_values, design_space, init_design, joinThresh, deleteThresh,
-    delta, tol, tol2, par_int, matB, reg_int, desired_output)
-  if(design_space[1] > design_space[2]) design_space <- rev(design_space)
+  if (is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]], length.out = k * (k + 1) / 2 + 1), "Weight" = rep(1 / (k * (k + 1) / 2 + 1), times = k * (k + 1) / 2 + 1))
+  check_inputs(
+    Criterion, model, parameters, par_values, design_space, init_design, joinThresh, deleteThresh,
+    delta, tol, tol2, par_int, matB, reg_int, desired_output
+  )
+  if (design_space[1] > design_space[2]) design_space <- rev(design_space)
   grad <- gradient(model, parameters, par_values)
-  if(joinThresh == -1) joinThresh <- (design_space[[2]] - design_space[[1]])/10
-  if(identical(Criterion, "I-Optimality") && is.null(matB)){
-    if(!is.null(reg_int)){
+  if (joinThresh == -1) joinThresh <- (design_space[[2]] - design_space[[1]]) / 10
+  if (identical(Criterion, "I-Optimality") && is.null(matB)) {
+    if (!is.null(reg_int)) {
       matB <- integrate_reg_int(grad, k, reg_int)
     }
   }
@@ -373,5 +383,3 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
 # result2$optdes
 #
 # result2$sens
-
-

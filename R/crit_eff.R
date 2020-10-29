@@ -22,17 +22,17 @@
 #' @examples
 #' M <- matrix(c(1, 0.75, 0.75, 0.625), nrow = 2)
 #' optedr:::crit("D-Optimality", M, k = 2)
-crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA){
-  if(identical(Criterion, "D-Optimality")){
+crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA) {
+  if (identical(Criterion, "D-Optimality")) {
     return(dcrit(mat, k))
   }
-  else if(identical(Criterion, "Ds-Optimality")){
+  else if (identical(Criterion, "Ds-Optimality")) {
     return(dscrit(mat, intPars))
   }
-  else if(identical(Criterion, "A-Optimality")){
+  else if (identical(Criterion, "A-Optimality")) {
     return(icrit(mat, diag(k)))
   }
-  else if(identical(Criterion, "I-Optimality")){
+  else if (identical(Criterion, "I-Optimality")) {
     return(icrit(mat, matB))
   }
 }
@@ -55,7 +55,7 @@ crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA){
 #' optedr:::dcrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), k = 2)
 dcrit <- function(mat, k) {
   if (k == 0) k <- nrow(mat)
-  return((1/det(mat))^(1/k))
+  return((1 / det(mat))^(1 / k))
 }
 
 
@@ -75,11 +75,11 @@ dcrit <- function(mat, k) {
 #' @examples
 #' optedr:::dscrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), c(2))
 dscrit <- function(mat, intPars) {
-  if(length(mat[-intPars, -intPars]) == 1){
-    return((mat[-intPars, -intPars]/det(mat))^(1/length(intPars)))
+  if (length(mat[-intPars, -intPars]) == 1) {
+    return((mat[-intPars, -intPars] / det(mat))^(1 / length(intPars)))
   }
-  else{
-    return((det(mat[-intPars, -intPars])/det(mat))^(1/length(intPars)))
+  else {
+    return((det(mat[-intPars, -intPars]) / det(mat))^(1 / length(intPars)))
   }
 }
 
@@ -125,25 +125,25 @@ icrit <- function(mat, matB) {
 #'
 #' @examples
 #' optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
-eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA){
-  if(identical(Criterion, "D-Optimality")){
-    if(k == 0) k <- nrow(mat1)
-    return((det(mat1)/det(mat2))^(1/k))
+eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
+  if (identical(Criterion, "D-Optimality")) {
+    if (k == 0) k <- nrow(mat1)
+    return((det(mat1) / det(mat2))^(1 / k))
   }
-  else if(identical(Criterion, "Ds-Optimality")){
-    if(length(mat1[-intPars, -intPars]) == 1){
-      return((mat2[-intPars, -intPars]/det(mat2)/(mat1[-intPars, -intPars]/det(mat1)))^(1/length(intPars)))
+  else if (identical(Criterion, "Ds-Optimality")) {
+    if (length(mat1[-intPars, -intPars]) == 1) {
+      return((mat2[-intPars, -intPars] / det(mat2) / (mat1[-intPars, -intPars] / det(mat1)))^(1 / length(intPars)))
     }
     else {
-      return((det(mat2[-intPars, -intPars])/det(mat2)/(det(mat1[-intPars, -intPars])/det(mat1)))^(1/length(intPars)))
+      return((det(mat2[-intPars, -intPars]) / det(mat2) / (det(mat1[-intPars, -intPars]) / det(mat1)))^(1 / length(intPars)))
     }
   }
-  else if(identical(Criterion, "A-Optimality")){
-    if(k == 0) k <- nrow(mat1)
-    return(tr(diag(k) %*% solve(mat2))/tr(diag(k) %*% solve(mat1)))
+  else if (identical(Criterion, "A-Optimality")) {
+    if (k == 0) k <- nrow(mat1)
+    return(tr(diag(k) %*% solve(mat2)) / tr(diag(k) %*% solve(mat1)))
   }
-  else if(identical(Criterion, "I-Optimality")){
-    return(tr(matB %*% solve(mat2))/tr(matB %*% solve(mat1)))
+  else if (identical(Criterion, "I-Optimality")) {
+    return(tr(matB %*% solve(mat2)) / tr(matB %*% solve(mat1)))
   }
 }
 
@@ -165,35 +165,34 @@ eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA){
 #' @export
 #'
 #' @examples
-#' result <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
-#' design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
+#' result <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
+#' design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1 / 3, 1 / 3, 1 / 3))
 #' design_efficiency(result, design)
-design_efficiency <- function(opt_des_obj, design){
-  #check_efficiency_input(opt_des_obj, design) COMPROBAR QUE EL NUMERO DE POUNTOS ES >= LENGTH GRAD/NROW MAT
+design_efficiency <- function(opt_des_obj, design) {
+  # check_efficiency_input(opt_des_obj, design) COMPROBAR QUE EL NUMERO DE POUNTOS ES >= LENGTH GRAD/NROW MAT
   mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design)
   mat2 <- inf_mat(attr(opt_des_obj, "gradient"), opt_des_obj$optdes)
-  if(identical(opt_des_obj$criterion, "D-Optimality")){
-    eff <- (det(mat1)/det(mat2))^(1/attr(opt_des_obj, "hidden_value"))
-    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+  if (identical(opt_des_obj$criterion, "D-Optimality")) {
+    eff <- (det(mat1) / det(mat2))^(1 / attr(opt_des_obj, "hidden_value"))
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)
   }
-  else if(identical(opt_des_obj$criterion, "Ds-Optimality")){
+  else if (identical(opt_des_obj$criterion, "Ds-Optimality")) {
     int_pars <- attr(opt_des_obj, "hidden_value")
-    if(length(mat1[-int_pars, -int_pars]) == 1){
-      eff <- (mat2[-int_pars, -int_pars]/det(mat2)/(mat1[-int_pars, -int_pars]/det(mat1)))^(1/length(int_pars))
-      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+    if (length(mat1[-int_pars, -int_pars]) == 1) {
+      eff <- (mat2[-int_pars, -int_pars] / det(mat2) / (mat1[-int_pars, -int_pars] / det(mat1)))^(1 / length(int_pars))
+      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
       return(eff)
     }
     else {
-      eff <- (det(mat2[-int_pars, -int_pars])/det(mat2)/(det(mat1[-int_pars, -int_pars])/det(mat1)))^(1/length(int_pars))
-      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+      eff <- (det(mat2[-int_pars, -int_pars]) / det(mat2) / (det(mat1[-int_pars, -int_pars]) / det(mat1)))^(1 / length(int_pars))
+      message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
       return(eff)
     }
   }
-  else if(identical(opt_des_obj$criterion, "I-Optimality")){
-    eff <- tr(attr(opt_des_obj, "hidden_value") %*% solve(mat2))/tr(attr(opt_des_obj, "hidden_value") %*% solve(mat1))
-    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff*100, "%")
+  else if (identical(opt_des_obj$criterion, "I-Optimality")) {
+    eff <- tr(attr(opt_des_obj, "hidden_value") %*% solve(mat2)) / tr(attr(opt_des_obj, "hidden_value") %*% solve(mat1))
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)
   }
 }
-

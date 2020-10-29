@@ -14,9 +14,9 @@
 #' @return The value at which the maximum is obtained
 #'
 #' @examples
-#' optedr:::findmax(function(x) x^2-x^3, 0, 1, 1000)
+#' optedr:::findmax(function(x) x^2 - x^3, 0, 1, 1000)
 findmax <- function(sens, min, max, grid.length) {
-  if(min <= max){
+  if (min <= max) {
     grid <- seq(min, max, length.out = grid.length)
   }
   else {
@@ -45,10 +45,12 @@ findmax <- function(sens, min, max, grid.length) {
 #' @return returns the new weights of the design after one iteration.
 #'
 #' @examples
-#' \dontrun{updateWeights(design, sens, k, delta)}
+#' \dontrun{
+#' updateWeights(design, sens, k, delta)
+#' }
 updateWeights <- function(design, sens, k, delta) {
-  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/k)^delta
-  return(weights/sum(weights))
+  weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / k)^delta
+  return(weights / sum(weights))
 }
 
 
@@ -65,9 +67,11 @@ updateWeights <- function(design, sens, k, delta) {
 #' @return returns the new weights of the design after one iteration.
 #'
 #' @examples
-#' \dontrun{updateWeightsDS(design, sens, s, delta)}
+#' \dontrun{
+#' updateWeightsDS(design, sens, s, delta)
+#' }
 updateWeightsDS <- function(design, sens, s, delta) {
-  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/s)^delta
+  weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / s)^delta
   return(weights)
 }
 
@@ -86,9 +90,11 @@ updateWeightsDS <- function(design, sens, s, delta) {
 #'
 #'
 #' @examples
-#' \dontrun{updateWeightsI(design, sens, crit, delta)}
+#' \dontrun{
+#' updateWeightsI(design, sens, crit, delta)
+#' }
 updateWeightsI <- function(design, sens, crit, delta) {
-  weights <- design$Weight*(purrr::map_dbl(design$Point, sens)/crit)^delta
+  weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / crit)^delta
   return(weights)
 }
 
@@ -111,24 +117,22 @@ updateWeightsI <- function(design, sens, crit, delta) {
 #'
 #' @examples
 #' # Without merging:
-#' design <- data.frame("Point" = c(1,5, 9), "Weight" = rep(1/3, times = 3))
+#' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
 #' optedr:::updateDesign(design, 2, 0.5)
 #'
 #' # Merging:
-#' design <- data.frame("Point" = c(1,5, 9), "Weight" = rep(1/3, times = 3))
+#' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
 #' optedr:::updateDesign(design, 2, 1.1)
-updateDesign <- function(design, xmax, delta){
+updateDesign <- function(design, xmax, delta) {
   absdiff <- abs(design$Point - xmax) < delta
-  if (any(absdiff))
-  {
+  if (any(absdiff)) {
     pos <- min(which(absdiff == TRUE))
-    design$Point[[pos]] <- (design$Point[[pos]] + xmax)/2
+    design$Point[[pos]] <- (design$Point[[pos]] + xmax) / 2
   }
-  else
-  {
-    design[nrow(design) + 1,] <- c(xmax, 1/(nrow(design) + 1))
+  else {
+    design[nrow(design) + 1, ] <- c(xmax, 1 / (nrow(design) + 1))
   }
-  design$Weight <- rep(1/nrow(design), nrow(design))
+  design$Weight <- rep(1 / nrow(design), nrow(design))
   return(design)
 }
 
@@ -147,17 +151,17 @@ updateDesign <- function(design, xmax, delta){
 #' @return The updated design.
 #'
 #' @examples
-#' design <- data.frame("Point" = c(1, 5, 11, 12), "Weight" = rep(1/4, times = 4))
+#' design <- data.frame("Point" = c(1, 5, 11, 12), "Weight" = rep(1 / 4, times = 4))
 #' optedr:::updateDesignTotal(design, 1.1)
-updateDesignTotal <- function(design, delta){
+updateDesignTotal <- function(design, delta) {
   updated <- FALSE
   finished <- FALSE
-  while(!finished) {
-    for(i in 1:(length(design$Point)-1)) {
+  while (!finished) {
+    for (i in 1:(length(design$Point) - 1)) {
       absdiff <- abs(design$Point[-seq(1, i)] - design$Point[i]) < delta
-      if (any(absdiff)){
+      if (any(absdiff)) {
         updated <- TRUE
-        design <- updateDesign(design[-i,], design$Point[i], delta)
+        design <- updateDesign(design[-i, ], design$Point[i], delta)
         break
       }
     }
@@ -183,11 +187,11 @@ updateDesignTotal <- function(design, delta){
 #'
 #'
 #' @examples
-#' design <- data.frame("Point" = seq(1, 100,length.out = 8), "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
+#' design <- data.frame("Point" = seq(1, 100, length.out = 8), "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
 #' optedr:::deletePoints(design, 0.09)
 deletePoints <- function(design, delta) {
   updatedDesign <- design[design$Weight > delta, ]
-  updatedDesign$Weight <- updatedDesign$Weight/sum(updatedDesign$Weight)
+  updatedDesign$Weight <- updatedDesign$Weight / sum(updatedDesign$Weight)
   return(updatedDesign)
 }
 
@@ -224,8 +228,10 @@ tr <- function(M) {
 #' @return A `ggplot` object that represents the sensitivity function
 #'
 #' @examples
-#' \dontrun{plot_sens(1, 100, sens, crit)}
-plot_sens <- function(min, max, sens_function, criterion_value){
+#' \dontrun{
+#' plot_sens(1, 100, sens, crit)
+#' }
+plot_sens <- function(min, max, sens_function, criterion_value) {
   grid <- seq(min, max, length.out = 10000)
   sens_grid <- purrr::map_dbl(grid, sens_function)
 
@@ -252,9 +258,9 @@ plot_sens <- function(min, max, sens_function, criterion_value){
 #' @examples
 #' conv <- data.frame("criteria" = c(24, 23, 20, 15, 14.9, 14.8, 14.7), "step" = 1:7)
 #' optedr:::plot_convergence(conv)
-plot_convergence <- function(convergence){
-  ggplot2::ggplot(data = convergence, ggplot2::aes(x=step, y=criteria)) +
-    ggplot2::geom_line(color="coral1") +
+plot_convergence <- function(convergence) {
+  ggplot2::ggplot(data = convergence, ggplot2::aes(x = step, y = criteria)) +
+    ggplot2::geom_line(color = "coral1") +
     ggplot2::theme_bw()
 }
 
@@ -273,19 +279,19 @@ plot_convergence <- function(convergence){
 #'
 #'
 #' @examples
-#' grad <- optedr:::gradient(y ~ a + b*x, c("a", "b"), c(1,1))
-#' optedr:::integrate_reg_int(grad, 2, c(0,3))
-integrate_reg_int <- function(grad, k, reg_int){
-  matrix_int <- 0*diag(k)
-  for(i in 1:k){
-    for(j in 1:k){
-      if(j>=i){
-        int_part <- function(x_value){
-          purrr::map_dbl(x_value, function(x_value) grad(x_value)[i]*grad(x_value)[j]/(reg_int[2] - reg_int[1]))
+#' grad <- optedr:::gradient(y ~ a + b * x, c("a", "b"), c(1, 1))
+#' optedr:::integrate_reg_int(grad, 2, c(0, 3))
+integrate_reg_int <- function(grad, k, reg_int) {
+  matrix_int <- 0 * diag(k)
+  for (i in 1:k) {
+    for (j in 1:k) {
+      if (j >= i) {
+        int_part <- function(x_value) {
+          purrr::map_dbl(x_value, function(x_value) grad(x_value)[i] * grad(x_value)[j] / (reg_int[2] - reg_int[1]))
         }
         matrix_int[i, j] <- integrate(int_part, lower = reg_int[1], upper = reg_int[2])$value
       }
-      else{
+      else {
         matrix_int[i, j] <- matrix_int[j, i]
       }
     }
@@ -301,11 +307,10 @@ integrate_reg_int <- function(grad, k, reg_int){
 #' @export
 #'
 #' @examples
-#' rri<-opt_des("I-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422), matB = matrix(c(3, 1, 1, 2), nrow = 2))
+#' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422), matB = matrix(c(3, 1, 1, 2), nrow = 2))
 #' print(rri)
 print.optdes <- function(x) {
   cat("Optimal design for ", x$criterion, ":\n")
   print.data.frame(x$optdes)
   cat("\n Criterion value: ", x$crit_value)
 }
-
