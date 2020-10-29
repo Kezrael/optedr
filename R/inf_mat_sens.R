@@ -142,11 +142,11 @@ dssens <- function(grad, M, intPars){
   if(length(M[-intPars, -intPars]) == 1){
     invMat22 <- 1/M[-intPars, -intPars]
   } else {
-    invMat22 <- solve(M[[-intPars, -intPars]])
+    invMat22 <- solve(M[-intPars, -intPars])
   }
   sens_ret <- function(xval){
-    f_col <- as.matrix(grad(xval), nrow = 1, ncol = 3, byrow = TRUE, dimnames = NULL)
-    return(f_col %*% invMat %*% t(f_col) - f_col[-intPars] %*% invMat22 %*% t(f_col[-intPars]))
+    f_col <- as.matrix(grad(xval), nrow = 1, byrow = TRUE, dimnames = NULL)
+    return(f_col %*% invMat %*% t(f_col) - f_col[-intPars] %*% invMat22 %*% as.matrix(f_col[-intPars], ncol = 1))
   }
 }
 

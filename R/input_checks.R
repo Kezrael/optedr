@@ -118,7 +118,7 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must be numeric vector")
     }
     # Check that all are indexes
-    if(!is.na(par_int)){
+    if(!is.null(par_int)){
       if(any(par_int %% 1 != 0)){
         error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must contain only integers")
       }

@@ -102,6 +102,8 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
       iter <- iter + 1
     }
     initDes <- deletePoints(initDes, deleteThresh)
+    if(i %% 5 == 0)
+      initDes <- updateDesignTotal(initDes, joinThresh)
     if(i == 21){
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
@@ -170,7 +172,7 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
     }
     initDes <- deletePoints(initDes, deleteThresh)
     if(i %% 5 == 0)
-      initDes <- updateDesignTotal(initDes, 8)
+      initDes <- updateDesignTotal(initDes, joinThresh)
     if(i == 21){
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
@@ -243,7 +245,7 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
     }
     initDes <- deletePoints(initDes, deleteThresh)
     if(i %% 5 == 0)
-      initDes <- updateDesignTotal(initDes, 8)
+      initDes <- updateDesignTotal(initDes, joinThresh)
     if(i == 21){
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
@@ -325,7 +327,7 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     delta = 1/2,
                     tol = 0.00001,
                     tol2 = 0.00001,
-                    par_int = NA,
+                    par_int = NULL,
                     matB = NULL,
                     reg_int = NULL,
                     desired_output = c(1, 2)
