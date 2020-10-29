@@ -294,3 +294,18 @@ integrate_reg_int <- function(grad, k, reg_int){
 }
 
 
+#' Print function for optdes
+#'
+#' @param x An object of class \code{optdes}.
+#'
+#' @export
+#'
+#' @examples
+#' rri<-opt_des("I-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422), matB = matrix(c(3, 1, 1, 2), nrow = 2))
+#' print(rri)
+print.optdes <- function(x) {
+  cat("Optimal design for ", x$criterion, ":\n")
+  print.data.frame(x$optdes)
+  cat("\n Criterion value: ", x$crit_value)
+}
+
