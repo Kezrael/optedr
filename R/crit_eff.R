@@ -11,9 +11,9 @@
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param M Information matrix for which the criterion value wants to be calculated.
 #' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
-#' @param intPars Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
+#' @param par_int Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
 #' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Numeric value of the optimality criterion for the information matrix.
@@ -22,18 +22,18 @@
 #' @examples
 #' M <- matrix(c(1, 0.75, 0.75, 0.625), nrow = 2)
 #' optedr:::crit("D-Optimality", M, k = 2)
-crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA) {
+crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
-    return(dcrit(mat, k))
+    return(dcrit(M, k))
   }
   else if (identical(Criterion, "Ds-Optimality")) {
-    return(dscrit(mat, intPars))
+    return(dscrit(M, par_int))
   }
   else if (identical(Criterion, "A-Optimality")) {
-    return(icrit(mat, diag(k)))
+    return(icrit(M, diag(k)))
   }
   else if (identical(Criterion, "I-Optimality")) {
-    return(icrit(mat, matB))
+    return(icrit(M, matB))
   }
 }
 
@@ -45,7 +45,7 @@ crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA) {
 #' \deqn{\phi_D = \frac{1}{|M|}^{1/k}}
 #'
 #'
-#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param M Information matrix for which the criterion value wants to be calculated.
 #' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
 #'
 #'
@@ -53,9 +53,9 @@ crit <- function(Criterion, mat, k = 0, intPars = c(1), matB = NA) {
 #'
 #' @examples
 #' optedr:::dcrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), k = 2)
-dcrit <- function(mat, k) {
-  if (k == 0) k <- nrow(mat)
-  return((1 / det(mat))^(1 / k))
+dcrit <- function(M, k) {
+  if (k == 0) k <- nrow(M)
+  return((1 / det(M))^(1 / k))
 }
 
 
@@ -66,20 +66,20 @@ dcrit <- function(mat, k) {
 #' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
 #'
 #'
-#' @param mat Information matrix for which the criterion value wants to be calculated.
-#' @param intPars Numeric vector with the index of the parameters of interest of the model.
+#' @param M Information matrix for which the criterion value wants to be calculated.
+#' @param par_int Numeric vector with the index of the parameters of interest of the model.
 #'
 #'
 #' @return Numeric value of the Ds-optimality criterion for the information matrix.
 #'
 #' @examples
 #' optedr:::dscrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), c(2))
-dscrit <- function(mat, intPars) {
-  if (length(mat[-intPars, -intPars]) == 1) {
-    return((mat[-intPars, -intPars] / det(mat))^(1 / length(intPars)))
+dscrit <- function(M, par_int) {
+  if (length(M[-par_int, -par_int]) == 1) {
+    return((M[-par_int, -par_int] / det(M))^(1 / length(par_int)))
   }
   else {
-    return((det(mat[-intPars, -intPars]) / det(mat))^(1 / length(intPars)))
+    return((det(M[-par_int, -par_int]) / det(M))^(1 / length(par_int)))
   }
 }
 
@@ -90,7 +90,7 @@ dscrit <- function(mat, intPars) {
 #' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
 #'
 #'
-#' @param mat Information matrix for which the criterion value wants to be calculated.
+#' @param M Information matrix for which the criterion value wants to be calculated.
 #' @param matB Matrix of the integral of the information matrix over the interest region. Identity matrix for
 #'   A-Optimality.
 #'
@@ -99,8 +99,8 @@ dscrit <- function(mat, intPars) {
 #'
 #' @examples
 #' optedr:::icrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), diag(2))
-icrit <- function(mat, matB) {
-  return(tr(matB %*% solve(mat)))
+icrit <- function(M, matB) {
+  return(tr(matB %*% solve(M)))
 }
 
 

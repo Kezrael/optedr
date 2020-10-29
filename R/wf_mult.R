@@ -10,7 +10,7 @@
 #' Depending on the \code{Criterion} the cocktail algorithm for the chosen criterion is called,
 #' and the necessary parameters for the functions are given from the user input.
 #'
-#' @param initDes with the initial design for the algorithm. A dataframe with two columns:
+#' @param init_design with the initial design for the algorithm. A dataframe with two columns:
 #'   * \code{Point} contains the support points of the design.
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #' @param grad function of partial derivatives of the model.
@@ -19,7 +19,7 @@
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param intPars numeric vector with the index of the \code{parameters} of interest. Only necessary when
+#' @param par_int numeric vector with the index of the \code{parameters} of interest. Only necessary when
 #'   the \code{Criterion} chosen is 'Ds-Optimality'.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
 #'   interest region.
@@ -27,12 +27,12 @@
 #' @param max numeric value with the upper bound of the space of the design.
 #' @param grid.length numeric value that gives the grid to evaluate the sensitivity function when looking for a
 #'   maximum.
-#' @param joinThresh numeric value that states how close, in real units, two points must be in order to
+#' @param join_thresh numeric value that states how close, in real units, two points must be in order to
 #'   be joined together by the join heuristic.
-#' @param deleteThresh numeric value with the minimum weight, over 1 total, that a point needs to have
+#' @param delete_thresh numeric value with the minimum weight, over 1 total, that a point needs to have
 #'   in order to not be deleted from the design.
 #' @param k number of unknown parameters of the model.
-#' @param deltaW numeric value in (0, 1), parameter of the algorithm.
+#' @param delta_weights numeric value in (0, 1), parameter of the algorithm.
 #' @param tol numeric value for the convergence of the weight optimizing algorithm.
 #' @param tol2 numeric value for the stop condition of the algorithm.
 #'
@@ -45,20 +45,20 @@
 #'
 #' @examples
 #' \dontrun{
-#' WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2)
+#' WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2)
 #' }
-WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2) {
+WFMult <- function(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
   if (identical(Criterion, "D-Optimality")) {
-    return(DWFMult(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2))
+    return(DWFMult(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2))
   }
   else if (identical(Criterion, "Ds-Optimality")) {
-    return(DsWFMult(initDes, grad, intPars, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
+    return(DsWFMult(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2))
   }
   else if (identical(Criterion, "A-Optimality")) {
-    return(IWFMult(initDes, grad, diag(k), min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
+    return(IWFMult(init_design, grad, diag(k), min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2))
   }
   else if (identical(Criterion, "I-Optimality")) {
-    return(IWFMult(initDes, grad, matB, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2))
+    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2))
   }
 }
 
@@ -73,13 +73,13 @@ WFMult <- function(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, 
 #'
 #' @family cocktail algorithms
 #'
-DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2) {
+DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
   for (i in 1:21) {
-    M <- inf_mat(grad, initDes)
+    M <- inf_mat(grad, init_design)
     crit_val[index] <- dcrit(M, k)
     index <- index + 1
     sensM <- dsens(grad, M)
@@ -88,22 +88,22 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    initDes <- updateDesign(initDes, xmax, joinThresh)
+    init_design <- update_design(init_design, xmax, join_thresh)
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
-      weightsInit <- initDes$Weight
-      M <- inf_mat(grad, initDes)
+      weightsInit <- init_design$Weight
+      M <- inf_mat(grad, init_design)
       crit_val[index] <- dcrit(M, k)
       index <- index + 1
       sensM <- dsens(grad, M)
-      initDes$Weight <- updateWeights(initDes, sensM, k, deltaW)
-      stopw <- any(max(abs(weightsInit - initDes$Weight) < tol)) || iter >= maxiter
+      init_design$Weight <- update_weights(init_design, sensM, k, delta_weights)
+      stopw <- any(max(abs(weightsInit - init_design$Weight) < tol)) || iter >= maxiter
       iter <- iter + 1
     }
-    initDes <- deletePoints(initDes, deleteThresh)
+    init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
-      initDes <- updateDesignTotal(initDes, joinThresh)
+      init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
@@ -114,11 +114,11 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  initDes <- initDes %>%
+  init_design <- init_design %>%
     dplyr::arrange(Point)
-  rownames(initDes) <- NULL
+  rownames(init_design) <- NULL
 
-  M <- inf_mat(grad, initDes)
+  M <- inf_mat(grad, init_design)
   sensM <- dsens(grad, M)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
@@ -126,7 +126,7 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
 
   plot_opt <- plot_sens(min, max, sensM, k)
   l_return <- list(
-    "optdes" = initDes, "convergence" = conv_plot,
+    "optdes" = init_design, "convergence" = conv_plot,
     "sens" = plot_opt, "criterion" = "D-Optimality", "crit_value" = crit_val[length(crit_val)]
   )
   attr(l_return, "hidden_value") <- k
@@ -145,64 +145,64 @@ DWFMult <- function(initDes, grad, min, max, grid.length, joinThresh, deleteThre
 #'
 #' @family cocktail algorithms
 #'
-DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2) {
+DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2) {
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
   for (i in 1:21) {
-    M <- inf_mat(grad, initDes)
-    crit_val[index] <- dscrit(M, intPars)
+    M <- inf_mat(grad, init_design)
+    crit_val[index] <- dscrit(M, par_int)
     index <- index + 1
-    sensDs <- dssens(grad, M, intPars)
+    sensDs <- dssens(grad, M, par_int)
     xmax <- findmax(sensDs, min, max, grid.length)
-    if ((sensDs(xmax) - length(intPars)) / length(intPars) < tol2) {
+    if ((sensDs(xmax) - length(par_int)) / length(par_int) < tol2) {
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    initDes <- updateDesign(initDes, xmax, joinThresh)
+    init_design <- update_design(init_design, xmax, join_thresh)
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
-      weightsInit <- initDes$Weight
-      crit_val[index] <- dscrit(M, intPars)
+      weightsInit <- init_design$Weight
+      crit_val[index] <- dscrit(M, par_int)
       index <- index + 1
-      M <- inf_mat(grad, initDes)
-      sensDs <- dssens(grad, M, intPars)
-      initDes$Weight <- updateWeightsDS(initDes, sensDs, length(intPars), deltaW)
-      stopw <- max(abs(weightsInit - initDes$Weight)) < tol || iter >= maxiter
+      M <- inf_mat(grad, init_design)
+      sensDs <- dssens(grad, M, par_int)
+      init_design$Weight <- update_weightsDS(init_design, sensDs, length(par_int), delta_weights)
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter
       iter <- iter + 1
     }
-    initDes <- deletePoints(initDes, deleteThresh)
+    init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
-      initDes <- updateDesignTotal(initDes, joinThresh)
+      init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
-  crit_val[index] <- dscrit(M, intPars)
+  crit_val[index] <- dscrit(M, par_int)
   crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  initDes <- initDes %>%
+  init_design <- init_design %>%
     dplyr::arrange(Point)
-  rownames(initDes) <- NULL
+  rownames(init_design) <- NULL
 
-  M <- inf_mat(grad, initDes)
-  sensM <- dssens(grad, M, intPars)
+  M <- inf_mat(grad, init_design)
+  sensM <- dssens(grad, M, par_int)
   xmin <- findmax(function(x) 1 / sensM(x), min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1 + sensM(xmin) / dscrit(M, intPars)) * 100, "%")
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1 + sensM(xmin) / dscrit(M, par_int)) * 100, "%")
 
 
-  plot_opt <- plot_sens(min, max, sensDs, length(intPars))
+  plot_opt <- plot_sens(min, max, sensDs, length(par_int))
   l_return <- list(
-    "optdes" = initDes, "convergence" = conv_plot,
+    "optdes" = init_design, "convergence" = conv_plot,
     "sens" = plot_opt, "criterion" = "Ds-Optimality", "crit_value" = crit_val[length(crit_val)]
   )
-  attr(l_return, "hidden_value") <- intPars
+  attr(l_return, "hidden_value") <- par_int
   attr(l_return, "gradient") <- grad
   class(l_return) <- "optdes"
   l_return
@@ -220,13 +220,13 @@ DsWFMult <- function(initDes, grad, intPars, min, max, grid.length, joinThresh, 
 #'
 #' @family cocktail algorithms
 #'
-IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, deleteThresh, deltaW, tol, tol2) {
+IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2) {
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
   for (i in 1:21) {
-    M <- inf_mat(grad, initDes)
+    M <- inf_mat(grad, init_design)
     crit_val[index] <- icrit(M, matB)
     index <- index + 1
     sensI <- isens(grad, M, matB)
@@ -235,40 +235,40 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    initDes <- updateDesign(initDes, xmax, joinThresh)
+    init_design <- update_design(init_design, xmax, join_thresh)
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
-      weightsInit <- initDes$Weight
-      M <- inf_mat(grad, initDes)
+      weightsInit <- init_design$Weight
+      M <- inf_mat(grad, init_design)
       crit <- icrit(M, matB)
       crit_val[index] <- crit
       index <- index + 1
       sensI <- isens(grad, M, matB)
-      initDes$Weight <- updateWeightsI(initDes, sensI, crit, deltaW)
-      stopw <- max(abs(weightsInit - initDes$Weight)) < tol || iter >= maxiter
+      init_design$Weight <- update_weightsI(init_design, sensI, crit, delta_weights)
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter
       iter <- iter + 1
     }
-    initDes <- deletePoints(initDes, deleteThresh)
+    init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
-      initDes <- updateDesignTotal(initDes, joinThresh)
+      init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
       message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
-  M <- inf_mat(grad, initDes)
+  M <- inf_mat(grad, init_design)
   crit_val[index] <- icrit(M, matB)
   crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
   conv_plot <- plot_convergence(conv)
 
-  initDes <- initDes %>%
+  init_design <- init_design %>%
     dplyr::arrange(Point)
-  rownames(initDes) <- NULL
+  rownames(init_design) <- NULL
 
 
-  M <- inf_mat(grad, initDes)
+  M <- inf_mat(grad, init_design)
   sensM <- isens(grad, M, matB)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
@@ -277,7 +277,7 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 
   plot_opt <- plot_sens(min, max, sensI, icrit(M, matB))
   l_return <- list(
-    "optdes" = initDes, "convergence" = conv_plot,
+    "optdes" = init_design, "convergence" = conv_plot,
     "sens" = plot_opt, "criterion" = "I-Optimality", "crit_value" = crit_val[length(crit_val)]
   )
   attr(l_return, "hidden_value") <- matB
@@ -310,9 +310,9 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 #' @param init_design optimal dataframe with the initial design for the algorithm. A dataframe with two columns:
 #'   * \code{Point} contains the support points of the design.
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
-#' @param joinThresh optional numeric value that states how close, in real units, two points must be in order to
+#' @param join_thresh optional numeric value that states how close, in real units, two points must be in order to
 #'   be joined together by the join heuristic.
-#' @param deleteThresh optional numeric value with the minimum weight, over 1 total, that a point needs to have
+#' @param delete_thresh optional numeric value with the minimum weight, over 1 total, that a point needs to have
 #'   in order to not be deleted from the design.
 #' @param delta optional numeric value in (0, 1), parameter of the algorithm.
 #' @param tol optional numeric value for the convergence of the weight optimizing algorithm.
@@ -331,8 +331,8 @@ IWFMult <- function(initDes, grad, matB, min, max, grid.length, joinThresh, dele
 #' opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     init_design = NULL,
-                    joinThresh = -1,
-                    deleteThresh = 0.02,
+                    join_thresh = -1,
+                    delete_thresh = 0.02,
                     delta = 1 / 2,
                     tol = 0.00001,
                     tol2 = 0.00001,
@@ -343,18 +343,18 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
   k <- length(par_values)
   if (is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]], length.out = k * (k + 1) / 2 + 1), "Weight" = rep(1 / (k * (k + 1) / 2 + 1), times = k * (k + 1) / 2 + 1))
   check_inputs(
-    Criterion, model, parameters, par_values, design_space, init_design, joinThresh, deleteThresh,
+    Criterion, model, parameters, par_values, design_space, init_design, join_thresh, delete_thresh,
     delta, tol, tol2, par_int, matB, reg_int, desired_output
   )
   if (design_space[1] > design_space[2]) design_space <- rev(design_space)
   grad <- gradient(model, parameters, par_values)
-  if (joinThresh == -1) joinThresh <- (design_space[[2]] - design_space[[1]]) / 10
+  if (join_thresh == -1) join_thresh <- (design_space[[2]] - design_space[[1]]) / 10
   if (identical(Criterion, "I-Optimality") && is.null(matB)) {
     if (!is.null(reg_int)) {
       matB <- integrate_reg_int(grad, k, reg_int)
     }
   }
-  output <- WFMult(init_design, grad, Criterion, intPars = par_int, matB, design_space[[1]], design_space[[2]], 1000, joinThresh, deleteThresh, k, delta, tol, tol2)
+  output <- WFMult(init_design, grad, Criterion, par_int = par_int, matB, design_space[[1]], design_space[[2]], 1000, join_thresh, delete_thresh, k, delta, tol, tol2)
 }
 
 

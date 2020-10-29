@@ -9,8 +9,8 @@
 #'
 check_inputs <- function(Criterion, model, parameters, par_values, design_space,
                          init_design,
-                         joinThresh,
-                         deleteThresh,
+                         join_thresh,
+                         delete_thresh,
                          delta,
                          tol,
                          tol2,
@@ -68,18 +68,18 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " init_design must have two columns: Point and Weight")
   }
 
-  # Check that joinThresh is numeric
-  if (!is.numeric(joinThresh)) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " joinThresh must be numeric")
+  # Check that join_thresh is numeric
+  if (!is.numeric(join_thresh)) {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " join_thresh must be numeric")
   }
 
-  # Check that deleteThresh is numeric and between 0 and 1
-  if (!is.numeric(deleteThresh)) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " joinThresh must be numeric")
+  # Check that delete_thresh is numeric and between 0 and 1
+  if (!is.numeric(delete_thresh)) {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " join_thresh must be numeric")
   }
 
-  if (deleteThresh >= 1 || deleteThresh <= 0) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " joinThresh must be in (0, 1)")
+  if (delete_thresh >= 1 || delete_thresh <= 0) {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " join_thresh must be in (0, 1)")
   }
 
 

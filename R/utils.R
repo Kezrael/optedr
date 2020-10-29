@@ -46,9 +46,9 @@ findmax <- function(sens, min, max, grid.length) {
 #'
 #' @examples
 #' \dontrun{
-#' updateWeights(design, sens, k, delta)
+#' update_weights(design, sens, k, delta)
 #' }
-updateWeights <- function(design, sens, k, delta) {
+update_weights <- function(design, sens, k, delta) {
   weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / k)^delta
   return(weights / sum(weights))
 }
@@ -62,15 +62,15 @@ updateWeights <- function(design, sens, k, delta) {
 #'
 #'
 #' @param s Number of interest parameters of the model
-#' @inheritParams updateWeights
+#' @inheritParams update_weights
 #'
 #' @return returns the new weights of the design after one iteration.
 #'
 #' @examples
 #' \dontrun{
-#' updateWeightsDS(design, sens, s, delta)
+#' update_weightsDS(design, sens, s, delta)
 #' }
-updateWeightsDS <- function(design, sens, s, delta) {
+update_weightsDS <- function(design, sens, s, delta) {
   weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / s)^delta
   return(weights)
 }
@@ -84,16 +84,16 @@ updateWeightsDS <- function(design, sens, s, delta) {
 #'
 #'
 #' @param crit Value of the criterion function for I-Optimality.
-#' @inheritParams updateWeights
+#' @inheritParams update_weights
 #'
 #' @return returns the new weights of the design after one iteration.
 #'
 #'
 #' @examples
 #' \dontrun{
-#' updateWeightsI(design, sens, crit, delta)
+#' update_weightsI(design, sens, crit, delta)
 #' }
-updateWeightsI <- function(design, sens, crit, delta) {
+update_weightsI <- function(design, sens, crit, delta) {
   weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / crit)^delta
   return(weights)
 }
@@ -118,12 +118,12 @@ updateWeightsI <- function(design, sens, crit, delta) {
 #' @examples
 #' # Without merging:
 #' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-#' optedr:::updateDesign(design, 2, 0.5)
+#' optedr:::update_design(design, 2, 0.5)
 #'
 #' # Merging:
 #' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-#' optedr:::updateDesign(design, 2, 1.1)
-updateDesign <- function(design, xmax, delta) {
+#' optedr:::update_design(design, 2, 1.1)
+update_design <- function(design, xmax, delta) {
   absdiff <- abs(design$Point - xmax) < delta
   if (any(absdiff)) {
     pos <- min(which(absdiff == TRUE))
@@ -152,8 +152,8 @@ updateDesign <- function(design, xmax, delta) {
 #'
 #' @examples
 #' design <- data.frame("Point" = c(1, 5, 11, 12), "Weight" = rep(1 / 4, times = 4))
-#' optedr:::updateDesignTotal(design, 1.1)
-updateDesignTotal <- function(design, delta) {
+#' optedr:::update_design_total(design, 1.1)
+update_design_total <- function(design, delta) {
   updated <- FALSE
   finished <- FALSE
   while (!finished) {
@@ -161,7 +161,7 @@ updateDesignTotal <- function(design, delta) {
       absdiff <- abs(design$Point[-seq(1, i)] - design$Point[i]) < delta
       if (any(absdiff)) {
         updated <- TRUE
-        design <- updateDesign(design[-i, ], design$Point[i], delta)
+        design <- update_design(design[-i, ], design$Point[i], delta)
         break
       }
     }
@@ -188,8 +188,8 @@ updateDesignTotal <- function(design, delta) {
 #'
 #' @examples
 #' design <- data.frame("Point" = seq(1, 100, length.out = 8), "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
-#' optedr:::deletePoints(design, 0.09)
-deletePoints <- function(design, delta) {
+#' optedr:::delete_points(design, 0.09)
+delete_points <- function(design, delta) {
   updatedDesign <- design[design$Weight > delta, ]
   updatedDesign$Weight <- updatedDesign$Weight / sum(updatedDesign$Weight)
   return(updatedDesign)

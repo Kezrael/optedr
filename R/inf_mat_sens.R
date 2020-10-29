@@ -73,7 +73,7 @@ inf_mat <- function(grad, design) {
 #'   * 'I-Optimality'
 #' @param grad A function in a single variable that returns the partial derivatives vector of the model.
 #' @param M Information Matrix for the sensitivity function.
-#' @param intPars Numeric vector of the indexes of the parameters of interest for Ds-Optimality.
+#' @param par_int Numeric vector of the indexes of the parameters of interest for Ds-Optimality.
 #' @param matB Matrix resulting from the integration of the unipunctual Information Matrix along the interest
 #'   region.
 #'
@@ -84,12 +84,12 @@ inf_mat <- function(grad, design) {
 #' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
 #' matrix <- optedr:::inf_mat(grad, design)
 #' optedr:::sens("D-Optimality", grad, matrix)
-sens <- function(Criterion, grad, M, intPars = c(1), matB = NA) {
+sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
     return(dsens(grad, M))
   }
   else if (identical(Criterion, "Ds-Optimality")) {
-    return(dssens(grad, M, intPars))
+    return(dssens(grad, M, par_int))
   }
   else if (identical(Criterion, "A-Optimality")) {
     return(isens(grad, M, diag(nrow(M))))
@@ -136,16 +136,16 @@ dsens <- function(grad, M) {
 #' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
 #' matrix <- optedr:::inf_mat(grad, design)
 #' optedr:::dssens(grad, matrix, c(1))
-dssens <- function(grad, M, intPars) {
+dssens <- function(grad, M, par_int) {
   invMat <- solve(M)
-  if (length(M[-intPars, -intPars]) == 1) {
-    invMat22 <- 1 / M[-intPars, -intPars]
+  if (length(M[-par_int, -par_int]) == 1) {
+    invMat22 <- 1 / M[-par_int, -par_int]
   } else {
-    invMat22 <- solve(M[-intPars, -intPars])
+    invMat22 <- solve(M[-par_int, -par_int])
   }
   sens_ret <- function(xval) {
     f_col <- as.matrix(grad(xval), nrow = 1, byrow = TRUE, dimnames = NULL)
-    return(f_col %*% invMat %*% t(f_col) - f_col[-intPars] %*% invMat22 %*% as.matrix(f_col[-intPars], ncol = 1))
+    return(f_col %*% invMat %*% t(f_col) - f_col[-par_int] %*% invMat22 %*% as.matrix(f_col[-par_int], ncol = 1))
   }
 }
 
