@@ -4,10 +4,12 @@
 \alias{print.optdes}
 \title{Print function for optdes}
 \usage{
-\method{print}{optdes}(x)
+\method{print}{optdes}(x, ...)
 }
 \arguments{
 \item{x}{An object of class \code{optdes}.}
+
+\item{...}{Possible extra arguments for printing dataframes}
 }
 \description{
 Print function for optdes

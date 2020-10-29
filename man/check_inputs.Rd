@@ -56,6 +56,9 @@ in order to not be deleted from the design.}
 
 \item{tol}{optional numeric value for the convergence of the weight optimizing algorithm.}
 
+\item{tol2}{optional numeric value for the stop criterion: difference between maximum of sensitivity function
+and optimality criterion.}
+
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest.}
 
 \item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the

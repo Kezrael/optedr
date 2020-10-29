@@ -232,6 +232,7 @@ tr <- function(M) {
 #' plot_sens(1, 100, sens, crit)
 #' }
 plot_sens <- function(min, max, sens_function, criterion_value) {
+  x <- y <- NULL
   grid <- seq(min, max, length.out = 10000)
   sens_grid <- purrr::map_dbl(grid, sens_function)
 
@@ -259,6 +260,7 @@ plot_sens <- function(min, max, sens_function, criterion_value) {
 #' conv <- data.frame("criteria" = c(24, 23, 20, 15, 14.9, 14.8, 14.7), "step" = 1:7)
 #' optedr:::plot_convergence(conv)
 plot_convergence <- function(convergence) {
+  step <- criteria <- NULL
   ggplot2::ggplot(data = convergence, ggplot2::aes(x = step, y = criteria)) +
     ggplot2::geom_line(color = "coral1") +
     ggplot2::theme_bw()
@@ -289,7 +291,7 @@ integrate_reg_int <- function(grad, k, reg_int) {
         int_part <- function(x_value) {
           purrr::map_dbl(x_value, function(x_value) grad(x_value)[i] * grad(x_value)[j] / (reg_int[2] - reg_int[1]))
         }
-        matrix_int[i, j] <- integrate(int_part, lower = reg_int[1], upper = reg_int[2])$value
+        matrix_int[i, j] <- stats::integrate(int_part, lower = reg_int[1], upper = reg_int[2])$value
       }
       else {
         matrix_int[i, j] <- matrix_int[j, i]
@@ -303,14 +305,15 @@ integrate_reg_int <- function(grad, k, reg_int) {
 #' Print function for optdes
 #'
 #' @param x An object of class \code{optdes}.
+#' @param ... Possible extra arguments for printing dataframes
 #'
 #' @export
 #'
 #' @examples
 #' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422), matB = matrix(c(3, 1, 1, 2), nrow = 2))
 #' print(rri)
-print.optdes <- function(x) {
+print.optdes <- function(x, ...) {
   cat("Optimal design for ", x$criterion, ":\n")
-  print.data.frame(x$optdes)
+  print.data.frame(x$optdes, ...)
   cat("\n Criterion value: ", x$crit_value)
 }

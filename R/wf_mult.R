@@ -74,6 +74,7 @@ WFMult <- function(init_design, grad, Criterion, par_int = NA, matB = NA, min, m
 #' @family cocktail algorithms
 #'
 DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
+  Point <- NULL
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
@@ -145,6 +146,7 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
 #' @family cocktail algorithms
 #'
 DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2) {
+  Point <- NULL
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
@@ -219,6 +221,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
 #' @family cocktail algorithms
 #'
 IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2) {
+  Point <- NULL
   crit_val <- numeric(2122)
   index <- 1
   # Maximum iterations for the optimize weights loop
@@ -313,6 +316,8 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'   in order to not be deleted from the design.
 #' @param delta optional numeric value in (0, 1), parameter of the algorithm.
 #' @param tol optional numeric value for the convergence of the weight optimizing algorithm.
+#' @param tol2 optional numeric value for the stop criterion: difference between maximum of sensitivity function
+#'   and optimality criterion.
 #' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
 #'   interest region.

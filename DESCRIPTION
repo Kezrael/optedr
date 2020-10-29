@@ -23,4 +23,5 @@ Imports:
     rlang,
     crayon,
     cli,
-    magrittr
+    magrittr,
+    dplyr
