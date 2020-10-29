@@ -22,5 +22,5 @@ The value at which the maximum is obtained
 Searches the maximum of a function over a grid on a given interval.
 }
 \examples{
-optedr:::findmax(function(x) x^2-x^3, 0, 1, 1000)
+optedr:::findmax(function(x) x^2 - x^3, 0, 1, 1000)
 }

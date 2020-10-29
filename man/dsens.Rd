@@ -18,8 +18,8 @@ The sensitivity function as a matrix of single variable.
 Calculates the sensitiviity function from the gradient vector and the Identitiy Matrix.
 }
 \examples{
-grad <- optedr:::gradient(y ~ a*exp(-b/x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422,length.out = 3), "Weight" = rep(1/3, times = 3))
+grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
+design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
 matrix <- optedr:::inf_mat(grad, design)
 optedr:::dsens(grad, matrix)
 }

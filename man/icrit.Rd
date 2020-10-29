@@ -4,10 +4,10 @@
 \alias{icrit}
 \title{Criterion function for I-Optimality}
 \usage{
-icrit(mat, matB)
+icrit(M, matB)
 }
 \arguments{
-\item{mat}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{Information matrix for which the criterion value wants to be calculated.}
 
 \item{matB}{Matrix of the integral of the information matrix over the interest region. Identity matrix for
 A-Optimality.}

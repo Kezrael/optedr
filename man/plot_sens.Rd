@@ -23,5 +23,7 @@ Plots the sensitivity function and the value of the Equivalence Theorem as an ho
 assess the optimality of the design of the given sensitivity function.
 }
 \examples{
-\dontrun{plot_sens(1, 100, sens, crit)}
+\dontrun{
+plot_sens(1, 100, sens, crit)
+}
 }

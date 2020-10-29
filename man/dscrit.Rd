@@ -4,12 +4,12 @@
 \alias{dscrit}
 \title{Criterion function for Ds-Optimality}
 \usage{
-dscrit(mat, intPars)
+dscrit(M, par_int)
 }
 \arguments{
-\item{mat}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{Information matrix for which the criterion value wants to be calculated.}
 
-\item{intPars}{Numeric vector with the index of the parameters of interest of the model.}
+\item{par_int}{Numeric vector with the index of the parameters of interest of the model.}
 }
 \value{
 Numeric value of the Ds-optimality criterion for the information matrix.

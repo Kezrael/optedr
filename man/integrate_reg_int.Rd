@@ -21,6 +21,6 @@ Integrates the information matrix over the region of interest to calculate matri
 calculation.
 }
 \examples{
-grad <- optedr:::gradient(y ~ a + b*x, c("a", "b"), c(1,1))
-optedr:::integrate_reg_int(grad, 2, c(0,3))
+grad <- optedr:::gradient(y ~ a + b * x, c("a", "b"), c(1, 1))
+optedr:::integrate_reg_int(grad, 2, c(0, 3))
 }

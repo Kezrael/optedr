@@ -23,8 +23,8 @@ Takes a optimal design provided from the function \code{opt_des} and a user give
 efficiency
 }
 \examples{
-result <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
-design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
+result <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
+design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1 / 3, 1 / 3, 1 / 3))
 design_efficiency(result, design)
 }
 \seealso{

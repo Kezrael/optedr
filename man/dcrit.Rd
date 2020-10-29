@@ -4,10 +4,10 @@
 \alias{dcrit}
 \title{Criterion function for D-Optimality}
 \usage{
-dcrit(mat, k)
+dcrit(M, k)
 }
 \arguments{
-\item{mat}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{Information matrix for which the criterion value wants to be calculated.}
 
 \item{k}{Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
 }

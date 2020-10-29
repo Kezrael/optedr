@@ -22,5 +22,5 @@ Calculates the gradient function of a \code{model} with respect to the parameter
 it at the provided \code{values} and returns the result as a function of the variable \code{x}.
 }
 \examples{
-optedr:::gradient(y ~ a*exp(-b/x), c("a", "b"), c(1, 1500))
+optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
 }

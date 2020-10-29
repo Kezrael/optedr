@@ -5,21 +5,21 @@
 \title{Cocktail Algorithm implementation for D-Optimality}
 \usage{
 DWFMult(
-  initDes,
+  init_design,
   grad,
   min,
   max,
   grid.length,
-  joinThresh,
-  deleteThresh,
+  join_thresh,
+  delete_thresh,
   k,
-  deltaW,
+  delta_weights,
   tol,
   tol2
 )
 }
 \arguments{
-\item{initDes}{with the initial design for the algorithm. A dataframe with two columns:
+\item{init_design}{with the initial design for the algorithm. A dataframe with two columns:
 \itemize{
 \item \code{Point} contains the support points of the design.
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
@@ -34,15 +34,15 @@ DWFMult(
 \item{grid.length}{numeric value that gives the grid to evaluate the sensitivity function when looking for a
 maximum.}
 
-\item{joinThresh}{numeric value that states how close, in real units, two points must be in order to
+\item{join_thresh}{numeric value that states how close, in real units, two points must be in order to
 be joined together by the join heuristic.}
 
-\item{deleteThresh}{numeric value with the minimum weight, over 1 total, that a point needs to have
+\item{delete_thresh}{numeric value with the minimum weight, over 1 total, that a point needs to have
 in order to not be deleted from the design.}
 
 \item{k}{number of unknown parameters of the model.}
 
-\item{deltaW}{numeric value in (0, 1), parameter of the algorithm.}
+\item{delta_weights}{numeric value in (0, 1), parameter of the algorithm.}
 
 \item{tol}{numeric value for the convergence of the weight optimizing algorithm.}
 
@@ -62,7 +62,7 @@ algorithm.
 }
 \examples{
 \dontrun{
-  WFMult(initDes, grad, Criterion, intPars = NA, matB = NA, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol, tol2)
+WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2)
 }
 }
 \seealso{

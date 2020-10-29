@@ -11,12 +11,12 @@ opt_des(
   par_values,
   design_space,
   init_design = NULL,
-  joinThresh = -1,
-  deleteThresh = 0.02,
+  join_thresh = -1,
+  delete_thresh = 0.02,
   delta = 1/2,
   tol = 1e-05,
   tol2 = 1e-05,
-  par_int = NA,
+  par_int = NULL,
   matB = NULL,
   reg_int = NULL,
   desired_output = c(1, 2)
@@ -46,10 +46,10 @@ second component with the maximum.}
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
 }}
 
-\item{joinThresh}{optional numeric value that states how close, in real units, two points must be in order to
+\item{join_thresh}{optional numeric value that states how close, in real units, two points must be in order to
 be joined together by the join heuristic.}
 
-\item{deleteThresh}{optional numeric value with the minimum weight, over 1 total, that a point needs to have
+\item{delete_thresh}{optional numeric value with the minimum weight, over 1 total, that a point needs to have
 in order to not be deleted from the design.}
 
 \item{delta}{optional numeric value in (0, 1), parameter of the algorithm.}
@@ -80,5 +80,5 @@ For 'Ds-Optimality' the par_int parameter is necessary. For 'I-Optimality' eithe
 be provided.
 }
 \examples{
-opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
+opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 }

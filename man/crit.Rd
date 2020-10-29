@@ -4,7 +4,7 @@
 \alias{crit}
 \title{Master function for the criterion function}
 \usage{
-crit(Criterion, mat, k = 0, intPars = c(1), matB = NA)
+crit(Criterion, M, k = 0, par_int = c(1), matB = NA)
 }
 \arguments{
 \item{Criterion}{Character with the chosen optimality criterion. Can be one of the following:
@@ -15,11 +15,11 @@ crit(Criterion, mat, k = 0, intPars = c(1), matB = NA)
 \item 'I-Optimality'
 }}
 
-\item{mat}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{Information matrix for which the criterion value wants to be calculated.}
 
 \item{k}{Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
 
-\item{intPars}{Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
+\item{par_int}{Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
 
 \item{matB}{Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
 }

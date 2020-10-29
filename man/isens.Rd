@@ -23,8 +23,8 @@ unipunctual Identity Matrix over the interest region. If instead the identity ma
 for A-Optimality.
 }
 \examples{
-grad <- optedr:::gradient(y ~ a*exp(-b/x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422,length.out = 3), "Weight" = rep(1/3, times = 3))
+grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
+design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
 matrix <- optedr:::inf_mat(grad, design)
 optedr:::isens(grad, matrix, diag(2))
 }

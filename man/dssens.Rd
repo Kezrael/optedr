@@ -4,14 +4,14 @@
 \alias{dssens}
 \title{Sensitivity function for Ds-Optimality}
 \usage{
-dssens(grad, M, intPars)
+dssens(grad, M, par_int)
 }
 \arguments{
 \item{grad}{A function in a single variable that returns the partial derivatives vector of the model.}
 
 \item{M}{Information Matrix for the sensitivity function.}
 
-\item{intPars}{Numeric vector of the indexes of the parameters of interest for Ds-Optimality.}
+\item{par_int}{Numeric vector of the indexes of the parameters of interest for Ds-Optimality.}
 }
 \value{
 The sensitivity function as a matrix of single variable.
@@ -21,8 +21,8 @@ Calculates the sensitiviity function from the gradient vector, the Identitiy Mat
 interest.
 }
 \examples{
-grad <- optedr:::gradient(y ~ a*exp(-b/x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422,length.out = 3), "Weight" = rep(1/3, times = 3))
+grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
+design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
 matrix <- optedr:::inf_mat(grad, design)
 optedr:::dssens(grad, matrix, c(1))
 }

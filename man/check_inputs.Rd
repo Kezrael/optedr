@@ -11,8 +11,8 @@ check_inputs(
   par_values,
   design_space,
   init_design,
-  joinThresh,
-  deleteThresh,
+  join_thresh,
+  delete_thresh,
   delta,
   tol,
   tol2,
@@ -46,10 +46,10 @@ second component with the maximum.}
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
 }}
 
-\item{joinThresh}{optional numeric value that states how close, in real units, two points must be in order to
+\item{join_thresh}{optional numeric value that states how close, in real units, two points must be in order to
 be joined together by the join heuristic.}
 
-\item{deleteThresh}{optional numeric value with the minimum weight, over 1 total, that a point needs to have
+\item{delete_thresh}{optional numeric value with the minimum weight, over 1 total, that a point needs to have
 in order to not be deleted from the design.}
 
 \item{delta}{optional numeric value in (0, 1), parameter of the algorithm.}
