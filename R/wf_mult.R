@@ -192,9 +192,9 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
 
   M <- inf_mat(grad, init_design)
   sensM <- dssens(grad, M, par_int)
-  xmin <- findmax(function(x) 1 / sensM(x), min, max, grid.length * 10)
+  xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (1 + sensM(xmin) / dscrit(M, par_int)) * 100, "%")
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2 - sensM(xmax) / length(par_int)) * 100, "%")
 
 
   plot_opt <- plot_sens(min, max, sensDs, length(par_int))
