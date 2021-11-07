@@ -1,0 +1,14 @@
+---
+title: "Presentación"
+author: "Carlos de la Calle"
+date: "5/10/2020"
+output: md_document
+---
+
+
+## Help
+
+This application uses the *Cocktail Algorithm* to calculate optimal designs for Antoine's Equation. The details of the algorithm can be found in the original work accompaning this application.
+
+For some set of parameters, usually with no physical meaning, the Information Matrix might be bad conditioned, which causes the algorithm to fail. Similar phenomenons might happen when trying to optimise for *Arithmetic* and *Geometric* industry designs for certain criteria.
+

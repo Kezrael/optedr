@@ -62,7 +62,8 @@ algorithm.
 }
 \examples{
 \dontrun{
-WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2)
+WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length,
+join_thresh, delete_thresh, k, delta_weights, tol, tol2)
 }
 }
 \seealso{

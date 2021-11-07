@@ -124,7 +124,8 @@ icrit <- function(M, matB) {
 #' @return Efficiency of first design with respect to the second design, as a decimal number.
 #'
 #' @examples
-#' optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
+#' optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2),
+#' matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
 eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
     if (k == 0) k <- nrow(mat1)

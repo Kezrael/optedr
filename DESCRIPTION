@@ -1,13 +1,13 @@
 Package: optedr
-Title: Calculating Optimal Designs With Cocktail Algorithm
-Version: 0.1.1.9000
+Title: Calculating Optimal and D-Augmented Designs
+Version: 0.2.2.9000
 Authors@R: 
     person(given = "Carlos",
            family = "de la Calle-Arroyo",
            role = c("aut", "cre"),
-           email = "carlos.callearroyo@uclm.es",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "carlos.calle.arroyo@gmail.com",
+           comment = c(ORCID = "0000-0002-5099-888X"))
+Description: This package implements a version of the cocktail algorithm to calculate D-, Ds-, A- and I-optimal designs for non-linear models. It allows to compare designs via their efficiency, and D-augment any design with a controlled efficiency. An efficient rounding function has been provided to transform approximate to exact designs.
 License: GPL-3
 Encoding: UTF-8
 URL: https://github.com/kezrael/optedr
@@ -24,4 +24,15 @@ Imports:
     crayon,
     cli,
     magrittr,
-    dplyr
+    dplyr,
+    nleqslv,
+    shiny,
+    DT,
+    shinydashboard,
+    shinyalert,
+    plotly,
+    hrbrthemes,
+    shinyjs,
+    nloptr,
+    orthopolynom
+    

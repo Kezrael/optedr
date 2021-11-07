@@ -1,6 +1,57 @@
 # Auxiliar function for algorithms --------------------------------------
 
 
+#' Find Minimum Value
+#'
+#' @description
+#' Searches the maximum of a function over a grid on a given interval.
+#'
+#' @param sens A single variable numeric function to evaluate.
+#' @param min Minimum value of the search interval.
+#' @param max Maximum value of the search interval.
+#' @param grid.length Length of the search interval.
+#'
+#' @return The value of the minimum
+#'
+#' @examples
+#' optedr:::findminval(function(x) x^2 - x^3, 0, 1, 1000)
+findminval <- function(sens, min, max, grid.length) {
+  if(min <= max){
+    grid <- seq(min, max, length.out = grid.length)
+  }
+  else {
+    grid <- seq(max, min, length.out = grid.length)
+  }
+  minval <- min(purrr::map_dbl(grid, sens))
+  return(minval)
+}
+
+#' Find Maximum Value
+#'
+#' @description
+#' Searches the maximum of a function over a grid on a given interval.
+#'
+#' @param sens A single variable numeric function to evaluate.
+#' @param min Minimum value of the search interval.
+#' @param max Maximum value of the search interval.
+#' @param grid.length Length of the search interval.
+#'
+#' @return The value of the maximum
+#'
+#' @examples
+#' optedr:::findminval(function(x) x^2 - x^3, 0, 1, 1000)
+findmaxval <- function(sens, min, max, grid.length) {
+  if(min <= max){
+    grid <- seq(min, max, length.out = grid.length)
+  }
+  else {
+    grid <- seq(max, min, length.out = grid.length)
+  }
+  maxval <- max(purrr::map_dbl(grid, sens))
+  return(maxval)
+}
+
+
 #' Find Maximum
 #'
 #' @description
@@ -24,6 +75,129 @@ findmax <- function(sens, min, max, grid.length) {
   }
   xmax <- grid[which.max(purrr::map(grid, sens))]
   return(xmax)
+}
+
+#' Deletes duplicates points
+#'
+#' @description
+#' Within a vector of points, deletes points that are close enough (less than the tol parameter).
+#' Returns the points without the "duplicates"
+#'
+#' @param points Points to be updated
+#' @param tol Tolerance for which two points are considered the same
+#'
+#' @return The points without duplicates
+#'
+#' @examples
+#' points_ex <- c(20, 30, 40, 20.1, 29.97)
+#' optedr:::update_sequence(points_ex, 0.05)
+update_sequence <- function(points, tol){
+  i <- 1
+  imax <- (length(points)-1)
+  while(i < imax) {
+    absdiff <- c(rep(T, i), abs(points[-seq(1, i)] - points[i]) > tol)
+    points <- points[absdiff]
+    i <- i+1
+    imax <- (length(points)-1)
+  }
+  return(points)
+}
+
+
+#' Find where the candidate points region starts
+#'
+#' @description
+#' Given the crosspoints and the sensitivity function, this function
+#' finds where the candidate points region starts, either on the extreme of
+#' the space of the design or the first crosspoints
+#'
+#' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
+#' @param min Mininum of the space of the design
+#' @param max Maximum of the space of the design
+#' @param val Value of the sensitivity function at the crosspoints
+#' @param sens_opt Sensitivity function
+#'
+#' @return True if the candidate points region starts on the minimum, False otherwise
+#'
+getStart <- function(cross, min, max, val, sens_opt){
+  if(length(cross)==1){
+    if(round(cross[1]-min, 6)==0){
+      if((val < sens_opt((max+cross[1])/2))){
+        start <- F
+      }
+      else{
+        start <- T
+      }
+    }
+    else{
+      if((val < sens_opt((min+cross[1])/2))){
+        start <- T
+      }
+      else{
+        start <- F
+      }
+    }
+  }
+  else if(val < sens_opt((cross[2]+cross[1])/2)){
+    start <- F
+  }
+  else {
+    start <- T
+  }
+  return(start)
+}
+
+
+#' Parity of the crosspoints
+#'
+#' @description
+#' Determinates if the number of crosspoints is even or odd given the vector
+#' of crosspoints
+#'
+#' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
+#'
+#' @return True if the number of crosspoints is even, false otherwise
+#'
+#' @examples
+#' crosspoints <- c(4, 20, 50, 79)
+#' optedr:::getPar(crosspoints)
+getPar <- function(cross){
+  return(length(cross)%%2 == 0)
+}
+
+#' Give effective limits to candidate points region
+#'
+#' @description
+#' Given the start of the candidates points region, the parity of the crosspoints
+#' and the boundaries of the space of the design returns the effective limits of
+#' the candidate points region. Those points, taken in pairs from the first to
+#' the last delimit the region.
+#'
+#' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
+#' @param min Mininum of the space of the design
+#' @param max Maximum of the space of the design
+#' @param start Boolean that gives the effective start of the candidate points region
+#' @param par Boolean with the parity of the region
+#'
+#' @return Vector of effective limits of the candidate points region. Taken
+#' in pairs from the beginning delimit the region.
+#'
+#' @examples
+#' optedr:::getCross2(c(3, 5, 7), -5, 10, TRUE, FALSE)
+getCross2 <- function(cross, min, max, start, par){
+  if(par & start){
+    cross2 <- c(min, cross, max)
+  }
+  else if(par & !start){
+    cross2 <- cross
+  }
+  else if(!par & start){
+    cross2 <- c(min, cross)
+  }
+  else{
+    cross2 <- c(cross, max)
+  }
+  return(cross2)
 }
 
 
@@ -94,8 +268,11 @@ update_weightsDS <- function(design, sens, s, delta) {
 #' update_weightsI(design, sens, crit, delta)
 #' }
 update_weightsI <- function(design, sens, crit, delta) {
-  weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / crit)^delta
-  return(weights)
+  exponent <- function(a, pow) (abs(a)^pow)*sign(a)
+  weights <- design$Weight * exponent((purrr::map_dbl(design$Point, sens) / crit), delta)
+  # weights[is.nan(weights)] <- 0
+  # weights <- weights/sum(weights)
+  return(weights/sum(weights))
 }
 
 
@@ -123,16 +300,18 @@ update_weightsI <- function(design, sens, crit, delta) {
 #' # Merging:
 #' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
 #' optedr:::update_design(design, 2, 1.1)
-update_design <- function(design, xmax, delta) {
+update_design <- function(design, xmax, delta, new_weight) {
   absdiff <- abs(design$Point - xmax) < delta
+  design$Weight <- design$Weight * (1 - new_weight)
   if (any(absdiff)) {
     pos <- min(which(absdiff == TRUE))
     design$Point[[pos]] <- (design$Point[[pos]] + xmax) / 2
+    design$Weight[[pos]] <- design$Weight[[pos]] + new_weight
   }
   else {
-    design[nrow(design) + 1, ] <- c(xmax, 1 / (nrow(design) + 1))
+    design[nrow(design) + 1, ] <- c(xmax, new_weight)
   }
-  design$Weight <- rep(1 / nrow(design), nrow(design))
+  # design$Weight <- rep(1 / nrow(design), nrow(design))
   return(design)
 }
 
@@ -161,7 +340,7 @@ update_design_total <- function(design, delta) {
       absdiff <- abs(design$Point[-seq(1, i)] - design$Point[i]) < delta
       if (any(absdiff)) {
         updated <- TRUE
-        design <- update_design(design[-i, ], design$Point[i], delta)
+        design <- update_design(design[-i, ], design$Point[i], delta, design$Weight[i])
         break
       }
     }
@@ -187,7 +366,8 @@ update_design_total <- function(design, delta) {
 #'
 #'
 #' @examples
-#' design <- data.frame("Point" = seq(1, 100, length.out = 8), "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
+#' design <- data.frame("Point" = seq(1, 100, length.out = 8),
+#' "Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
 #' optedr:::delete_points(design, 0.09)
 delete_points <- function(design, delta) {
   updatedDesign <- design[design$Weight > delta, ]
@@ -302,6 +482,29 @@ integrate_reg_int <- function(grad, k, reg_int) {
 }
 
 
+#' Summary function for optdes
+#'
+#' @param x An object of class \code{optdes}.
+#' @param ... Possible extra arguments for the summary
+#'
+#' @export
+#'
+#' @examples
+#' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
+#' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
+#' summary(rri)
+summary.optdes <- function(x, ...) {
+  cat("Model: \n")
+  print(attr(x, "model"))
+  cat("and weight function: \n")
+  print(attr(attr(x, "weight_fun"), "srcref"))
+  cat("Optimal design for ", x$criterion, ":\n")
+  print.data.frame(x$optdes, ...)
+  cat("\n Minimum efficiency (Atwood): ", paste0(attr(x, "atwood"), "%"))
+  cat("\n Criterion value: ", x$crit_value)
+}
+
+
 #' Print function for optdes
 #'
 #' @param x An object of class \code{optdes}.
@@ -310,10 +513,34 @@ integrate_reg_int <- function(grad, k, reg_int) {
 #' @export
 #'
 #' @examples
-#' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422), matB = matrix(c(3, 1, 1, 2), nrow = 2))
+#' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
+#' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
 #' print(rri)
 print.optdes <- function(x, ...) {
-  cat("Optimal design for ", x$criterion, ":\n")
   print.data.frame(x$optdes, ...)
-  cat("\n Criterion value: ", x$crit_value)
 }
+
+
+
+#' Plot function for optdes
+#'
+#' @param x An object of class \code{optdes}.
+#' @param ... Possible extra arguments for plotting dataframes
+#'
+#' @export
+#'
+#' @examples
+#' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
+#' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
+#' plot(rri)
+plot.optdes <- function(x) {
+  x$optdes[["Value"]] <- rep(0, nrow(x$optdes))
+  x$optdes[["Weight"]] <- round(x$optdes[["Weight"]], 2)
+  p <- x$sens + ggplot2::geom_point(data = x$optdes, ggplot2::aes(x = Point, y = Value)
+                          , size = 4, shape = 16, color = "darkgreen") +
+                ggplot2::geom_text(data = x$optdes, ggplot2::aes(x = Point, y = Value, label = Weight),
+                                   hjust=1.5, vjust=1.5) +
+                ggplot2::labs(x = "Design Space", y = "Sensitivity Function")
+  p
+}
+

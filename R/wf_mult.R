@@ -1,9 +1,3 @@
-# Algoritmo de cálculo
-# Requiere, además de lo "habitual" la función de sensibilidad, la matriz de información y el criterio
-# Llama, en función de crit, al algoritmo de WF pertinente
-# A futuro: admitir también matriz de la región de interés/parámetros de interés
-# POSIBLE: ofrecer outputs -> diseño, plot y convergencia, con un vector? Sin convergencia y un parámetro para el plot?
-
 #' Master function for the cocktail algorithm, that calls the appropriate one given the criterion.
 #'
 #' @description
@@ -45,7 +39,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2)
+#' WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length,
+#' join_thresh, delete_thresh, k, delta_weights, tol, tol2)
 #' }
 WFMult <- function(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
   if (identical(Criterion, "D-Optimality")) {
@@ -89,7 +84,7 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    init_design <- update_design(init_design, xmax, join_thresh)
+    init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
@@ -122,7 +117,9 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
   sensM <- dsens(grad, M)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", k / sensM(xmax) * 100, "%")
+  atwood <- k / sensM(xmax) * 100
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
 
   plot_opt <- plot_sens(min, max, sensM, k)
   l_return <- list(
@@ -131,6 +128,7 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
   )
   attr(l_return, "hidden_value") <- k
   attr(l_return, "gradient") <- grad
+  attr(l_return, "atwood") <- atwood
   class(l_return) <- "optdes"
   l_return
 }
@@ -161,7 +159,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    init_design <- update_design(init_design, xmax, join_thresh)
+    init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
@@ -171,7 +169,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
       M <- inf_mat(grad, init_design)
       sensDs <- dssens(grad, M, par_int)
       init_design$Weight <- update_weightsDS(init_design, sensDs, length(par_int), delta_weights)
-      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter
+      stopw <- any(max(abs(weightsInit - init_design$Weight)) < tol) || iter >= maxiter
       iter <- iter + 1
     }
     init_design <- delete_points(init_design, delete_thresh)
@@ -194,7 +192,9 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   sensM <- dssens(grad, M, par_int)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2 - sensM(xmax) / length(par_int)) * 100, "%")
+  atwood <- (2 - sensM(xmax) / length(par_int)) * 100
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
 
 
   plot_opt <- plot_sens(min, max, sensDs, length(par_int))
@@ -204,6 +204,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   )
   attr(l_return, "hidden_value") <- par_int
   attr(l_return, "gradient") <- grad
+  attr(l_return, "atwood") <- atwood
   class(l_return) <- "optdes"
   l_return
 }
@@ -232,11 +233,11 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
     index <- index + 1
     sensI <- isens(grad, M, matB)
     xmax <- findmax(sensI, min, max, grid.length)
-    if ((sensI(xmax) - crit_val[index]) < tol2) {
+    if ((sensI(xmax) - crit_val[index-1]) < tol2) {
       message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
-    init_design <- update_design(init_design, xmax, join_thresh)
+    init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
     iter <- 1
     stopw <- FALSE
     while (!stopw) {
@@ -247,7 +248,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
       index <- index + 1
       sensI <- isens(grad, M, matB)
       init_design$Weight <- update_weightsI(init_design, sensI, crit, delta_weights)
-      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter
+      stopw <- any(max(abs(weightsInit - init_design$Weight)) < tol) || iter >= maxiter
       iter <- iter + 1
     }
     init_design <- delete_points(init_design, delete_thresh)
@@ -272,7 +273,9 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   sensM <- isens(grad, M, matB)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
-  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", (2 - sensM(xmax) / icrit(M, matB)) * 100, "%")
+  atwood <- (2 - sensM(xmax) / icrit(M, matB)) * 100
+
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
 
 
   plot_opt <- plot_sens(min, max, sensI, icrit(M, matB))
@@ -282,6 +285,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   )
   attr(l_return, "hidden_value") <- matB
   attr(l_return, "gradient") <- grad
+  attr(l_return, "atwood") <- atwood
   class(l_return) <- "optdes"
   l_return
 }
@@ -323,6 +327,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'   interest region.
 #' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
 #' @param desired_output not functional yet: decide which kind of output you want.
+#' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return a list of two objects:
 #'   * optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
@@ -341,15 +346,16 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     par_int = NULL,
                     matB = NULL,
                     reg_int = NULL,
-                    desired_output = c(1, 2)) {
+                    desired_output = c(1, 2),
+                    weight_fun = function(x) 1) {
   k <- length(par_values)
   if (is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]], length.out = k * (k + 1) / 2 + 1), "Weight" = rep(1 / (k * (k + 1) / 2 + 1), times = k * (k + 1) / 2 + 1))
   check_inputs(
     Criterion, model, parameters, par_values, design_space, init_design, join_thresh, delete_thresh,
-    delta, tol, tol2, par_int, matB, reg_int, desired_output
+    delta, tol, tol2, par_int, matB, reg_int, desired_output, weight_fun
   )
   if (design_space[1] > design_space[2]) design_space <- rev(design_space)
-  grad <- gradient(model, parameters, par_values)
+  grad <- gradient(model, parameters, par_values, weight_fun)
   if (join_thresh == -1) join_thresh <- (design_space[[2]] - design_space[[1]]) / 10
   if (identical(Criterion, "I-Optimality") && is.null(matB)) {
     if (!is.null(reg_int)) {
@@ -357,6 +363,9 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
     }
   }
   output <- WFMult(init_design, grad, Criterion, par_int = par_int, matB, design_space[[1]], design_space[[2]], 1000, join_thresh, delete_thresh, k, delta, tol, tol2)
+  attr(output, "model") <- model
+  attr(output, "weight_fun") <- weight_fun
+  return(output)
 }
 
 

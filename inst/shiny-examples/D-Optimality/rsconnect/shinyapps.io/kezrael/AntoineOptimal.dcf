@@ -1,0 +1,13 @@
+name: AntoineOptimal
+title: AntoineOptimal
+username:
+account: kezrael
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2305217
+bundleId: 4446542
+url: https://kezrael.shinyapps.io/AntoineOptimal/
+when: 1617889071.19335
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: help.md|help.Rmd

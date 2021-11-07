@@ -4,7 +4,7 @@
 \alias{gradient}
 \title{Gradient function}
 \usage{
-gradient(model, char_vars, values)
+gradient(model, char_vars, values, weight_fun = function(x) 1)
 }
 \arguments{
 \item{model}{A formula describing the model, which must contain only \code{x}, the parameters defined in
@@ -13,6 +13,8 @@ gradient(model, char_vars, values)
 \item{char_vars}{A character vector of the parameters of the model.}
 
 \item{values}{Numeric vector with the nominal values of the parameters in \code{char_vars}.}
+
+\item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
 A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}

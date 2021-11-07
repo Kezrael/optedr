@@ -118,12 +118,19 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
         }
       }
       if(in_cand_reg){
-        weight_to_add <- as.numeric(readline(prompt = "Choose the weight of the point: \n"))
-        if(is.na(weight_to_add)){
-          cat(crayon::red(cli::symbol$cross), "The weight must be a number")
-        }
-        else {
-          new_points[nrow(new_points) + 1,] = c(point_to_add, weight_to_add)
+        weight_ok <- 0
+        while(weight_ok == 0){
+          weight_to_add <- as.numeric(readline(prompt = "Choose the weight of the point: \n"))
+          if(is.na(weight_to_add)){
+            cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
+          }
+          else if(weight_to_add <= 0){
+            cat(crayon::red(cli::symbol$cross), "The weight must be positive")
+          }
+          else {
+            new_points[nrow(new_points) + 1,] = c(point_to_add, weight_to_add)
+            weight_ok <- 1
+          }
         }
       }
       else{
@@ -131,7 +138,12 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
       }
     }
   }
-  aug_design <- add_design(init_design, new_points, alpha)
+  if(nrow(new_points > 0)){
+    aug_design <- add_design(init_design, new_points, alpha)
+  }
+  else{
+    aug_design <- init_design
+  }
 
   options(warn = oldw)
   if(calc_optimal_design){

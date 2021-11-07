@@ -17,7 +17,8 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
                          par_int,
                          matB,
                          reg_int,
-                         desired_output) {
+                         desired_output,
+                         weight_fun) {
   error_msg <- ""
   # Check for valid criterion
   if (!Criterion %in% c("D-Optimality", "Ds-Optimality", "A-Optimality", "I-Optimality")) {
@@ -149,6 +150,9 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
     if (!is.null(reg_int) && (!is.numeric(reg_int) || !is.atomic(reg_int) || !is.vector(reg_int) || length(reg_int) != 2)) {
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be numeric vector of length 2")
     }
+  }
+  if(!is.function(weight_fun)){
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " weight_fun must be a function")
   }
 
   # If there are errors, send them to the user

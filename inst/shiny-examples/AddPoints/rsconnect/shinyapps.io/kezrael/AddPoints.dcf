@@ -1,0 +1,13 @@
+name: AddPoints
+title: AddPoints
+username:
+account: kezrael
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2369687
+bundleId: 4942675
+url: https://kezrael.shinyapps.io/AddPoints/
+when: 1629404430.67025
+lastSyncTime: 1629404430.67025
+asMultiple: FALSE
+asStatic: FALSE

@@ -11,12 +11,13 @@
 #'   \code{char_vars} and the numerical operators.
 #' @param char_vars A character vector of the parameters of the model.
 #' @param values Numeric vector with the nominal values of the parameters in \code{char_vars}.
+#' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 #'
 #' @examples
 #' optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-gradient <- function(model, char_vars, values) {
+gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
   # vars <- as.list(match.call())[-(1:2)]
   # char_vars <- sapply(vars, as.character)
   ext_char_vars <- c(char_vars, "x")
@@ -26,7 +27,10 @@ gradient <- function(model, char_vars, values) {
   f2 <- function(x_val) {
     attr(do.call(f1, as.list(c(values, x_val))), "gradient")
   }
-  return(f2)
+  f3 <- function(x){
+    return(f2(x)*weight_fun(x))
+  }
+  return(f3)
 }
 
 

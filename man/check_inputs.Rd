@@ -19,7 +19,8 @@ check_inputs(
   par_int,
   matB,
   reg_int,
-  desired_output
+  desired_output,
+  weight_fun
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ interest region.}
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
 \item{desired_output}{not functional yet: decide which kind of output you want.}
+
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \description{
 Function to check that the inputs given to the function \code{opt_des} are correct. If not, throws the

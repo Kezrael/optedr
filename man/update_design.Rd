@@ -4,7 +4,7 @@
 \alias{update_design}
 \title{Update Design with new point}
 \usage{
-update_design(design, xmax, delta)
+update_design(design, xmax, delta, new_weight)
 }
 \arguments{
 \item{design}{Design to update. It's a dataframe with two columns:

@@ -19,7 +19,8 @@ opt_des(
   par_int = NULL,
   matB = NULL,
   reg_int = NULL,
-  desired_output = c(1, 2)
+  desired_output = c(1, 2),
+  weight_fun = function(x) 1
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ interest region.}
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
 \item{desired_output}{not functional yet: decide which kind of output you want.}
+
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
 a list of two objects:
