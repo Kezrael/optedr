@@ -1,6 +1,8 @@
 #' Shiny Optimal
 #'
-#' @return
+#' @description
+#' Launches the demo shiny application to calculate optimal designs for Antoine's Equation
+#'
 #' @export
 #'
 shinyOptimal <- function() {
@@ -16,7 +18,9 @@ shinyOptimal <- function() {
 
 #' Shiny D-augment
 #'
-#' @return
+#' @description
+#' Launches the demo shiny application to D-augment several preespecified models
+#'
 #' @export
 #'
 shinyAugment <- function() {
