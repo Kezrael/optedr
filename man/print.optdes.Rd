@@ -15,7 +15,8 @@
 Print function for optdes
 }
 \examples{
+\dontrun{
 rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
 matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-print(rri)
+print(rri)}
 }

@@ -4,10 +4,10 @@
 \alias{summary.optdes}
 \title{Summary function for optdes}
 \usage{
-\method{summary}{optdes}(x, ...)
+\method{summary}{optdes}(object, ...)
 }
 \arguments{
-\item{x}{An object of class \code{optdes}.}
+\item{object}{An object of class \code{optdes}.}
 
 \item{...}{Possible extra arguments for the summary}
 }
@@ -15,7 +15,8 @@
 Summary function for optdes
 }
 \examples{
+\dontrun{
 rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
 matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-summary(rri)
+summary(rri)}
 }

@@ -1,6 +1,6 @@
 Package: optedr
 Title: Calculating Optimal and D-Augmented Designs
-Version: 0.2.2.9000
+Version: 0.3.2.9000
 Authors@R: 
     person(given = "Carlos",
            family = "de la Calle-Arroyo",
@@ -16,7 +16,8 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Suggests: 
-    testthat
+    testthat (>= 3.0.0),
+    mockery
 Imports: 
     ggplot2,
     purrr,
@@ -35,4 +36,4 @@ Imports:
     shinyjs,
     nloptr,
     orthopolynom
-    
+Config/testthat/edition: 3

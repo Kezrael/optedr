@@ -289,17 +289,18 @@ update_weightsI <- function(design, sens, crit, delta) {
 #' @param xmax The point to add as a numeric value.
 #' @param delta Threshold which defines how close the new point has to be to any of the existing ones in order to
 #'   merge with them.
+#' @param new_weight Number with the weight for the new point.
 #'
 #' @return The updated design.
 #'
 #' @examples
 #' # Without merging:
 #' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-#' optedr:::update_design(design, 2, 0.5)
+#' optedr:::update_design(design, 2, 0.5, 0.3)
 #'
 #' # Merging:
 #' design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-#' optedr:::update_design(design, 2, 1.1)
+#' optedr:::update_design(design, 2, 1.1, 0.3)
 update_design <- function(design, xmax, delta, new_weight) {
   absdiff <- abs(design$Point - xmax) < delta
   design$Weight <- design$Weight * (1 - new_weight)
@@ -484,24 +485,25 @@ integrate_reg_int <- function(grad, k, reg_int) {
 
 #' Summary function for optdes
 #'
-#' @param x An object of class \code{optdes}.
+#' @param object An object of class \code{optdes}.
 #' @param ... Possible extra arguments for the summary
 #'
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
 #' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-#' summary(rri)
-summary.optdes <- function(x, ...) {
+#' summary(rri)}
+summary.optdes <- function(object, ...) {
   cat("Model: \n")
-  print(attr(x, "model"))
+  print(attr(object, "model"))
   cat("and weight function: \n")
-  print(attr(attr(x, "weight_fun"), "srcref"))
-  cat("Optimal design for ", x$criterion, ":\n")
-  print.data.frame(x$optdes, ...)
-  cat("\n Minimum efficiency (Atwood): ", paste0(attr(x, "atwood"), "%"))
-  cat("\n Criterion value: ", x$crit_value)
+  print(attr(attr(object, "weight_fun"), "srcref"))
+  cat("Optimal design for ", object$criterion, ":\n")
+  print.data.frame(object$optdes, ...)
+  cat("\n Minimum efficiency (Atwood): ", paste0(attr(object, "atwood"), "%"))
+  cat("\n Criterion value: ", object$crit_value)
 }
 
 
@@ -513,9 +515,10 @@ summary.optdes <- function(x, ...) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
 #' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-#' print(rri)
+#' print(rri)}
 print.optdes <- function(x, ...) {
   print.data.frame(x$optdes, ...)
 }
@@ -530,10 +533,12 @@ print.optdes <- function(x, ...) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
 #' matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-#' plot(rri)
-plot.optdes <- function(x) {
+#' plot(rri)}
+plot.optdes <- function(x, ...) {
+  Point <- Value <- Weight <- NULL
   x$optdes[["Value"]] <- rep(0, nrow(x$optdes))
   x$optdes[["Weight"]] <- round(x$optdes[["Weight"]], 2)
   p <- x$sens + ggplot2::geom_point(data = x$optdes, ggplot2::aes(x = Point, y = Value)

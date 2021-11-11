@@ -17,6 +17,8 @@ update_design(design, xmax, delta, new_weight)
 
 \item{delta}{Threshold which defines how close the new point has to be to any of the existing ones in order to
 merge with them.}
+
+\item{new_weight}{Number with the weight for the new point.}
 }
 \value{
 The updated design.
@@ -29,9 +31,9 @@ to be equal to all points of the design.
 \examples{
 # Without merging:
 design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-optedr:::update_design(design, 2, 0.5)
+optedr:::update_design(design, 2, 0.5, 0.3)
 
 # Merging:
 design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-optedr:::update_design(design, 2, 1.1)
+optedr:::update_design(design, 2, 1.1, 0.3)
 }

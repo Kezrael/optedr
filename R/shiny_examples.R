@@ -5,7 +5,7 @@
 #'
 #' @export
 #'
-shinyOptimal <- function() {
+shiny_optimal <- function() {
   appDir <- system.file("shiny-examples", "D-Optimality", package = "optedr")
   if (appDir == "") {
     stop("Could not find example directory. Try re-installing `optedr`.", call. = FALSE)
@@ -23,7 +23,7 @@ shinyOptimal <- function() {
 #'
 #' @export
 #'
-shinyAugment <- function() {
+shiny_augment <- function() {
   appDir <- system.file("shiny-examples", "AddPoints", package = "optedr")
   if (appDir == "") {
     stop("Could not find example directory. Try re-installing `optedr`.", call. = FALSE)

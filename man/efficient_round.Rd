@@ -23,7 +23,8 @@ an approximate design. It uses the multiplier (n - l/2) and evens the total
 number of observations afterwards.
 }
 \examples{
-design_test <- data.frame("Point" = seq(1, 5, length.out = 7), "Weight" = c(0.1, 0.0001, 0.2, 0.134, 0.073, 0.2111, 0.2818))
+design_test <- data.frame("Point" = seq(1, 5, length.out = 7),
+         "Weight" = c(0.1, 0.0001, 0.2, 0.134, 0.073, 0.2111, 0.2818))
 
 efficient_round(design_test, 20)
 
