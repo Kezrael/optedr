@@ -8,7 +8,7 @@ opt_des(
   Criterion,
   model,
   parameters,
-  par_values,
+  par_values = c(1),
   design_space,
   init_design = NULL,
   join_thresh = -1,

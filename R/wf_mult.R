@@ -336,7 +336,9 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'
 #' @examples
 #' opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
-opt_des <- function(Criterion, model, parameters, par_values, design_space,
+opt_des <- function(Criterion, model, parameters,
+                    par_values = c(1),
+                    design_space,
                     init_design = NULL,
                     join_thresh = -1,
                     delete_thresh = 0.02,
@@ -348,7 +350,10 @@ opt_des <- function(Criterion, model, parameters, par_values, design_space,
                     reg_int = NULL,
                     desired_output = c(1, 2),
                     weight_fun = function(x) 1) {
-  k <- length(par_values)
+  k <- length(parameters)
+  if(identical(par_values, c(1))){
+    par_values <- rep(1, length(parameters))
+  }
   if (is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]], length.out = k * (k + 1) / 2 + 1), "Weight" = rep(1 / (k * (k + 1) / 2 + 1), times = k * (k + 1) / 2 + 1))
   check_inputs(
     Criterion, model, parameters, par_values, design_space, init_design, join_thresh, delete_thresh,

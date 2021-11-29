@@ -39,9 +39,10 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
   max_sens <- findmaxval(sens_1, design_space[[1]], design_space[[2]], 10000)
   if(calc_optimal_design){
     optimal_design <- opt_des("D-Optimality", model, parameters, par_values, design_space, weight_fun = weight_fun)
-    eff_1 <- design_efficiency(optimal_design, init_design)
+    inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
+    eff_1 <- (det(inf_mat_1) / det(inf_mat_opt))^(1 / length(parameters))*100
+    message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  # message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   delta_range <- delta_bound(alpha, length(parameters), min_sens, max_sens)
   delta_val <- -Inf
   while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
@@ -147,8 +148,9 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
 
   options(warn = oldw)
   if(calc_optimal_design){
-    eff_2 <- design_efficiency(optimal_design, aug_design)
-    # message(crayon::blue(cli::symbol$info), " The efficiency of the augmented design is ", round(eff_2, digits = 2), "%")
+    inf_mat_aug <- inf_mat(grad, aug_design)
+    eff_2 <- (det(inf_mat_aug) / det(inf_mat_opt))^(1 / length(parameters))*100
+    message(crayon::blue(cli::symbol$info), " The efficiency of the augmented design is ", round(eff_2, digits = 2), "%")
   }
 
   return(aug_design)
