@@ -20,7 +20,7 @@ rounding approximate design. Among its capabilities are:
   - Calculating D-, Ds-, A- and I-optimal designs for non-linear models.
   - D-augment designs controlling the loss of efficiency.
   - Evaluate the efficiency of a given design against the optimum.
-  - Effiently rounding approximate designs to exact designs.
+  - Efficiently rounding approximate designs to exact designs.
 
 ## Installation
 
@@ -44,11 +44,11 @@ devtools::install_github("kezrael/optedr")
 The user available functions are:
 
   - `opt_des()` calculates optimal designs.
-  - `design_efficiency()` evaluates the effiency of a design against the
-    optimum.
+  - `design_efficiency()` evaluates the efficiency of a design against
+    the optimum.
   - `augment_design()` augments designs, allowing the user to add points
     controlling the D-efficiency.
-  - `efficient_round()` effiently round approximate designs.
+  - `efficient_round()` efficiently round approximate designs.
   - `shiny_optimal()` demo of optimal designs calculation with a
     graphical interface, applied to *Antoine’s Equation*.
   - `shiny_augment()` demo of augmenting design with a graphical
@@ -104,21 +104,7 @@ aug_arr <- augment_design(resArr.D$optdes, 0.3, y ~ a * exp(-b/x),
 
 <img src="man/figures/README-unnamed-chunk-6-1.png" width="80%" />
 
-        Choose a value for the minimum relative efficiency between 0.73 and 0.95 : 	
-		0.8
-	#>	The region(s) are  [250.98-422]
-		Choose a point to add or enter another character to finish: 
-		260
-		Choose the weight of the point: 
-		0.15
-	#>	The region(s) are  [250.98-422]
-		Choose a point to add or enter another character to finish: 
-		380
-		Choose the weight of the point: 
-		0.15
-	#>	The region(s) are  [250.98-422]
-		Choose a point to add or enter another character to finish: 
-		f
+    #> The region(s) are  [250.98-422]The region(s) are  [250.98-422]The region(s) are  [250.98-422]
     aug_arr
     #>      Point    Weight
     #> 1 329.2966 0.3500048
@@ -137,7 +123,7 @@ This new design can be rounded to the desired number of points:
 #> 4 380.0000      3
 ```
 
-And its effiency compared against the optimum:
+And its efficiency compared against the optimum:
 
 ``` r
 aprox_design <- exact_design

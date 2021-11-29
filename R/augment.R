@@ -189,7 +189,7 @@ delta_bound <- function(alpha, k, sens_min, sens_max = Inf){
 #'
 #' @description
 #' Uses the formula to calculate the sensitivity function value that delimits
-#' which points can be added to the design guaranteing the chosen efficiency.
+#' which points can be added to the design guaranteeing the chosen efficiency.
 #'
 #' @param deff Minimum efficiency of the resulting design
 #' @param alpha Combined weight of the new points to add

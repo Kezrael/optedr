@@ -78,7 +78,7 @@ inf_mat <- function(grad, design) {
 #' @param grad A function in a single variable that returns the partial derivatives vector of the model.
 #' @param M Information Matrix for the sensitivity function.
 #' @param par_int Numeric vector of the indexes of the parameters of interest for Ds-Optimality.
-#' @param matB Matrix resulting from the integration of the unipunctual Information Matrix along the interest
+#' @param matB Matrix resulting from the integration of the one-point Information Matrix along the interest
 #'   region.
 #'
 #' @return The sensitivity function as a matrix of single variable.
@@ -107,7 +107,7 @@ sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
 #' Sensitivity function for D-Optimality
 #'
 #' @description
-#' Calculates the sensitiviity function from the gradient vector and the Identitiy Matrix.
+#' Calculates the sensitivity function from the gradient vector and the Identity Matrix.
 #'
 #' @inherit sens params return
 #'
@@ -129,7 +129,7 @@ dsens <- function(grad, M) {
 #' Sensitivity function for Ds-Optimality
 #'
 #' @description
-#' Calculates the sensitiviity function from the gradient vector, the Identitiy Matrix and the parameters of
+#' Calculates the sensitivity function from the gradient vector, the Identity Matrix and the parameters of
 #' interest.
 #'
 #' @inherit sens params return
@@ -157,8 +157,8 @@ dssens <- function(grad, M, par_int) {
 #' Sensitivity function for I-Optimality
 #'
 #' @description
-#' Calculates the sensitiviity function from the gradient vector, the Identitiy Matrix and the integral of the
-#' unipunctual Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
+#' Calculates the sensitivity function from the gradient vector, the Identity Matrix and the integral of the
+#' one-point Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
 #' for A-Optimality.
 #'
 #' @inherit sens params return

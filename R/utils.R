@@ -112,7 +112,7 @@ update_sequence <- function(points, tol){
 #' the space of the design or the first crosspoints
 #'
 #' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
-#' @param min Mininum of the space of the design
+#' @param min Minimum of the space of the design
 #' @param max Maximum of the space of the design
 #' @param val Value of the sensitivity function at the crosspoints
 #' @param sens_opt Sensitivity function
@@ -151,7 +151,7 @@ getStart <- function(cross, min, max, val, sens_opt){
 #' Parity of the crosspoints
 #'
 #' @description
-#' Determinates if the number of crosspoints is even or odd given the vector
+#' Determines if the number of crosspoints is even or odd given the vector
 #' of crosspoints
 #'
 #' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
@@ -174,7 +174,7 @@ getPar <- function(cross){
 #' the last delimit the region.
 #'
 #' @param cross Vector of crosspoints in the sensitivity function given an efficiency and weight
-#' @param min Mininum of the space of the design
+#' @param min Minimum of the space of the design
 #' @param max Maximum of the space of the design
 #' @param start Boolean that gives the effective start of the candidate points region
 #' @param par Boolean with the parity of the region
@@ -214,7 +214,7 @@ getCross2 <- function(cross, min, max, start, par){
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #' @param sens Sensibility function for the design and model.
 #' @param k Number of parameters of the model.
-#' @param delta A parameter of the algorithm that can be tunned. Must be \eqn{0< delta < 1}.
+#' @param delta A parameter of the algorithm that can be tuned. Must be \eqn{0< delta < 1}.
 #'
 #' @return returns the new weights of the design after one iteration.
 #'
