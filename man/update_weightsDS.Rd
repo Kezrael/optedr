@@ -17,7 +17,7 @@ update_weightsDS(design, sens, s, delta)
 
 \item{s}{Number of interest parameters of the model}
 
-\item{delta}{A parameter of the algorithm that can be tunned. Must be \eqn{0< delta < 1}.}
+\item{delta}{A parameter of the algorithm that can be tuned. Must be \eqn{0< delta < 1}.}
 }
 \value{
 returns the new weights of the design after one iteration.
@@ -25,9 +25,4 @@ returns the new weights of the design after one iteration.
 \description{
 Implementation of the weight update formula for Ds-Optimality used to optimize the weights of a design,
 which is to be applied iteratively until no sizable changes happen.
-}
-\examples{
-\dontrun{
-update_weightsDS(design, sens, s, delta)
-}
 }

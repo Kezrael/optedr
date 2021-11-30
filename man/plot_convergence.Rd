@@ -20,7 +20,3 @@ A ggplot object with the \code{criteria} in the \code{y} axis and \code{step} in
 Plots the criterion value on each of the steps of the algorithm, both for optimizing weights and points,
 against the total step number.
 }
-\examples{
-conv <- data.frame("criteria" = c(24, 23, 20, 15, 14.9, 14.8, 14.7), "step" = 1:7)
-optedr:::plot_convergence(conv)
-}

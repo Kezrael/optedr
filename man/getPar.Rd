@@ -13,10 +13,6 @@ getPar(cross)
 True if the number of crosspoints is even, false otherwise
 }
 \description{
-Determinates if the number of crosspoints is even or odd given the vector
+Determines if the number of crosspoints is even or odd given the vector
 of crosspoints
-}
-\examples{
-crosspoints <- c(4, 20, 50, 79)
-optedr:::getPar(crosspoints)
 }

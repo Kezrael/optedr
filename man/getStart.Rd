@@ -9,7 +9,7 @@ getStart(cross, min, max, val, sens_opt)
 \arguments{
 \item{cross}{Vector of crosspoints in the sensitivity function given an efficiency and weight}
 
-\item{min}{Mininum of the space of the design}
+\item{min}{Minimum of the space of the design}
 
 \item{max}{Maximum of the space of the design}
 

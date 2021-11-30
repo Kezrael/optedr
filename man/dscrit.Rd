@@ -18,6 +18,3 @@ Numeric value of the Ds-optimality criterion for the information matrix.
 Calculates the value of the Ds-Optimality criterion, which follows the expression:
 \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
 }
-\examples{
-optedr:::dscrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), c(2))
-}

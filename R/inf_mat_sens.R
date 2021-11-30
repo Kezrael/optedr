@@ -14,9 +14,6 @@
 #' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
-#'
-#' @examples
-#' optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
 gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
   # vars <- as.list(match.call())[-(1:2)]
   # char_vars <- sapply(vars, as.character)
@@ -48,11 +45,6 @@ gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #'
 #' @return The information matrix of the design, a \eqn{k\times k} matrix where k is the length of the gradient.
-#'
-#' @examples
-#' grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-#' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-#' optedr:::inf_mat(grad, design)
 inf_mat <- function(grad, design) {
   matrix_ret <- 0 * diag(length(grad(design$Point[[1]])))
   for (i in seq_along(design$Weight)) {
@@ -82,12 +74,6 @@ inf_mat <- function(grad, design) {
 #'   region.
 #'
 #' @return The sensitivity function as a matrix of single variable.
-#'
-#' @examples
-#' grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-#' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-#' matrix <- optedr:::inf_mat(grad, design)
-#' optedr:::sens("D-Optimality", grad, matrix)
 sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
     return(dsens(grad, M))
@@ -111,12 +97,6 @@ sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
 #'
 #' @inherit sens params return
 #'
-#'
-#' @examples
-#' grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-#' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-#' matrix <- optedr:::inf_mat(grad, design)
-#' optedr:::dsens(grad, matrix)
 dsens <- function(grad, M) {
   invMat <- solve(M)
   sens_ret <- function(xval) {
@@ -134,12 +114,6 @@ dsens <- function(grad, M) {
 #'
 #' @inherit sens params return
 #'
-#'
-#' @examples
-#' grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-#' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-#' matrix <- optedr:::inf_mat(grad, design)
-#' optedr:::dssens(grad, matrix, c(1))
 dssens <- function(grad, M, par_int) {
   invMat <- solve(M)
   if (length(M[-par_int, -par_int]) == 1) {
@@ -163,12 +137,6 @@ dssens <- function(grad, M, par_int) {
 #'
 #' @inherit sens params return
 #'
-#'
-#' @examples
-#' grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-#' design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-#' matrix <- optedr:::inf_mat(grad, design)
-#' optedr:::isens(grad, matrix, diag(2))
 isens <- function(grad, M, matB) {
   invMat <- solve(M)
   sens_ret <- function(xval) {

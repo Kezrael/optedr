@@ -21,8 +21,3 @@ The information matrix of the design, a \eqn{k\times k} matrix where k is the le
 \description{
 Given the gradient vector of a model in a single variable model and a design, calculates the information matrix.
 }
-\examples{
-grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-optedr:::inf_mat(grad, design)
-}

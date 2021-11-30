@@ -15,8 +15,8 @@
 Summary function for optdes
 }
 \examples{
-\dontrun{
-rri <- opt_des("I-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422),
-matB <- matrix(c(3, 1, 1, 2), nrow = 2))
-summary(rri)}
+rri <- opt_des(Criterion = "I-Optimality", model = y ~ a * exp(-b / x),
+  parameters = c("a", "b"), par_values = c(1, 1500), design_space = c(212, 422),
+  reg_int = c(380, 422))
+summary(rri)
 }

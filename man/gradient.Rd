@@ -23,6 +23,3 @@ A function depending on \code{x} that's the gradient of the \code{model} with re
 Calculates the gradient function of a \code{model} with respect to the parameters, \code{char_vars}, evaluates
 it at the provided \code{values} and returns the result as a function of the variable \code{x}.
 }
-\examples{
-optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-}

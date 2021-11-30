@@ -62,12 +62,6 @@ Function that calculates the I-Optimal designs given the matrix B (should be int
 over the interest region), or A-Optimal if given diag(k). The rest of the parameters can help the convergence
 of the algorithm.
 }
-\examples{
-\dontrun{
-WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length,
-join_thresh, delete_thresh, k, delta_weights, tol, tol2)
-}
-}
 \seealso{
 Other cocktail algorithms: 
 \code{\link{DWFMult}()},

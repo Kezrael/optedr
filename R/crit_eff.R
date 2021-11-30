@@ -17,11 +17,6 @@
 #' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Numeric value of the optimality criterion for the information matrix.
-#'
-#'
-#' @examples
-#' M <- matrix(c(1, 0.75, 0.75, 0.625), nrow = 2)
-#' optedr:::crit("D-Optimality", M, k = 2)
 crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
     return(dcrit(M, k))
@@ -50,9 +45,6 @@ crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
 #'
 #'
 #' @return numeric value of the D-optimality criterion for the information matrix.
-#'
-#' @examples
-#' optedr:::dcrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), k = 2)
 dcrit <- function(M, k) {
   if (k == 0) k <- nrow(M)
   return((1 / det(M))^(1 / k))
@@ -71,9 +63,6 @@ dcrit <- function(M, k) {
 #'
 #'
 #' @return Numeric value of the Ds-optimality criterion for the information matrix.
-#'
-#' @examples
-#' optedr:::dscrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), c(2))
 dscrit <- function(M, par_int) {
   if (length(M[-par_int, -par_int]) == 1) {
     return((M[-par_int, -par_int] / det(M))^(1 / length(par_int)))
@@ -96,9 +85,6 @@ dscrit <- function(M, par_int) {
 #'
 #'
 #' @return Numeric value of the Ds-optimality criterion for the information matrix.
-#'
-#' @examples
-#' optedr:::icrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), diag(2))
 icrit <- function(M, matB) {
   return(tr(matB %*% solve(M)))
 }
@@ -122,10 +108,6 @@ icrit <- function(M, matB) {
 #' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Efficiency of first design with respect to the second design, as a decimal number.
-#'
-#' @examples
-#' optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2),
-#' matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
 eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
   if (identical(Criterion, "D-Optimality")) {
     if (k == 0) k <- nrow(mat1)

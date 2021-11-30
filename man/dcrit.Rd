@@ -18,6 +18,3 @@ numeric value of the D-optimality criterion for the information matrix.
 Calculates the value of the D-Optimality criterion, which follows the expression:
 \deqn{\phi_D = \frac{1}{|M|}^{1/k}}
 }
-\examples{
-optedr:::dcrit(matrix(c(1, 0.75, 0.75, 0.625), nrow = 2), k = 2)
-}

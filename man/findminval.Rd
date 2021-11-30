@@ -21,6 +21,3 @@ The value of the minimum
 \description{
 Searches the maximum of a function over a grid on a given interval.
 }
-\examples{
-optedr:::findminval(function(x) x^2 - x^3, 0, 1, 1000)
-}

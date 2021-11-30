@@ -28,12 +28,3 @@ Updates a design adding a new point to it. If the added point is closer than \co
 point of the design, the two points are merged together as their arithmetic average. Then updates the weights
 to be equal to all points of the design.
 }
-\examples{
-# Without merging:
-design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-optedr:::update_design(design, 2, 0.5, 0.3)
-
-# Merging:
-design <- data.frame("Point" = c(1, 5, 9), "Weight" = rep(1 / 3, times = 3))
-optedr:::update_design(design, 2, 1.1, 0.3)
-}

@@ -9,3 +9,6 @@ shiny_augment()
 \description{
 Launches the demo shiny application to D-augment several preespecified models
 }
+\examples{
+shiny_augment()
+}

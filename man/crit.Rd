@@ -30,7 +30,3 @@ Numeric value of the optimality criterion for the information matrix.
 Depending on the Criterion input, the function returns the output of the corresponding criterion function given
 the information matrix.
 }
-\examples{
-M <- matrix(c(1, 0.75, 0.75, 0.625), nrow = 2)
-optedr:::crit("D-Optimality", M, k = 2)
-}

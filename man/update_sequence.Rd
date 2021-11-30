@@ -18,7 +18,3 @@ The points without duplicates
 Within a vector of points, deletes points that are close enough (less than the tol parameter).
 Returns the points without the "duplicates"
 }
-\examples{
-points_ex <- c(20, 30, 40, 20.1, 29.97)
-optedr:::update_sequence(points_ex, 0.05)
-}

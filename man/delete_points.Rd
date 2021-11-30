@@ -22,8 +22,3 @@ The design without the removed points.
 Removes the points of a design with a weight lower than a threshold, \code{delta}, and distributes that weights
 proportionally to the rest of the points.
 }
-\examples{
-design <- data.frame("Point" = seq(1, 100, length.out = 8),
-"Weight" = c(0.3, 0.05, 0.3, 0.03, 0.1, 0.1, 0.02, 0.1))
-optedr:::delete_points(design, 0.09)
-}

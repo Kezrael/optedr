@@ -31,7 +31,3 @@ Efficiency of first design with respect to the second design, as a decimal numbe
 \description{
 Efficiency between two Information Matrices
 }
-\examples{
-optedr:::eff("D-Optimality", matrix(c(1, 0.75, 0.75, 0.625), nrow = 2),
-matrix(c(1, 0.25, 0.25, 0.125), nrow = 2))
-}

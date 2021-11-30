@@ -17,7 +17,7 @@ update_weightsI(design, sens, crit, delta)
 
 \item{crit}{Value of the criterion function for I-Optimality.}
 
-\item{delta}{A parameter of the algorithm that can be tunned. Must be \eqn{0< delta < 1}.}
+\item{delta}{A parameter of the algorithm that can be tuned. Must be \eqn{0< delta < 1}.}
 }
 \value{
 returns the new weights of the design after one iteration.
@@ -26,9 +26,4 @@ returns the new weights of the design after one iteration.
 Implementation of the weight update formula for I-Optimality used to optimize the weights of a design,
 which is to be applied iteratively until no sizable changes happen. A-Optimality if instead of the
 integral matrix the identity function is used.
-}
-\examples{
-\dontrun{
-update_weightsI(design, sens, crit, delta)
-}
 }

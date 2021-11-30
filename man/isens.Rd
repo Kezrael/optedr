@@ -11,20 +11,14 @@ isens(grad, M, matB)
 
 \item{M}{Information Matrix for the sensitivity function.}
 
-\item{matB}{Matrix resulting from the integration of the unipunctual Information Matrix along the interest
+\item{matB}{Matrix resulting from the integration of the one-point Information Matrix along the interest
 region.}
 }
 \value{
 The sensitivity function as a matrix of single variable.
 }
 \description{
-Calculates the sensitiviity function from the gradient vector, the Identitiy Matrix and the integral of the
-unipunctual Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
+Calculates the sensitivity function from the gradient vector, the Identity Matrix and the integral of the
+one-point Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
 for A-Optimality.
-}
-\examples{
-grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-matrix <- optedr:::inf_mat(grad, design)
-optedr:::isens(grad, matrix, diag(2))
 }

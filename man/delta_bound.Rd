@@ -22,7 +22,3 @@ A numeric vector with two components, minimum and maximum efficiency (over 1)
 Given the weight of new points, number of parameters and range of the sensitivity
 function, calculates the range of possible minimum efficiency for the D-augmented design.
 }
-\examples{
-optedr:::delta_bound(0.3, 3, 1.3, 3)
-optedr:::delta_bound(1/4, 3, -2.50965)
-}

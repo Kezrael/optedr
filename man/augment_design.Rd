@@ -42,11 +42,9 @@ minimum efficiency. After that, the candidate points region is calculated
 and the user can choose the points and weights to add.
 }
 \examples{
-\dontrun{
 init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 augment_design(init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
+  c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
 augment_design(init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
-}
+  c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
 }

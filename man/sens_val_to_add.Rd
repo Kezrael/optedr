@@ -19,8 +19,5 @@ function over that are suitable to be added.
 }
 \description{
 Uses the formula to calculate the sensitivity function value that delimits
-which points can be added to the design guaranteing the chosen efficiency.
-}
-\examples{
-optedr:::sens_val_to_add(0.9, 1/4, 3)
+which points can be added to the design guaranteeing the chosen efficiency.
 }

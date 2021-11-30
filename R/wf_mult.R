@@ -36,12 +36,6 @@
 #'   * sens: a plot with the sensitivity function to check for optimality of the design.
 #'
 #' @family cocktail algorithms
-#'
-#' @examples
-#' \dontrun{
-#' WFMult(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length,
-#' join_thresh, delete_thresh, k, delta_weights, tol, tol2)
-#' }
 WFMult <- function(init_design, grad, Criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
   if (identical(Criterion, "D-Optimality")) {
     return(DWFMult(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2))
@@ -374,28 +368,3 @@ opt_des <- function(Criterion, model, parameters,
 }
 
 
-# library(devtools)
-#
-# install_github("kezrael/optedr")
-#
-# library(optedr)
-#
-# result <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
-#
-# result$optdes
-#
-# result$sens
-#
-#
-# result1 <- opt_des("A-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422))
-#
-# result1$optdes
-#
-# result1$sens
-#
-#
-# result2 <- opt_des("Ds-Optimality", y ~ a*exp(-b/x), c("a", "b"), c(1, 1500), c(212, 422), par_int = c(1))
-#
-# result2$optdes
-#
-# result2$sens

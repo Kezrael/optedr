@@ -22,7 +22,3 @@ The updated design.
 \description{
 Takes a design and merge together all points that are closer between them than a certain threshold \code{delta}.
 }
-\examples{
-design <- data.frame("Point" = c(1, 5, 11, 12), "Weight" = rep(1 / 4, times = 4))
-optedr:::update_design_total(design, 1.1)
-}

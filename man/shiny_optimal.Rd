@@ -9,3 +9,6 @@ shiny_optimal()
 \description{
 Launches the demo shiny application to calculate optimal designs for Antoine's Equation
 }
+\examples{
+shiny_optimal()
+}

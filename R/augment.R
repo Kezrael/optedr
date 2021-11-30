@@ -20,16 +20,15 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 #' augment_design(init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#' c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
 #' augment_design(init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#' c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
-#' }
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
 augment_design <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-  oldw <- getOption("warn")
-  options(warn = -1)
+  # oldw <- getOption("warn")
+  # options(warn = -1)
+  if(interactive()){
   x_value <- NULL
 
   grad <- gradient(model, parameters, par_values, weight_fun)
@@ -45,12 +44,20 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
   }
   delta_range <- delta_bound(alpha, length(parameters), min_sens, max_sens)
   delta_val <- -Inf
+  eval <- 0
   while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
     # Incluir gráfico?
     # try/catch, or check NA
-    delta_val <- as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n")))
-    if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
+    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
+    if(is.na(delta_val)){
+      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
+      delta_val <- -Inf
+    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
       cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
+    }
+    eval <- eval + 1
+    if(eval > 1000){
+      return(NULL)
     }
   }
   # Puntos de corte y valor del corte
@@ -109,7 +116,7 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
   point_to_add <- -1
   while(!is.na(point_to_add)){
     cat("The region(s) are ", crayon::green(cutoff_text))
-    point_to_add <- as.numeric(readline(prompt="Choose a point to add or enter another character to finish: \n"))
+    point_to_add <- suppressWarnings(as.numeric(readline(prompt="Choose a point to add or enter another character to finish: \n")))
     if(!is.na(point_to_add)){
       in_cand_reg <- F
       for(i in 1:(length(cand_points_reg)/2)){
@@ -121,7 +128,7 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
       if(in_cand_reg){
         weight_ok <- 0
         while(weight_ok == 0){
-          weight_to_add <- as.numeric(readline(prompt = "Choose the weight of the point: \n"))
+          weight_to_add <- suppressWarnings(as.numeric(readline(prompt = "Choose the weight of the point: \n")))
           if(is.na(weight_to_add)){
             cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
           }
@@ -146,7 +153,7 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
     aug_design <- init_design
   }
 
-  options(warn = oldw)
+  # options(warn = oldw)
   if(calc_optimal_design){
     inf_mat_aug <- inf_mat(grad, aug_design)
     eff_2 <- (det(inf_mat_aug) / det(inf_mat_opt))^(1 / length(parameters))*100
@@ -154,6 +161,8 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
   }
 
   return(aug_design)
+  }
+  return(NA)
 }
 
 
@@ -169,10 +178,6 @@ augment_design <- function(init_design, alpha, model, parameters, par_values, de
 #' @param sens_max Maximum value of the sensitivity function
 #'
 #' @return A numeric vector with two components, minimum and maximum efficiency (over 1)
-#'
-#' @examples
-#' optedr:::delta_bound(0.3, 3, 1.3, 3)
-#' optedr:::delta_bound(1/4, 3, -2.50965)
 delta_bound <- function(alpha, k, sens_min, sens_max = Inf){
   if(identical(sens_max, Inf)) {
     sens_max <- k
@@ -197,9 +202,6 @@ delta_bound <- function(alpha, k, sens_min, sens_max = Inf){
 #'
 #' @return Value of the sensitivity function over. Points with a sensitivity
 #' function over that are suitable to be added.
-#'
-#' @examples
-#' optedr:::sens_val_to_add(0.9, 1/4, 3)
 sens_val_to_add <- function(deff, alpha, k){
   return((1 - alpha)/alpha*((deff/(1 - alpha))^k - 1))
 }
@@ -259,10 +261,6 @@ crosspoints <- function(deff, alpha, k, sens, gridlength, tol, xmin, xmax){
 #'
 #' @return A design as a dataframe with "Point" and "Weight" columns that is the
 #' addition of the design and the new points
-#'
-#' @examples
-#' des_1 <- data.frame("Point" = c(1, 2, 3), "Weight" = c(1/4, 1/4, 1/2))
-#' optedr:::add_points(c(4, 5), 0.5, des_1)
 add_points <- function(points, alpha, design){
   new_points <- data.frame("Point" = points, "Weight" = rep(alpha/length(points), times = length(points)))
   design["Weight"] <- design["Weight"]*(1-alpha)
@@ -277,11 +275,6 @@ add_points <- function(points, alpha, design){
 #' @param alpha Weight of the first design
 #'
 #' @return A design as a dataframe with the weighted addition of the two designs
-#'
-#' @examples
-#' des_1 <- data.frame("Point" = c(1, 2), "Weight" = c(0.5, 0.5))
-#' des_2 <- data.frame("Point" = c(3, 4), "Weight" = c(0.5, 0.5))
-#' optedr:::add_design(des_1, des_2, 0.3)
 add_design <- function(design_1, design_2, alpha){
   design_2[, c("Weight")] <- design_2[, c("Weight")] / sum(design_2[, c("Weight")]) * alpha
   design_1[, c("Weight")] <- design_1[, c("Weight")] * (1 - alpha)

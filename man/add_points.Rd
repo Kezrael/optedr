@@ -21,7 +21,3 @@ addition of the design and the new points
 Given a set of points, a weight and the design, the function adds these points
 to the new design with uniform weight, and combined weight alpha
 }
-\examples{
-des_1 <- data.frame("Point" = c(1, 2, 3), "Weight" = c(1/4, 1/4, 1/2))
-optedr:::add_points(c(4, 5), 0.5, des_1)
-}

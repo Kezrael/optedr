@@ -17,12 +17,6 @@ dssens(grad, M, par_int)
 The sensitivity function as a matrix of single variable.
 }
 \description{
-Calculates the sensitiviity function from the gradient vector, the Identitiy Matrix and the parameters of
+Calculates the sensitivity function from the gradient vector, the Identity Matrix and the parameters of
 interest.
-}
-\examples{
-grad <- optedr:::gradient(y ~ a * exp(-b / x), c("a", "b"), c(1, 1500))
-design <- data.frame("Point" = seq(212, 422, length.out = 3), "Weight" = rep(1 / 3, times = 3))
-matrix <- optedr:::inf_mat(grad, design)
-optedr:::dssens(grad, matrix, c(1))
 }

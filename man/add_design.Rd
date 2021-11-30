@@ -19,8 +19,3 @@ A design as a dataframe with the weighted addition of the two designs
 \description{
 Add two designs
 }
-\examples{
-des_1 <- data.frame("Point" = c(1, 2), "Weight" = c(0.5, 0.5))
-des_2 <- data.frame("Point" = c(3, 4), "Weight" = c(0.5, 0.5))
-optedr:::add_design(des_1, des_2, 0.3)
-}

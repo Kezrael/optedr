@@ -15,6 +15,3 @@ The trace of the matrix.
 \description{
 Return the mathematical trace of a matrix, the sum of its diagonal elements.
 }
-\examples{
-optedr:::tr(matrix(c(1, 0, 0, 1), nrow = 2))
-}

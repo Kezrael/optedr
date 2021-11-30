@@ -9,7 +9,7 @@ getCross2(cross, min, max, start, par)
 \arguments{
 \item{cross}{Vector of crosspoints in the sensitivity function given an efficiency and weight}
 
-\item{min}{Mininum of the space of the design}
+\item{min}{Minimum of the space of the design}
 
 \item{max}{Maximum of the space of the design}
 
@@ -26,7 +26,4 @@ Given the start of the candidates points region, the parity of the crosspoints
 and the boundaries of the space of the design returns the effective limits of
 the candidate points region. Those points, taken in pairs from the first to
 the last delimit the region.
-}
-\examples{
-optedr:::getCross2(c(3, 5, 7), -5, 10, TRUE, FALSE)
 }
