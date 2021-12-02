@@ -35,11 +35,11 @@ The package **optedr** is an optimal experimental design suite for calculating o
 
 ## Installation
 
-<!-- You can install the released version of optedr from [CRAN](https://CRAN.R-project.org) with: -->
+You can install the released version of optedr from [CRAN](https://CRAN.R-project.org) with:
 
-<!-- ``` r -->
-<!-- install.packages("optedr") -->
-<!-- ``` -->
+```{r ex, eval=FALSE}
+install.packages("optedr")
+```
 
 You can install the latest version of the package from [GitHub](https://github.com/) with:
 

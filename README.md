@@ -28,13 +28,12 @@ rounding approximate design. Among its capabilities are:
 
 ## Installation
 
-<!-- You can install the released version of optedr from [CRAN](https://CRAN.R-project.org) with: -->
+You can install the released version of optedr from
+[CRAN](https://CRAN.R-project.org) with:
 
-<!-- ``` r -->
-
-<!-- install.packages("optedr") -->
-
-<!-- ``` -->
+``` r
+install.packages("optedr")
+```
 
 You can install the latest version of the package from
 [GitHub](https://github.com/) with:
