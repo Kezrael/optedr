@@ -9,6 +9,10 @@
 
 <!-- use_this::use_lifecycle_badge(stage) -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/optedr)](https://CRAN.R-project.org/package=optedr)
+[![Lifecycle:
+stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 ## Overview
