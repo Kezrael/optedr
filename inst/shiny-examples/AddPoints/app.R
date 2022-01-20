@@ -11,7 +11,6 @@ library(nleqslv)
 library(markdown)
 library(knitr)
 library(shinyjs)
-library(nloptr)
 library(orthopolynom)
 
 

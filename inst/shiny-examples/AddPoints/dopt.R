@@ -1,6 +1,6 @@
 # General Antoine
 
-# Cálculo de la traza de una matriz 
+# Cálculo de la traza de una matriz
 tr <- function(m) {
   return(sum(diag(m)))
 }
@@ -9,7 +9,7 @@ tr <- function(m) {
 dmatrixAntoine <- function(a, b, c, design) {
   a <- a*log(10)
   b <- b*log(10)
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -19,7 +19,7 @@ dmatrixAntoine <- function(a, b, c, design) {
   m31 <- 0
   m32 <- 0
   m33 <- 0
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + exp(a - b/(c + design$Point[[i]]))*exp(a - b/(c + design$Point[[i]]))*design$Weight[[i]]
     m12 <- m12 + exp(a - b/(c + design$Point[[i]]))*(-(exp(a - b/(c + design$Point[[i]]))/(c + design$Point[[i]])))*design$Weight[[i]]
@@ -31,7 +31,7 @@ dmatrixAntoine <- function(a, b, c, design) {
     m32 <- m23
     m33 <- m33 + (b*exp(a - b/(c + design$Point[[i]])))/(c + design$Point[[i]])^2*(b*exp(a - b/(c + design$Point[[i]])))/(c + design$Point[[i]])^2*design$Weight[[i]]
   }
-  
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -159,8 +159,8 @@ dsensAntoine <- function(a, b, c, mat) {
     # return(exp(a - b/(c + x))*exp(a - b/(c + x))*desMat[[1,1]]+exp(a - b/(c + x))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[1,2]]+exp(a - b/(c + x))*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[1,3]]+
     #          exp(a - b/(c + x))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[2,1]]+(-(exp(a - b/(c + x))/(c + x)))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[2,2]]+(-(exp(a - b/(c + x))/(c + x)))*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[2,3]]+
     #          (b*exp(a - b/(c + x)))/(c + x)^2*exp(a - b/(c + x))*desMat[[3,1]]+(b*exp(a - b/(c + x)))/(c + x)^2*(-(exp(a - b/(c + x))/(c + x)))*desMat[[3,2]]+(b*exp(a - b/(c + x)))/(c + x)^2*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[3,3]])
-    return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-             (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+    return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+             (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
              (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2)
   }
   return(sensX)
@@ -179,15 +179,15 @@ dsensAntoine <- function(a, b, c, mat) {
 doptAntoine <- function(A, B, C, min, max){
   A <- log(10)*A
   B <- log(10)*B
-  
+
   if(round(min - max, 3) == 0){
     opdes <- data.frame(Point = c(min), Weight = c(1))
     return(opdes)
   }
-    
+
   T1 <- (-3*C^3+2*(B)^2*max-6*C^2*max-3*B*(C^2-max^2)-3*C*max^2-sqrt(3)*sqrt((B)^2*(C+max)^4))/(2*(B)^2+6*B*(C+max)+3*(C+max)^2)
-  
-  if(min <= T1) 
+
+  if(min <= T1)
   {
     T2 <- (-3*C^3+2*(B)^2*max-6*C^2*max-3*B*(C^2-max^2)-3*C*max^2+sqrt(3)*sqrt((B)^2*(C+max)^4))/(2*(B)^2+6*B*(C+max)+3*(C+max)^2)
     opdes <- data.frame(Point = c(T1, T2, max), Weight = c(1/3, 1/3, 1/3))
@@ -197,13 +197,13 @@ doptAntoine <- function(A, B, C, min, max){
     T2 <- (1/(2*(-B - 2*C - max - min)))*(2*C^2 - B*max - B*min - 2*max*min - sqrt((-2*C^2 + B*max + B*min + 2*max*min)^2 - 4*(-B - 2*C - max - min)*(C^2*max + C^2*min - B*max*min + 2*C*max*min)))
     opdes <- data.frame(Point = c(min, T2, max), Weight = c(1/3, 1/3, 1/3))
   }
-  
+
   return(opdes)
 }
 # A <- 18.58487808693377
 # B <- 1682.3377464942398
 # C <- 233.426
-# 
+#
 # min <- 1
 # max <- 100
 # (1/(2*(-B - 2*C - max - min)))*(2*C^2 - B*max - B*min - 2*max*min - sqrt((-2*C^2 + B*max + B*min + 2*max*min)^2 - 4*(-B - 2*C - max - min)*(C^2*max + C^2*min - B*max*min + 2*C*max*min)))
@@ -224,15 +224,15 @@ deff <- function(mat1, mat2, k) {
 }
 
 # dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design)
-# 
+#
 # 5	0.375
 # 35	0.3125
 # 70	0.3125
-# 
-# deff(dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design), 
+#
+# deff(dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design),
 #      dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$opt_design), 3)
 
-# Valor del criterio de D-Optimalidad para la matriz 
+# Valor del criterio de D-Optimalidad para la matriz
 dcrit <- function(mat, k) {
   return((1/det(mat))^(1/k))
 }
@@ -280,7 +280,7 @@ delta_bound <- function(delta, k, sens_min, sens_max = Inf){
 
 
 # NO SE PUEDE "FÁCIL"
-# Calculate boundary for given efficiency 
+# Calculate boundary for given efficiency
 # efficiency_bound <- function(deff, k, sens_min){
 #   min <- -(-1 + delta)*((-1 + delta - sens_min*delta)/(-1 + delta))^(1/k)
 #   max <- -(-1 + delta)*((-1 + delta - k*delta)/(-1 + delta))^(1/k)
@@ -316,26 +316,26 @@ update_sequence <- function(points, tol){
 # Calculate crosspoints
 crosspoints <- function(deff, delta, k, sens, gridlength, tol, xmin, xmax){
   val <- sens_val_to_add(deff, delta, k)
-  
+
   sensfix <- function(x){
     return(sens(x) - val)
   }
-  
+
   sols <- seq(xmin, xmax, length.out = gridlength) %>%
-    map(nleqslv, fn = sensfix) %>% 
+    map(nleqslv, fn = sensfix) %>%
     map(function(x) x$x) %>%
     unlist
-  
+
   # Eliminar duplicados
   sols_upd <- update_sequence(sols, tol)
-  
+
   # Quedarnos con puntos dentro del espacio de diseño
   sols_upd <- sols_upd[sols_upd >= xmin & sols_upd <= xmax]
-  
+
   # Eliminar los que no son soluciones
   sols_upd <- sols_upd[abs(map_dbl(sols_upd, sens) - val) < tol]
-  
-  
+
+
   return(sort(sols_upd))
 }
 
@@ -361,90 +361,90 @@ add_points <- function(points, delta, design){
 
 
 # Uniform design
-uniform_design <- function(n, xmin, xmax){
-  unif_des <- data.frame("Point" = seq(xmin,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-  return(unif_des)
-}
+# uniform_design <- function(n, xmin, xmax){
+#   unif_des <- data.frame("Point" = seq(xmin,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#   return(unif_des)
+# }
 
 # Arithmetic design
-arithmetic_design <- function(n, xmin, xmax, dopt_mat, model, a = 0, b = 0, c = 0){
-  if(identical(model, "Cuadratic")){
-    arithdes_opt <- function(r){
-      arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-      arith_mat <- dmatrixCuad(arith_des)
-      return(deff(dopt_mat,arith_mat, 3))
-    }
-  } else if(identical(model, "Antoine Equation")){
-    arithdes_opt <- function(r){
-      arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-      arith_mat <- dmatrixAntoine(a, b, c, arith_des)
-      return(deff(dopt_mat,arith_mat, 3))
-    }
-  } else if(identical(model, "Michaelis-Menten")){
-    arithdes_opt <- function(r){
-      arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-      arith_mat <- dmatrixMM(a, b, arith_des)
-      return(deff(dopt_mat,arith_mat, 2))
-    }
-  }
+# arithmetic_design <- function(n, xmin, xmax, dopt_mat, model, a = 0, b = 0, c = 0){
+#   if(identical(model, "Cuadratic")){
+#     arithdes_opt <- function(r){
+#       arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#       arith_mat <- dmatrixCuad(arith_des)
+#       return(deff(dopt_mat,arith_mat, 3))
+#     }
+#   } else if(identical(model, "Antoine Equation")){
+#     arithdes_opt <- function(r){
+#       arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#       arith_mat <- dmatrixAntoine(a, b, c, arith_des)
+#       return(deff(dopt_mat,arith_mat, 3))
+#     }
+#   } else if(identical(model, "Michaelis-Menten")){
+#     arithdes_opt <- function(r){
+#       arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#       arith_mat <- dmatrixMM(a, b, arith_des)
+#       return(deff(dopt_mat,arith_mat, 2))
+#     }
+#   }
 
   # grid <- seq(0, 1, length.out = 101)[1:100]
-  # 
+  #
   # map_dbl(grid, arithdes_opt)
-  
+
   #if(criterion %in% c("D-Optimality", "Ds-Optimality")){
-    r_val <- round(nloptr::direct(fn = arithdes_opt,lower = xmin, upper = xmax-(xmax-xmin)/10, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
+    # r_val <- round(nloptr::direct(fn = arithdes_opt,lower = xmin, upper = xmax-(xmax-xmin)/10, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
   # }
   # else{
   #   seq(xmin, xmax, length.out = 1000)[which.max(map(seq(xmin, xmax-(xmax-xmin)/5, length.out = 1000), arithdes_opt))]
   # }
 
-  return(data.frame("Point" = seq(r_val,xmax,length.out = n), "Weight" = rep(1/n, times = n)))
-}
+#   return(data.frame("Point" = seq(r_val,xmax,length.out = n), "Weight" = rep(1/n, times = n)))
+# }
 
 # opt_des <- doptCuad(1, 100)
 # dopt_mat <- dmatrixCuad(opt_des)
-# 
+#
 # arithmetic_design(5, 1, 100, dopt_mat, "Cuadratic")
 
 # opt_des <- doptMM(227.27, 43.73, 0, 10)
 # dopt_mat <- dmatrixMM(227.27, 43.73, opt_des)
-# 
+#
 # arithmetic_design(5, 0, 10, dopt_mat, "Michaelis-Menten", 227.27, 43.73)
 
 
 
 # Geometric design
-geometric_design <- function(n, xmin, xmax, dopt_mat, model, a = 0, b = 0, c = 0){
-  if(identical(model, "Cuadratic")){
-    geodes_opt <- function(r){
-      geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
-      geom_mat <- dmatrixCuad(geom_des)
-      return(deff(dopt_mat,geom_mat, 3))
-    }
-  } else if(identical(model, "Antoine Equation")){
-    geodes_opt <- function(r){
-      geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
-      geom_mat <- dmatrixAntoine(a, b, c, geom_des)
-      return(deff(dopt_mat,geom_mat, 3))
-    }
-  } else if(identical(model, "Michaelis-Menten")){
-    geodes_opt <- function(r){
-      geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
-      geom_mat <- dmatrixMM(a, b, geom_des)
-      return(deff(dopt_mat,geom_mat, 2))
-    }
-  }
-  
-  r_val <- round(nloptr::direct(fn = geodes_opt,lower = 0, upper = 1, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
-  
-  return(data.frame("Point" = (xmax-xmin)*r_val^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n)) %>% arrange(Point))
-}
+# geometric_design <- function(n, xmin, xmax, dopt_mat, model, a = 0, b = 0, c = 0){
+#   if(identical(model, "Cuadratic")){
+#     geodes_opt <- function(r){
+#       geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
+#       geom_mat <- dmatrixCuad(geom_des)
+#       return(deff(dopt_mat,geom_mat, 3))
+#     }
+#   } else if(identical(model, "Antoine Equation")){
+#     geodes_opt <- function(r){
+#       geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
+#       geom_mat <- dmatrixAntoine(a, b, c, geom_des)
+#       return(deff(dopt_mat,geom_mat, 3))
+#     }
+#   } else if(identical(model, "Michaelis-Menten")){
+#     geodes_opt <- function(r){
+#       geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
+#       geom_mat <- dmatrixMM(a, b, geom_des)
+#       return(deff(dopt_mat,geom_mat, 2))
+#     }
+#   }
+#
+#   r_val <- round(nloptr::direct(fn = geodes_opt,lower = 0, upper = 1, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
+#
+#   return(data.frame("Point" = (xmax-xmin)*r_val^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n)) %>% arrange(Point))
+# }
 
 # opt_des <- doptCuad(1, 100)
 # dopt_mat <- dmatrixCuad(opt_des)
-# 
-# 
+#
+#
 # geometric_design(5, 1, 100, dopt_mat, "Cuadratic")
 
 
@@ -455,7 +455,7 @@ geometric_design <- function(n, xmin, xmax, dopt_mat, model, a = 0, b = 0, c = 0
 # MODELO CUADRÁTICO
 
 
-# Calcular matrix de un diseño 
+# Calcular matrix de un diseño
 dmatrixCuad <- function(design) {
 
   m11 <- 0
@@ -467,7 +467,7 @@ dmatrixCuad <- function(design) {
   m31 <- 0
   m32 <- 0
   m33 <- 0
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + design$Weight[[i]]
     m12 <- m12 + design$Point[[i]]*design$Weight[[i]]
@@ -479,7 +479,7 @@ dmatrixCuad <- function(design) {
     m32 <- m23
     m33 <- m33 +  design$Point[[i]]^4*design$Weight[[i]]
   }
-  
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -488,7 +488,7 @@ dmatrixCuad <- function(design) {
 
 # --------------------------- D-Optimalidad ----------------------------------
 
-# Función de sensibilidad para D-Optimalidad 
+# Función de sensibilidad para D-Optimalidad
 dsensCuad <- function(mat) {
   invMat <- solve(mat)
   sensX <- function(x) {
@@ -499,10 +499,10 @@ dsensCuad <- function(mat) {
 
 
 
-# Cálculo Analítico del diseño D-Óptimo 
+# Cálculo Analítico del diseño D-Óptimo
 doptCuad <- function(min, max){
   opdes <- data.frame(Point = c(min, (min+max)/2, max), Weight = c(1/3, 1/3, 1/3))
-  
+
   return(opdes)
 }
 
@@ -514,22 +514,22 @@ doptCuad <- function(min, max){
 # Michaelis-Menten
 
 
-# Calcular matrix de un diseño 
+# Calcular matrix de un diseño
 dmatrixMM <- function(K, V, design) {
-  
+
   m11 <- 0
   m12 <- 0
   m21 <- 0
   m22 <- 0
 
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + (design$Point[[i]]^2/(K + design$Point[[i]])^2)*design$Weight[[i]]
     m12 <- m12 + (-((V * design$Point[[i]]^2)/(K + design$Point[[i]])^3) )*design$Weight[[i]]
     m21 <- m12
     m22 <- m22 + ((V^2 * design$Point[[i]]^2)/(K + design$Point[[i]])^4)*design$Weight[[i]]
   }
-  
+
   return(matrix(c(m11, m12, m21, m22), nrow = 2, ncol = 2, byrow = TRUE))
 }
 
@@ -541,7 +541,7 @@ dmatrixMM <- function(K, V, design) {
 # --------------------------- D-Optimalidad ----------------------------------
 
 
-# Función de sensibilidad para D-Optimalidad 
+# Función de sensibilidad para D-Optimalidad
 dsensMM <- function(K, V, mat) {
   invMat <- solve(mat)
   sensX <- function(x) {
@@ -551,15 +551,15 @@ dsensMM <- function(K, V, mat) {
 }
 
 # sensM <- dsensMM(227.27, 43.73, matMM)
-# 
+#
 # sensM(10)
 
-# Cálculo Analítico del diseño D-Óptimo 
+# Cálculo Analítico del diseño D-Óptimo
 doptMM <- function(K, V, min, max){
   b <- max/K
   s <- b/(2+b)
   opdes <- data.frame(Point = c(s*K, max), Weight = c(1/2, 1/2))
-  
+
   return(opdes)
 }
 
@@ -571,9 +571,9 @@ doptMM <- function(K, V, min, max){
 # MODELO CUADRÁTICO HETEROCEDÁSTICO
 
 
-# Calcular matrix de un diseño 
+# Calcular matrix de un diseño
 dmatrixCuadHet <- function(order, design) {
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -583,7 +583,7 @@ dmatrixCuadHet <- function(order, design) {
   m31 <- 0
   m32 <- 0
   m33 <- 0
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + design$Weight[[i]] * exp(-design$Point[[i]]) * design$Point[[i]]^(1+order)
     m12 <- m12 + design$Point[[i]]*design$Weight[[i]] * exp(-design$Point[[i]]) * design$Point[[i]]^(1+order)
@@ -595,7 +595,7 @@ dmatrixCuadHet <- function(order, design) {
     m32 <- m23
     m33 <- m33 +  design$Point[[i]]^4*design$Weight[[i]] * exp(-design$Point[[i]]) * design$Point[[i]]^(1+order)
   }
-  
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -604,7 +604,7 @@ dmatrixCuadHet <- function(order, design) {
 
 # --------------------------- D-Optimalidad ----------------------------------
 
-# Función de sensibilidad para D-Optimalidad 
+# Función de sensibilidad para D-Optimalidad
 dsensCuadHet <- function(order, mat) {
   invMat <- solve(mat)
   sensX <- function(x) {
@@ -615,10 +615,10 @@ dsensCuadHet <- function(order, mat) {
 
 
 
-# Cálculo Analítico del diseño D-Óptimo 
+# Cálculo Analítico del diseño D-Óptimo
 doptCuadHet <- function(order){
   opdes <- data.frame(Point = solve(glaguerre.polynomials(3, order, FALSE)[[4]]), Weight = c(1/3, 1/3, 1/3))
-  
+
   return(opdes)
 }
 

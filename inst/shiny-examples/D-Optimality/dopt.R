@@ -1,6 +1,6 @@
 # General Antoine
 
-# Cálculo de la traza de una matriz 
+# Cálculo de la traza de una matriz
 tr <- function(m) {
   return(sum(diag(m)))
 }
@@ -12,7 +12,7 @@ tr <- function(m) {
 dmatrixAntoineHom <- function(a, b, c, design) {
   a <- a*log(10)
   b <- b*log(10)
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -22,7 +22,7 @@ dmatrixAntoineHom <- function(a, b, c, design) {
   m31 <- 0
   m32 <- 0
   m33 <- 0
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + exp(a - b/(c + design$Point[[i]]))*exp(a - b/(c + design$Point[[i]]))*design$Weight[[i]]
     m12 <- m12 + exp(a - b/(c + design$Point[[i]]))*(-(exp(a - b/(c + design$Point[[i]]))/(c + design$Point[[i]])))*design$Weight[[i]]
@@ -34,7 +34,7 @@ dmatrixAntoineHom <- function(a, b, c, design) {
     m32 <- m23
     m33 <- m33 + (b*exp(a - b/(c + design$Point[[i]])))/(c + design$Point[[i]])^2*(b*exp(a - b/(c + design$Point[[i]])))/(c + design$Point[[i]])^2*design$Weight[[i]]
   }
-  
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -149,8 +149,8 @@ dsensAntoine <- function(a, b, c, mat) {
     # return(exp(a - b/(c + x))*exp(a - b/(c + x))*desMat[[1,1]]+exp(a - b/(c + x))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[1,2]]+exp(a - b/(c + x))*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[1,3]]+
     #          exp(a - b/(c + x))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[2,1]]+(-(exp(a - b/(c + x))/(c + x)))*(-(exp(a - b/(c + x))/(c + x)))*desMat[[2,2]]+(-(exp(a - b/(c + x))/(c + x)))*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[2,3]]+
     #          (b*exp(a - b/(c + x)))/(c + x)^2*exp(a - b/(c + x))*desMat[[3,1]]+(b*exp(a - b/(c + x)))/(c + x)^2*(-(exp(a - b/(c + x))/(c + x)))*desMat[[3,2]]+(b*exp(a - b/(c + x)))/(c + x)^2*(b*exp(a - b/(c + x)))/(c + x)^2*desMat[[3,3]])
-    return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-             (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+    return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+             (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
              (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2)
   }
   return(sensX)
@@ -169,15 +169,15 @@ dsensAntoine <- function(a, b, c, mat) {
 doptAntoineHom <- function(A, B, C, min, max){
   A <- log(10)*A
   B <- log(10)*B
-  
+
   if(round(min - max, 3) == 0){
     opdes <- data.frame(Point = c(min), Weight = c(1))
     return(opdes)
   }
-    
+
   T1 <- (-3*C^3+2*(B)^2*max-6*C^2*max-3*B*(C^2-max^2)-3*C*max^2-sqrt(3)*sqrt((B)^2*(C+max)^4))/(2*(B)^2+6*B*(C+max)+3*(C+max)^2)
-  
-  if(min <= T1) 
+
+  if(min <= T1)
   {
     T2 <- (-3*C^3+2*(B)^2*max-6*C^2*max-3*B*(C^2-max^2)-3*C*max^2+sqrt(3)*sqrt((B)^2*(C+max)^4))/(2*(B)^2+6*B*(C+max)+3*(C+max)^2)
     opdes <- data.frame(Point = c(T1, T2, max), Weight = c(1/3, 1/3, 1/3))
@@ -187,13 +187,13 @@ doptAntoineHom <- function(A, B, C, min, max){
     T2 <- (1/(2*(-B - 2*C - max - min)))*(2*C^2 - B*max - B*min - 2*max*min - sqrt((-2*C^2 + B*max + B*min + 2*max*min)^2 - 4*(-B - 2*C - max - min)*(C^2*max + C^2*min - B*max*min + 2*C*max*min)))
     opdes <- data.frame(Point = c(min, T2, max), Weight = c(1/3, 1/3, 1/3))
   }
-  
+
   return(opdes)
 }
 # A <- 18.58487808693377
 # B <- 1682.3377464942398
 # C <- 233.426
-# 
+#
 # min <- 1
 # max <- 100
 # (1/(2*(-B - 2*C - max - min)))*(2*C^2 - B*max - B*min - 2*max*min - sqrt((-2*C^2 + B*max + B*min + 2*max*min)^2 - 4*(-B - 2*C - max - min)*(C^2*max + C^2*min - B*max*min + 2*C*max*min)))
@@ -214,15 +214,15 @@ deff <- function(mat1, mat2, k) {
 }
 
 # dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design)
-# 
+#
 # 5	0.375
 # 35	0.3125
 # 70	0.3125
-# 
-# deff(dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design), 
+#
+# deff(dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$design),
 #      dmatrixAntoine(input$a_par, input$b_par, input$c_par, ing_df$opt_design), 3)
 
-# Valor del criterio de D-Optimalidad para la matriz 
+# Valor del criterio de D-Optimalidad para la matriz
 dcrit <- function(mat, k) {
   return((1/det(mat))^(1/k))
 }
@@ -297,48 +297,48 @@ DSsensAntoine <- function(a, b, c, mat, intPars) {
   invMat2 <- solve(mat[-intPars, -intPars])
   if(all(intPars == c(1,2))){
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
-               (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
+               (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              - (invMat2[1,1]*b^2*exp(2*a - 2*b/(c + x)))/(c + x)^4)
     }
   }
   else if (all(intPars == c(1,3))) {
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
                (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              - exp(2*a-2*b/(c+x))*invMat2[1,1]/(c+x)^2)
     }
   }
   else if (all(intPars == c(2,3))) {
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
                (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              -exp(2*a-2*b/(c+x))*invMat2[1,1])
     }
   }
   else if (all(intPars == c(1))) {
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
                (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              - exp(2*a-2*b/(c+x))*(invMat2[2,2]*b^2+(c+x)*(-invMat2[1,2]*b-invMat2[2,1]*b+invMat2[1,1]*(c+x)))/(c+x)^4)
     }
   }
   else if (all(intPars == c(2))) {
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
                (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              - exp(2*a-2*b/(c+x))*(invMat2[2,2]*b^2+(c+x)^2*(invMat2[1,2]*b+invMat2[2,1]*b+invMat2[1,1]*(c+x)^2))/(c+x)^4)
     }
   }
   else if (all(intPars == c(3))) {
     sensX <- function(x) {
-      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+      return(exp(a - b/(c + x))*(invMat[[1,1]]*exp(a - b/(c + x)) + (invMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+               (exp(a - b/(c + x))*(invMat[[1,2]]*exp(a - b/(c + x)) + (invMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
                (b*exp(a - b/(c + x))*(invMat[[1,3]]*exp(a - b/(c + x)) + (invMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (invMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2
              - exp(2*a-2*b/(c+x))*(invMat2[2,2]+(c+x)*(-invMat2[1,2]-invMat2[2,1]+invMat2[1,1]*(c+x)))/(c+x)^2)
     }
@@ -365,7 +365,7 @@ dseff <- function(mat1, mat2, s, intPars) {
     return((mat2[-intPars, -intPars]/det(mat2)/(mat1[-intPars, -intPars]/det(mat1)))^(1/s))
   }
   else {
-    return((det(mat2[-intPars, -intPars])/det(mat2)/(det(mat1[-intPars, -intPars])/det(mat1)))^(1/s))  
+    return((det(mat2[-intPars, -intPars])/det(mat2)/(det(mat1[-intPars, -intPars])/det(mat1)))^(1/s))
   }
 }
 
@@ -378,7 +378,7 @@ dseff <- function(mat1, mat2, s, intPars) {
 
 
 
-# Valor del criterio de D-Optimalidad para la matriz 
+# Valor del criterio de D-Optimalidad para la matriz
 dscrit <- function(mat, s, intPars) {
   if(length(mat[-intPars, -intPars]) == 1){
     return((mat[-intPars, -intPars]/det(mat))^(1/s))
@@ -400,11 +400,11 @@ updateWeightsDS <- function(design, sens, s, delta) {
 }
 
 # des <- data.frame(Point = c(1, 50.5, 100), Weight = c(1/3, 1/3, 1/3))
-# 
+#
 # desMat <- dmatrixAntoineHet(8.07131, 1730.63, 233.426, des)
-# 
+#
 # sens <- DSsensAntoineHet(8.07131, 1730.63, 233.426, desMat, c(1,2))
-# 
+#
 # (des$Weight <- updateWeightsDS(des, sens, 2, 1/2))
 
 
@@ -462,7 +462,7 @@ DSWFMult <- function(A, B, C, initDes, intPar, min, max, grid.length, joinThresh
 IntMatAntoineHom <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
   a <- a*log(10)
   b <- b*log(10)
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -481,7 +481,7 @@ IntMatAntoineHom <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
     f22 <- function(x) {(-(exp(a - b/(c + x))/(c + x)))*(-(exp(a - b/(c + x))/(c + x)))/(maxReg - minReg)}
     f23 <- function(x) {(-(exp(a - b/(c + x))/(c + x)))*(b*exp(a - b/(c + x)))/(c + x)^2/(maxReg - minReg)}
     f33 <- function(x) {(b*exp(a - b/(c + x)))/(c + x)^2*(b*exp(a - b/(c + x)))/(c + x)^2/(maxReg - minReg)}
-  
+
     m11 <- integrate(f11, lower = minReg, upper = maxReg)$value
     m12 <- integrate(f12, lower = minReg, upper = maxReg)$value
     m13 <- integrate(f13, lower = minReg, upper = maxReg)$value
@@ -506,7 +506,7 @@ IntMatAntoineHom <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
     f232 <- function(x) {(-(exp(a - b/(c + x))/(c + x)))*(b*exp(a - b/(c + x)))/(c + x)^2*(2*(maxReg - x)/((maxReg - minReg)*(maxReg - vertex)))}
     f331 <- function(x) {(b*exp(a - b/(c + x)))/(c + x)^2*(b*exp(a - b/(c + x)))/(c + x)^2*(2*(x - minReg)/((maxReg - minReg)*(vertex - minReg)))}
     f332 <- function(x) {(b*exp(a - b/(c + x)))/(c + x)^2*(b*exp(a - b/(c + x)))/(c + x)^2*(2*(maxReg - x)/((maxReg - minReg)*(maxReg - vertex)))}
-    
+
     if(vertex > minReg & maxReg > vertex)
     {
       m11 <- integrate(f111, lower = minReg, upper = vertex)$value + integrate(f112, lower = vertex, upper = maxReg)$value
@@ -545,8 +545,8 @@ IntMatAntoineHom <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
     }
 
   }
-  
-  
+
+
 
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
@@ -567,33 +567,33 @@ IsensAntoine <- function(a, b, c, mat, matB = diag(3)) {
   invMat <- solve(mat)
   sensMat <- solve(mat) %*% matB %*% solve(mat)
   sensX <- function(x) {
-  return(exp(a - b/(c + x))*(sensMat[[1,1]]*exp(a - b/(c + x)) + (sensMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (sensMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) - 
-             (exp(a - b/(c + x))*(sensMat[[1,2]]*exp(a - b/(c + x)) + (sensMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (sensMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) + 
+  return(exp(a - b/(c + x))*(sensMat[[1,1]]*exp(a - b/(c + x)) + (sensMat[[3,1]]*b*exp(a - b/(c + x)))/(c + x)^2 - (sensMat[[2,1]]*exp(a - b/(c + x)))/(c + x)) -
+             (exp(a - b/(c + x))*(sensMat[[1,2]]*exp(a - b/(c + x)) + (sensMat[[3,2]]*b*exp(a - b/(c + x)))/(c + x)^2 - (sensMat[[2,2]]*exp(a - b/(c + x)))/(c + x)))/(c + x) +
              (b*exp(a - b/(c + x))*(sensMat[[1,3]]*exp(a - b/(c + x)) + (sensMat[[3,3]]*b*exp(a - b/(c + x)))/(c + x)^2 - (sensMat[[2,3]]*exp(a - b/(c + x)))/(c + x)))/(c + x)^2)
   }
   return(sensX)
 }
 
 # optdes <- data.frame(Point = c(1, 50.5, 100), Weight = c(1/3, 1/3, 1/3))
-# 
+#
 # desMat <- dmatrixAntoine(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- IsensAntoine(8.07131, 1730.63, 233.426, desMat)
-# 
+#
 # sens(70)/10^8
 
 # B <- IntMatAntoine(8.07131, 1730.63, 233.426, 80, 120, 0, option = "Unif")
-# 
+#
 # optdes <- data.frame(Point = c(100, 83.9316, 33.2345), Weight = c(0.359629, 0.377516, 0.262233))
-# 
+#
 # desMat <- dmatrixAntoine(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- IsensAntoine(8.07131, 1730.63, 233.426, desMat, B)
-# 
+#
 # sens(70)
-# 
+#
 # crit <- icrit(desMat, B)
-# 
+#
 # p <- ggplot(data = data.frame(x = 0), mapping = aes(x = x))
 # p + stat_function(fun = sens) + stat_function(fun = function(x) crit, col = "blue") + xlim(1, 100) + labs(x = "Temperature (ºC)", y = "Pressure")
 
@@ -613,7 +613,7 @@ ieff <- function(mat1, mat2, matB = diag(3)) {
 
 
 
-# Valor del criterio de D-Optimalidad para la matriz 
+# Valor del criterio de D-Optimalidad para la matriz
 icrit <- function(mat, matB = diag(3)) {
   return(tr(matB %*% solve(mat)))
 }
@@ -709,7 +709,7 @@ delta_bound <- function(delta, k, sens_min){
 
 
 # NO SE PUEDE "FÁCIL"
-# Calculate boundary for given efficiency 
+# Calculate boundary for given efficiency
 # efficiency_bound <- function(deff, k, sens_min){
 #   min <- -(-1 + delta)*((-1 + delta - sens_min*delta)/(-1 + delta))^(1/k)
 #   max <- -(-1 + delta)*((-1 + delta - k*delta)/(-1 + delta))^(1/k)
@@ -745,26 +745,26 @@ update_sequence <- function(points, tol){
 # Calculate crosspoints
 crosspoints <- function(deff, delta, k, sens, gridlength, tol, xmin, xmax){
   val <- sens_val_to_add(deff, delta, k)
-  
+
   sensfix <- function(x){
     return(sens(x) - val)
   }
-  
+
   sols <- seq(xmin, xmax, length.out = gridlength) %>%
-    map(nleqslv, fn = sensfix) %>% 
+    map(nleqslv, fn = sensfix) %>%
     map(function(x) x$x) %>%
     unlist
-  
+
   # Eliminar duplicados
   sols_upd <- update_sequence(sols, tol)
-  
+
   # Quedarnos con puntos dentro del espacio de diseño
   sols_upd <- sols_upd[sols_upd >= 1 & sols_upd <= 100]
-  
+
   # Eliminar los que no son soluciones
   sols_upd <- sols_upd[abs(map_dbl(sols_upd, sens) - val) < tol]
-  
-  
+
+
   return(sols_upd)
 }
 
@@ -794,43 +794,43 @@ add_points <- function(points, delta, design){
 
 
 # Uniform design
-uniform_design <- function(n, xmin, xmax){
-  unif_des <- data.frame("Point" = seq(xmin,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-  return(unif_des)
-}
+# uniform_design <- function(n, xmin, xmax){
+#   unif_des <- data.frame("Point" = seq(xmin,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#   return(unif_des)
+# }
 
 # Arithmetic design
-arithmetic_design <- function(Variance, n, xmin, xmax, opt_mat, Criterion, a = 0, b = 0, c = 0, k = 3, s = 2, intPars = 2, matB = diag(3)){
-  arithdes_opt <- function(r){
-    arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
-    arith_mat <- dmatrixAntoine(Variance, a, b, c, arith_des)
-    return(eff(Criterion, opt_mat, arith_mat, k, s, intPars, matB))
-  }
-
-  r_val <- round(nloptr::direct(fn = arithdes_opt,lower = xmin, upper = xmax, control=list(xtol_rel=1e-24, maxeval=1000))$par, 3)
-
-  return(data.frame("Point" = seq(r_val,xmax,length.out = n), "Weight" = rep(1/n, times = n)))
-}
+# arithmetic_design <- function(Variance, n, xmin, xmax, opt_mat, Criterion, a = 0, b = 0, c = 0, k = 3, s = 2, intPars = 2, matB = diag(3)){
+#   arithdes_opt <- function(r){
+#     arith_des <- data.frame("Point" = seq(r,xmax,length.out = n), "Weight" = rep(1/n, times = n))
+#     arith_mat <- dmatrixAntoine(Variance, a, b, c, arith_des)
+#     return(eff(Criterion, opt_mat, arith_mat, k, s, intPars, matB))
+#   }
+#
+#   r_val <- round(nloptr::direct(fn = arithdes_opt,lower = xmin, upper = xmax, control=list(xtol_rel=1e-24, maxeval=1000))$par, 3)
+#
+#   return(data.frame("Point" = seq(r_val,xmax,length.out = n), "Weight" = rep(1/n, times = n)))
+# }
 
 # opt_des <- doptCuad(1, 100)
 # dopt_mat <- dmatrixCuad(opt_des)
-# 
+#
 # arithmetic_design(5, 1, 100, dopt_mat, "Cuadratic")
 
 
 # Geometric design
-geometric_design <- function(Variance, n, xmin, xmax, opt_mat, Criterion, a = 0, b = 0, c = 0, k = 3, s = 2, intPars = 2, matB = diag(3)){
-
-  geodes_opt <- function(r){
-    geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
-    geom_mat <- dmatrixAntoine(Variance, a, b, c, geom_des)
-    return(eff(Criterion, opt_mat, geom_mat, k, s, intPars, matB))
-  } 
-  
-  r_val <- round(nloptr::direct(fn = geodes_opt,lower = 0, upper = 1, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
-  
-  return(data.frame("Point" = (xmax-xmin)*r_val^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n)))
-}
+# geometric_design <- function(Variance, n, xmin, xmax, opt_mat, Criterion, a = 0, b = 0, c = 0, k = 3, s = 2, intPars = 2, matB = diag(3)){
+#
+#   geodes_opt <- function(r){
+#     geom_des <- data.frame("Point" = (xmax-xmin)*r^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n))
+#     geom_mat <- dmatrixAntoine(Variance, a, b, c, geom_des)
+#     return(eff(Criterion, opt_mat, geom_mat, k, s, intPars, matB))
+#   }
+#
+#   r_val <- round(nloptr::direct(fn = geodes_opt,lower = 0, upper = 1, control=list(xtol_rel=1e-8, maxeval=1000))$par, 3)
+#
+#   return(data.frame("Point" = (xmax-xmin)*r_val^(0:(n-1))+xmin, "Weight" = rep(1/n, times = n)))
+# }
 
 
 
@@ -841,7 +841,7 @@ geometric_design <- function(Variance, n, xmin, xmax, opt_mat, Criterion, a = 0,
 # Calcular matrix de un diseño para la ecuación de Antoine
 dmatrixAntoineHet <- function(a, b, c, design) {
   b <- b*log(10)
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -851,7 +851,7 @@ dmatrixAntoineHet <- function(a, b, c, design) {
   m31 <- 0
   m32 <- 0
   m33 <- 0
-  
+
   for(i in seq_along(design$Weight)){
     m11 <- m11 + design$Weight[[i]]
     m12 <- m12 + -1/(c + design$Point[[i]])*design$Weight[[i]]
@@ -863,7 +863,7 @@ dmatrixAntoineHet <- function(a, b, c, design) {
     m32 <- m23
     m33 <- m33 + b^2/(c + design$Point[[i]])^4*design$Weight[[i]]
   }
-  
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -889,8 +889,8 @@ dsensAntoineHet <- function(a, b, c, mat) {
   b <- b*log(10)
   invMat <- solve(mat)
   sensX <- function(x) {
-    return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-             (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+    return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+             (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
              b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2)
   }
   return(sensX)
@@ -898,18 +898,18 @@ dsensAntoineHet <- function(a, b, c, mat) {
 
 
 # optdes <- data.frame(Point = c(1, 50.5, 100), Weight = c(1/3, 1/3, 1/3))
-# 
+#
 # desMat <- dmatrixAntoineHet(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- dsensAntoineHet(8.07131, 1730.63, 233.426, desMat)
-# 
+#
 # sens(1)
 
 # Cálculo Analítico del diseño D-Óptimo para la ecuación de Antoine
 doptAntoineHet <- function(A, B, C, min, max){
   A <- log(10)*A
   B <- log(10)*B
-  
+
   if(round(min - max, 3) == 0){
     opdes <- data.frame(Point = c(min), Weight = c(1))
     return(opdes)
@@ -922,7 +922,7 @@ doptAntoineHet <- function(A, B, C, min, max){
 # A <- 18.58487808693377
 # B <- 1682.3377464942398
 # C <- 233.426
-# 
+#
 # min <- 1
 # max <- 100
 
@@ -984,43 +984,43 @@ DSsensAntoineHet <- function(a, b, c, mat, intPars) {
   invMat2 <- solve(mat[-intPars, -intPars])
   if(all(intPars == c(1,2))){
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 - invMat2[[1,1]]*b^2/(c+x)^4)
     }
   }
   else if (all(intPars == c(1,3))) {
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 - invMat2[[1,1]]/(c+x)^2)
     }
   }
   else if (all(intPars == c(2,3))) {
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 - invMat2[[1,1]])
     }
   }
   else if (all(intPars == c(1))) {
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 + (b*invMat2[[1,2]]/(c+x)^2 - invMat2[[1,1]]/(c+x))/(c+x) - b*(b*invMat2[[2,2]]/(c+x)^2 - invMat2[[1,2]]/(c+x))/(c+x)^2)
     }
   }
   else if (all(intPars == c(2))) {
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 - invMat2[[1,1]] - b*invMat2[[1,2]]/(c+x)^2 - b*(invMat2[[1,2]]+b*invMat2[[2,2]]/(c+x)^2)/(c+x)^2)
     }
   }
   else if (all(intPars == c(3))) {
     sensX <- function(x) {
-      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) - 
-               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) + 
+      return(invMat[[1,1]] + invMat[[3,1]]*b/(c + x)^2 - (invMat[[2,1]]/(c + x)) -
+               (invMat[[1,2]] + invMat[[3,2]]*b/(c + x)^2 - invMat[[2,2]]/(c + x))/(c + x) +
                b*(invMat[[1,3]] + invMat[[3,3]]*b/(c + x)^2 - invMat[[2,3]]/(c + x))/(c + x)^2 - invMat2[[1,1]] + invMat2[[1,2]]/(c+x) + (invMat2[[1,2]] - invMat2[[2,2]]/(c+x))/(c+x))
     }
   }
@@ -1031,11 +1031,11 @@ DSsensAntoineHet <- function(a, b, c, mat, intPars) {
 }
 
 # optdes <- data.frame(Point = c(1, 50.5, 100), Weight = c(1/3, 1/3, 1/3))
-# 
+#
 # desMat <- dmatrixAntoineHet(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- DSsensAntoineHet(8.07131, 1730.63, 233.426, desMat, c(2))
-# 
+#
 # sens(50)
 
 
@@ -1094,7 +1094,7 @@ DSWFMultHet <- function(A, B, C, initDes, intPar, min, max, grid.length, joinThr
 IntMatAntoineHet <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
   a <- a*log(10)
   b <- b*log(10)
-  
+
   m11 <- 0
   m12 <- 0
   m13 <- 0
@@ -1112,7 +1112,7 @@ IntMatAntoineHet <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
     f22 <- function(x) {1/(c + x)^2/(maxReg - minReg)}
     f23 <- function(x) {-b/(c + x)^3/(maxReg - minReg)}
     f33 <- function(x) {b^2/(c + x)^4/(maxReg - minReg)}
-    
+
     # m11 <- integrate(f11, lower = minReg, upper = maxReg)$value
     m11 <- 1
     m12 <- integrate(f12, lower = minReg, upper = maxReg)$value
@@ -1138,7 +1138,7 @@ IntMatAntoineHet <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
     f232 <- function(x) {-b/(c + x)^3*(2*(maxReg - x)/((maxReg - minReg)*(maxReg - vertex)))}
     f331 <- function(x) {b^2/(c + x)^4*(2*(x - minReg)/((maxReg - minReg)*(vertex - minReg)))}
     f332 <- function(x) {b^2/(c + x)^4*(2*(maxReg - x)/((maxReg - minReg)*(maxReg - vertex)))}
-    
+
     if(vertex > minReg & maxReg > vertex)
     {
       # m11 <- integrate(f111, lower = minReg, upper = vertex)$value + integrate(f112, lower = vertex, upper = maxReg)$value
@@ -1178,11 +1178,11 @@ IntMatAntoineHet <- function(a, b, c, minReg, maxReg, vertex, option = "Unif") {
       m32 <- m23
       m33 <- integrate(f332, lower = vertex, upper = maxReg)$value
     }
-    
+
   }
-  
-  
-  
+
+
+
   return(matrix(c(m11, m12, m13, m21, m22, m23, m31, m32, m33), nrow = 3, ncol = 3, byrow = TRUE))
 }
 
@@ -1202,33 +1202,33 @@ IsensAntoineHet <- function(a, b, c, mat, matB = diag(3)) {
   invMat <- solve(mat)
   sensMat <- solve(mat) %*% matB %*% solve(mat)
   sensX <- function(x) {
-    return(sensMat[[1,1]] + sensMat[[3,1]]*b/(c + x)^2 - (sensMat[[2,1]]/(c + x)) - 
-             (sensMat[[1,2]] + sensMat[[3,2]]*b/(c + x)^2 - sensMat[[2,2]]/(c + x))/(c + x) + 
+    return(sensMat[[1,1]] + sensMat[[3,1]]*b/(c + x)^2 - (sensMat[[2,1]]/(c + x)) -
+             (sensMat[[1,2]] + sensMat[[3,2]]*b/(c + x)^2 - sensMat[[2,2]]/(c + x))/(c + x) +
              b*(sensMat[[1,3]] + sensMat[[3,3]]*b/(c + x)^2 - sensMat[[2,3]]/(c + x))/(c + x)^2)
   }
   return(sensX)
 }
 
 # optdes <- data.frame(Point = c(1, 50.5, 100), Weight = c(1/3, 1/3, 1/3))
-# 
+#
 # desMat <- dmatrixAntoineHet(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- IsensAntoineHet(8.07131, 1730.63, 233.426, desMat)
-# 
+#
 # sens(1)/10^8
 
 # B <- IntMatAntoine(8.07131, 1730.63, 233.426, 80, 120, 0, option = "Unif")
-# 
+#
 # optdes <- data.frame(Point = c(100, 83.9316, 33.2345), Weight = c(0.359629, 0.377516, 0.262233))
-# 
+#
 # desMat <- dmatrixAntoine(8.07131, 1730.63, 233.426, optdes)
-# 
+#
 # sens <- IsensAntoine(8.07131, 1730.63, 233.426, desMat, B)
-# 
+#
 # sens(70)
-# 
+#
 # crit <- icrit(desMat, B)
-# 
+#
 # p <- ggplot(data = data.frame(x = 0), mapping = aes(x = x))
 # p + stat_function(fun = sens) + stat_function(fun = function(x) crit, col = "blue") + xlim(1, 100) + labs(x = "Temperature (ºC)", y = "Pressure")
 
@@ -1428,7 +1428,7 @@ IntMatAntoine <- function(Variance, a, b, c, minReg, maxReg, vertex, option = "U
 #     return(ieff(mat1, mat2, matB))
 #   }
 # }
-# 
+#
 # sens <- function(Criterion, a, b, c, mat, intPars = 0, matB = diag(3)){
 #   if(identical(Criterion, "D-Optimality")){
 #     return(dsensAntoine(a, b, c, mat))
@@ -1443,7 +1443,7 @@ IntMatAntoine <- function(Variance, a, b, c, minReg, maxReg, vertex, option = "U
 #     return(IsensAntoine(a, b, c, mat, matB))
 #   }
 # }
-# 
+#
 # crit <- function(Criterion, mat, k = 3, s = 2, intPars = 2, matB = diag(3)){
 #   if(identical(Criterion, "D-Optimality")){
 #     return(dcrit(mat, k))
@@ -1458,8 +1458,8 @@ IntMatAntoine <- function(Variance, a, b, c, minReg, maxReg, vertex, option = "U
 #     return(icrit(mat, matB))
 #   }
 # }
-# 
-# 
+#
+#
 # WF <- function(Criterion, A, B, C, initDes, intPar = 0, matB = diag(3), min, max, grid.length, joinThresh, deleteThresh, k = 3, s = 2, deltaW, tol){
 #   if(identical(Criterion, "D-Optimality")){
 #     return(WFMult(A, B, C, initDes, min, max, grid.length, joinThresh, deleteThresh, k, deltaW, tol))
