@@ -26,27 +26,40 @@
 #'
 #' @examples
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-#' augment_design("D-optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-#' augment_design("D-optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
 augment_design <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NA, distribution = NA, weight_fun = function(x) 1) {
   # oldw <- getOption("warn")
   # options(warn = -1)
   if(interactive()){
-    if(is.na(distribution)){
-      augmented_design <- dplyr::case_when(criterion == "D-optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
-                                           criterion == "A-optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
-                                           criterion == "I-optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
-                                           criterion == "Ds-optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun))
+    if(!is.na(distribution)){
+      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+
+        # dplyr::case_when(criterion == "D-Optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
+        #                                    criterion == "A-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
+        #                                    criterion == "I-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
+        #                                    criterion == "Ds-Optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun),
+        #                                    TRUE ~ NA)
     }
-    else {
-      weight_f <- weight_function(model, char_vars, values, distribution = distribution)
-      augmented_design <- dplyr::case_when(criterion == "D-optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
-                                           criterion == "A-optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
-                                           criterion == "I-optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
-                                           criterion == "Ds-optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f))
-    }
+    # else {
+    #
+    #   augmented_design <- dplyr::case_when(criterion == "D-Optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
+    #                                        criterion == "A-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
+    #                                        criterion == "I-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
+    #                                        criterion == "Ds-Optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f),
+    #                                        TRUE ~ NA)
+    # }
+    if(criterion == "D-Optimality"){
+      augmented_design <- daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun)
+    } else if(criterion == "A-Optimality"){
+      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
+    } else if(criterion == "I-Optimality"){
+      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
+    } else if(criterion == "Ds-Optimality"){
+      augmented_design <- dsaugment_design(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
+    } else return(NA)
     return(augmented_design)
   }
   return(NA)
@@ -80,25 +93,35 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'
 #' @examples
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-#' get_augment_region("D-optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#' get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-#' get_augment_region("D-optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#' get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
 get_augment_region <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NA, distribution = NA, weight_fun = function(x) 1) {
   if(interactive()){
-    if(is.na(distribution)){
-      augment_region <- dplyr::case_when(criterion == "D-optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
-                                           criterion == "A-optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
-                                           criterion == "I-optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
-                                           criterion == "Ds-optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun))
+    if(!is.na(distribution)){
+      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+      # augment_region <- dplyr::case_when(criterion == "D-Optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
+      #                                      criterion == "A-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
+      #                                      criterion == "I-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
+      #                                      criterion == "Ds-Optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun))
     }
-    else {
-      weight_f <- weight_function(model, char_vars, values, distribution = distribution)
-      augment_region <- dplyr::case_when(criterion == "D-optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
-                                           criterion == "A-optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
-                                           criterion == "I-optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
-                                           criterion == "Ds-optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f))
-    }
+    # else {
+    #   weight_f <- weight_function(model, char_vars, values, distribution = distribution)
+    #   augment_region <- dplyr::case_when(criterion == "D-Optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
+    #                                        criterion == "A-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
+    #                                        criterion == "I-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
+    #                                        criterion == "Ds-Optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f))
+    # }
+    if(criterion == "D-Optimality"){
+      augment_region <- get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun)
+    } else if(criterion == "A-Optimality"){
+      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
+    } else if(criterion == "I-Optimality"){
+      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
+    } else if(criterion == "Ds-Optimality"){
+      augment_region <- get_dsaugment_region(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
+    } else return(NA)
     return(augment_region)
   }
   return(NA)
@@ -156,7 +179,7 @@ daugment_design <- function(init_design, alpha, model, parameters, par_values, d
   }
   # Puntos de corte y valor del corte
   val_to_add <- ((1 - alpha)/alpha*((delta_val/(1 - alpha))^length(parameters) - 1))
-  cross <- sort(crosspoints(val_to_add, eff_fun, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
+  cross <- sort(crosspoints(val_to_add, sens_1, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
 
 
   # # Obtener start y par para tener las regiones
@@ -418,7 +441,7 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #'
 #' @family augment designs
 #'
-ds_augment_design <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
+dsaugment_design <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
 
   grad <- gradient(model, parameters, par_values, weight_fun)
   grad22 <- gradient22(model, parameters, par_values, par_int, weight_fun)
@@ -569,7 +592,7 @@ ds_augment_design <- function(init_design, alpha, model, parameters, par_values,
 #' Get D-augment region
 #'
 #' @description
-#' Given a model, calculates the candidate points region for D-optimality. The user gives an initial
+#' Given a model, calculates the candidate points region for D-Optimality. The user gives an initial
 #' design for which he would like to add points and specifies the weight of the new points. Then he
 #' is prompted to choose a minimum efficiency. After that, the candidate points region is calculated.
 #'
@@ -612,7 +635,7 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
   }
   # Puntos de corte y valor del corte
   val_to_add <- ((1 - alpha)/alpha*((delta_val/(1 - alpha))^length(parameters) - 1))
-  cross <- sort(crosspoints(val_to_add, eff_fun, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
+  cross <- sort(crosspoints(val_to_add, sens_1, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
 
 
   # # Obtener start y par para tener las regiones
@@ -659,7 +682,7 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
 #' Get L-augment region
 #'
 #' @description
-#' Given a model, calculates the candidate points region for L-optimality. The user gives an initial
+#' Given a model, calculates the candidate points region for L-Optimality. The user gives an initial
 #' design for which he would like to add points and specifies the weight of the new points. Then he
 #' is prompted to choose a minimum efficiency. After that, the candidate points region is calculated.
 #'
@@ -744,7 +767,7 @@ get_laugment_region <- function(init_design, alpha, model, parameters, par_value
 #' Get Ds-augment region
 #'
 #' @description
-#' Given a model, calculates the candidate points region for Ds-optimality. The user gives an initial
+#' Given a model, calculates the candidate points region for Ds-Optimality. The user gives an initial
 #' design for which he would like to add points and specifies the weight of the new points. Then he
 #' is prompted to choose a minimum efficiency. After that, the candidate points region is calculated.
 #'
