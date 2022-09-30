@@ -1,6 +1,62 @@
 # Auxiliar function for algorithms --------------------------------------
 
 
+
+
+#' Weight function per distribution
+#'
+#' @param model
+#' @param char_vars
+#' @param values
+#' @param distribution
+#'
+#' @return
+#'
+weight_function <- function(model, char_vars, values, distribution = "homoscedastic") {
+  # vars <- as.list(match.call())[-(1:2)]
+  # char_vars <- sapply(vars, as.character)
+  if(!(distribution %in% c("poisson", "gamma", "logit", #"log-normal",
+                           "homoscedastic"))){
+    warning(crayon::yellow(cli::symbol$warning), " Not a valid distribution specified, using a normal homoscedastic")
+    return(function(x) 1)
+  }
+  else if(distribution == "homoscedastic"){
+    return(function(x) 1)
+  }
+  else if(distribution == "poisson"){
+    cmd <- tail(as.character(model),1)
+    expres <- parse(text=cmd)
+    lista <- values
+    names(lista) <- char_vars
+    f <- function(x_val) {
+      exp(eval(expres, c(lista, list("x" = x_val)))/2)
+    }
+  }
+  else if(distribution == "gamma"){
+    cmd <- tail(as.character(model),1)
+    expres <- parse(text=cmd)
+    lista <- values
+    names(lista) <- char_vars
+    f <- function(x_val) {
+      (eval(expres, c(lista, list("x" = x_val))))^(-1)
+    }
+  }
+  else if(distribution == "logit"){
+    cmd <- tail(as.character(model),1)
+    expres <- parse(text=cmd)
+    lista <- values
+    names(lista) <- char_vars
+    f <- function(x_val) {
+      sqrt(exp(-eval(expres, c(lista, list("x" = x_val))))/(1 + exp(-eval(expres, c(lista, list("x" = x_val)))))^2)
+    }
+  }
+  else if(distribution == "log-normal"){
+    return(function(x) 1)
+  }
+  return(f)
+}
+
+
 #' Find Minimum Value
 #'
 #' @description

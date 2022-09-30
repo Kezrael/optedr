@@ -321,6 +321,12 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'   interest region.
 #' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
 #' @param desired_output not functional yet: decide which kind of output you want.
+#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#'   * 'Homoscedasticity'
+#'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+#'   * 'Poisson'
+#'   * 'Logistic'
+#'   * 'Log-Normal'
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return a list of two objects:
@@ -343,6 +349,7 @@ opt_des <- function(Criterion, model, parameters,
                     matB = NULL,
                     reg_int = NULL,
                     desired_output = c(1, 2),
+                    distribution = NA,
                     weight_fun = function(x) 1) {
   k <- length(parameters)
   if(identical(par_values, c(1))){
@@ -361,6 +368,11 @@ opt_des <- function(Criterion, model, parameters,
       matB <- integrate_reg_int(grad, k, reg_int)
     }
   }
+
+  if(!is.na(distribution)){
+    weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+  }
+
   output <- WFMult(init_design, grad, Criterion, par_int = par_int, matB, design_space[[1]], design_space[[2]], 1000, join_thresh, delete_thresh, k, delta, tol, tol2)
   attr(output, "model") <- model
   attr(output, "weight_fun") <- weight_fun
