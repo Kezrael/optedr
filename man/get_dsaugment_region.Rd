@@ -27,6 +27,8 @@ get_dsaugment_region(
 
 \item{par_values}{Numeric vector with the initial values of the unknown parameters}
 
+\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest.}
+
 \item{design_space}{Numeric vector with the extremes of the space of the design}
 
 \item{calc_optimal_design}{Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}

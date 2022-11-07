@@ -20,6 +20,16 @@
 #' @param design_space Numeric vector with the extremes of the space of the design
 #' @param calc_optimal_design Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
 #' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
+#'   interest region.
+#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#'   * 'Homoscedasticity'
+#'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+#'   * 'Poisson'
+#'   * 'Logistic'
+#'   * 'Log-Normal'
+#'
 #'
 #' @return A dataframe that represents the D-augmented design
 #' @export
@@ -90,6 +100,16 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #' @param design_space Numeric vector with the extremes of the space of the design
 #' @param calc_optimal_design Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
 #' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
+#'   interest region.
+#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#'   * 'Homoscedasticity'
+#'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+#'   * 'Poisson'
+#'   * 'Logistic'
+#'   * 'Log-Normal'
+#'
 #'
 #' @return A vector of the points limiting the candidate points region
 #' @export

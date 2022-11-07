@@ -31,6 +31,9 @@ get_laugment_region(
 
 \item{calc_optimal_design}{Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
 
+\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
+interest region.}
+
 \item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{

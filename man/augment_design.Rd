@@ -42,6 +42,20 @@ augment_design(
 
 \item{calc_optimal_design}{Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
 
+\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest.}
+
+\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
+interest region.}
+
+\item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
+\itemize{
+\item 'Homoscedasticity'
+\item 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+\item 'Poisson'
+\item 'Logistic'
+\item 'Log-Normal'
+}}
+
 \item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
