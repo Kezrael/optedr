@@ -56,6 +56,9 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
     } else if(criterion == "A-Optimality"){
       augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
     } else if(criterion == "I-Optimality"){
+      if(is.na(matB)){
+        matB <- integrate_reg_int(grad, length(parameters), design_space)
+      }
       augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
     } else if(criterion == "Ds-Optimality"){
       augmented_design <- dsaugment_design(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
@@ -118,6 +121,9 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
     } else if(criterion == "A-Optimality"){
       augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
     } else if(criterion == "I-Optimality"){
+      if(is.na(matB)){
+        matB <- integrate_reg_int(grad, length(parameters), design_space)
+      }
       augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
     } else if(criterion == "Ds-Optimality"){
       augment_region <- get_dsaugment_region(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
