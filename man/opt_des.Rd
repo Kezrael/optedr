@@ -20,6 +20,7 @@ opt_des(
   matB = NULL,
   reg_int = NULL,
   desired_output = c(1, 2),
+  distribution = NA,
   weight_fun = function(x) 1
 )
 }
@@ -68,6 +69,15 @@ interest region.}
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
 \item{desired_output}{not functional yet: decide which kind of output you want.}
+
+\item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
+\itemize{
+\item 'Homoscedasticity'
+\item 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+\item 'Poisson'
+\item 'Logistic'
+\item 'Log-Normal'
+}}
 
 \item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }

@@ -5,12 +5,17 @@
 
 #' Weight function per distribution
 #'
-#' @param model
-#' @param char_vars
-#' @param values
-#' @param distribution
+#' @param model formula describing the model to use. Must use x as the variable.
+#' @param char_vars character vector with the parameters of the models, as written in the \code{formula}
+#' @param values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
+#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#'   * 'Homoscedasticity'
+#'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
+#'   * 'Poisson'
+#'   * 'Logistic'
+#'   * 'Log-Normal'
 #'
-#' @return
+#' @return one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
 #'
 weight_function <- function(model, char_vars, values, distribution = "homoscedastic") {
   # vars <- as.list(match.call())[-(1:2)]

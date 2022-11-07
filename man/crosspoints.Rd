@@ -4,14 +4,10 @@
 \alias{crosspoints}
 \title{Calculate crosspoints}
 \usage{
-crosspoints(deff, alpha, k, sens, gridlength, tol, xmin, xmax)
+crosspoints(val, sens, gridlength, tol, xmin, xmax)
 }
 \arguments{
-\item{deff}{Minimum efficiency chosen by the user}
-
-\item{alpha}{Combined weight of the new points}
-
-\item{k}{Number of unknown parameters of the model}
+\item{val}{Efficiency value to solve in the curve relationing the space of the design and efficiency of new design}
 
 \item{sens}{Sensitivity function of the design for the model}
 
@@ -27,7 +23,7 @@ crosspoints(deff, alpha, k, sens, gridlength, tol, xmin, xmax)
 A numeric vector of crosspoints that define the candidate points region
 }
 \description{
-Given the parameters for D-augmenting a design, this function calculates the
-crosspoints in the sensitivity function that delimit the candidate points
+Given the parameters for augmenting a design, this function calculates the
+crosspoints in the efficiency function that delimit the candidate points
 region
 }
