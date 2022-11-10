@@ -28,22 +28,24 @@ Suggests:
     testthat (>= 3.0.0),
     mockery,
     markdown,
-    tidyverse
-Imports: 
-    ggplot2,
-    purrr,
-    rlang,
-    crayon,
-    cli,
-    magrittr,
-    dplyr,
-    nleqslv,
-    shiny,
+    tidyverse,
     DT,
     shinydashboard,
     shinyalert,
     plotly,
     hrbrthemes,
     shinyjs,
-    orthopolynom
+    orthopolynom,
+    magrittr
+Imports: 
+    ggplot2,
+    purrr,
+    rlang,
+    crayon,
+    cli,
+    dplyr,
+    nleqslv,
+    shiny,
+    utils
 Config/testthat/edition: 3
+

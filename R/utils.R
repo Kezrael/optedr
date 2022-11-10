@@ -2,7 +2,6 @@
 
 
 
-
 #' Weight function per distribution
 #'
 #' @param model formula describing the model to use. Must use x as the variable.
@@ -29,7 +28,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
     return(function(x) 1)
   }
   else if(distribution == "poisson"){
-    cmd <- tail(as.character(model),1)
+    cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
     names(lista) <- char_vars
@@ -38,7 +37,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
     }
   }
   else if(distribution == "gamma"){
-    cmd <- tail(as.character(model),1)
+    cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
     names(lista) <- char_vars
@@ -47,7 +46,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
     }
   }
   else if(distribution == "logit"){
-    cmd <- tail(as.character(model),1)
+    cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
     names(lista) <- char_vars

@@ -173,7 +173,7 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
 #' @family augment designs
 #'
 daugment_design <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
@@ -324,7 +324,7 @@ daugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' @family augment designs
 #'
 laugment_design <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   dsens_1 <- dsens(grad, inf_mat_1)
@@ -470,7 +470,7 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' @family augment designs
 #'
 dsaugment_design <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   grad22 <- gradient22(model, parameters, par_values, par_int, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
@@ -629,7 +629,7 @@ dsaugment_design <- function(init_design, alpha, model, parameters, par_values, 
 #' @family augment regions
 #'
 get_daugment_region <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
@@ -719,7 +719,7 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
 #' @family augment region
 #'
 get_laugment_region <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   dsens_1 <- dsens(grad, inf_mat_1)
@@ -804,7 +804,7 @@ get_laugment_region <- function(init_design, alpha, model, parameters, par_value
 #' @family augment region
 #'
 get_dsaugment_region <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-
+  x_value <- NULL
   grad <- gradient(model, parameters, par_values, weight_fun)
   grad22 <- gradient22(model, parameters, par_values, par_int, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
