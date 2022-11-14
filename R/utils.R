@@ -12,22 +12,22 @@
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
 #'   * 'Logistic'
-#'   * 'Log-Normal'
+#'   * 'Log-Normal' (work in progress)
 #'
 #' @return one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
 #'
-weight_function <- function(model, char_vars, values, distribution = "homoscedastic") {
+weight_function <- function(model, char_vars, values, distribution = "Homoscedasticity") {
   # vars <- as.list(match.call())[-(1:2)]
   # char_vars <- sapply(vars, as.character)
-  if(!(distribution %in% c("poisson", "gamma", "logit", #"log-normal",
-                           "homoscedastic"))){
+  if(!(distribution %in% c("Poisson", "Gamma", "Logistic", #"log-normal",
+                           "Homoscedasticity"))){
     warning(crayon::yellow(cli::symbol$warning), " Not a valid distribution specified, using a normal homoscedastic")
     return(function(x) 1)
   }
-  else if(distribution == "homoscedastic"){
+  else if(distribution == "Homoscedasticity"){
     return(function(x) 1)
   }
-  else if(distribution == "poisson"){
+  else if(distribution == "Poisson"){
     cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
@@ -36,7 +36,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
       exp(eval(expres, c(lista, list("x" = x_val)))/2)
     }
   }
-  else if(distribution == "gamma"){
+  else if(distribution == "Gamma"){
     cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
@@ -45,7 +45,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
       (eval(expres, c(lista, list("x" = x_val))))^(-1)
     }
   }
-  else if(distribution == "logit"){
+  else if(distribution == "Logistic"){
     cmd <- utils::tail(as.character(model),1)
     expres <- parse(text=cmd)
     lista <- values
@@ -54,7 +54,7 @@ weight_function <- function(model, char_vars, values, distribution = "homoscedas
       sqrt(exp(-eval(expres, c(lista, list("x" = x_val))))/(1 + exp(-eval(expres, c(lista, list("x" = x_val)))))^2)
     }
   }
-  else if(distribution == "log-normal"){
+  else if(distribution == "Log-normal"){
     return(function(x) 1)
   }
   return(f)

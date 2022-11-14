@@ -326,7 +326,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
 #'   * 'Logistic'
-#'   * 'Log-Normal'
+#'   * 'Log-Normal' (work in progress)
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return a list of two objects:

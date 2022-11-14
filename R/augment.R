@@ -28,7 +28,7 @@
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
 #'   * 'Logistic'
-#'   * 'Log-Normal'
+#'   * 'Log-Normal' (work in progress)
 #'
 #'
 #' @return A dataframe that represents the D-augmented design
@@ -109,7 +109,7 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
 #'   * 'Logistic'
-#'   * 'Log-Normal'
+#'   * 'Log-Normal' (work in progress)
 #'
 #'
 #' @return A vector of the points limiting the candidate points region
