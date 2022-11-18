@@ -7,15 +7,15 @@
 icrit(M, matB)
 }
 \arguments{
-\item{M}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{information matrix for which the criterion value wants to be calculated.}
 
-\item{matB}{Matrix of the integral of the information matrix over the interest region. Identity matrix for
+\item{matB}{matrix of the integral of the information matrix over the interest region. Identity matrix for
 A-Optimality.}
 }
 \value{
-Numeric value of the Ds-optimality criterion for the information matrix.
+Numeric value of the I-optimality criterion for the information matrix.
 }
 \description{
-Calculates the value of the Ds-Optimality criterion, which follows the expression:
-\deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+Calculates the value of the I-Optimality criterion function, which follows the expression:
+\deqn{\phi_I = Tr(M^{-1} \cdot B)}
 }

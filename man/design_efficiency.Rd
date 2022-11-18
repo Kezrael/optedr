@@ -7,9 +7,9 @@
 design_efficiency(opt_des_obj, design)
 }
 \arguments{
-\item{opt_des_obj}{An object given by the function \code{opt_des}.}
+\item{opt_des_obj}{an object given by the function \code{opt_des}.}
 
-\item{design}{A dataframe that represents the design. Must have two columns:
+\item{design}{dataframe that represents the design. Must have two columns:
 \itemize{
 \item \code{Point} contains the support points of the design.
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
@@ -19,7 +19,7 @@ design_efficiency(opt_des_obj, design)
 The efficiency as a value between 0 and 1
 }
 \description{
-Takes a optimal design provided from the function \code{opt_des} and a user given design and compares their
+Takes an optimal design provided from the function \code{opt_des} and a user given design and compares their
 efficiency
 }
 \examples{

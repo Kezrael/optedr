@@ -4,7 +4,7 @@
 \alias{weight_function}
 \title{Weight function per distribution}
 \usage{
-weight_function(model, char_vars, values, distribution = "homoscedastic")
+weight_function(model, char_vars, values, distribution = "Homoscedasticity")
 }
 \arguments{
 \item{model}{formula describing the model to use. Must use x as the variable.}
@@ -13,13 +13,13 @@ weight_function(model, char_vars, values, distribution = "homoscedastic")
 
 \item{values}{numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.}
 
-\item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
+\item{distribution}{character variable specifying the probability distribution of the response. Can be one of the following:
 \itemize{
 \item 'Homoscedasticity'
 \item 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 \item 'Poisson'
 \item 'Logistic'
-\item 'Log-Normal'
+\item 'Log-Normal' (work in progress)
 }}
 }
 \value{

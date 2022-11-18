@@ -20,7 +20,7 @@ augment_design(
 )
 }
 \arguments{
-\item{criterion}{character with the chosen optimality criterion. Can be one of the following:
+\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
@@ -28,24 +28,24 @@ augment_design(
 \item 'I-Optimality'
 }}
 
-\item{init_design}{A dataframe with "Point" and "Weight" columns that represents the initial design to augment}
+\item{init_design}{dataframe with "Point" and "Weight" columns that represents the initial design to augment}
 
-\item{alpha}{Combined weight of the new points}
+\item{alpha}{combined weight of the new points}
 
-\item{model}{Formula that represent the model with x as the unknown}
+\item{model}{formula that represents the model with x as the independent variable}
 
-\item{parameters}{Character vector with the unknown parameters of the model to estimate}
+\item{parameters}{character vector with the unknown parameters of the model to estimate}
 
-\item{par_values}{Numeric vector with the initial values of the unknown parameters}
+\item{par_values}{numeric vector with the initial values of the unknown parameters}
 
-\item{design_space}{Numeric vector with the extremes of the space of the design}
+\item{design_space}{numeric vector with the limits of the space of the design}
 
-\item{calc_optimal_design}{Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
+\item{calc_optimal_design}{boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
 
-\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest.}
+\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
 \item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region.}
+interest region for I-optimality.}
 
 \item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
 \itemize{
@@ -53,10 +53,10 @@ interest region.}
 \item 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 \item 'Poisson'
 \item 'Logistic'
-\item 'Log-Normal'
+\item 'Log-Normal' (work in progress)
 }}
 
-\item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
 A dataframe that represents the D-augmented design

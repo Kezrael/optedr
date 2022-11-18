@@ -68,14 +68,16 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
+  pb <- utils::txtProgressBar(min = 0, max = 21, initial = 0, style = 3)
   for (i in 1:21) {
+    utils::setTxtProgressBar(pb,i)
     M <- inf_mat(grad, init_design)
     crit_val[index] <- dcrit(M, k)
     index <- index + 1
     sensM <- dsens(grad, M)
     xmax <- findmax(sensM, min, max, grid.length)
     if ((sensM(xmax) - k) / k < tol2) {
-      message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
@@ -96,9 +98,11 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
       init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
-      message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
+  base::close(pb)
+  base::cat("")
   crit_val[index] <- dcrit(M, k)
   crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
@@ -143,14 +147,16 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
+  pb <- utils::txtProgressBar(min = 0, max = 21, initial = 0, style = 3)
   for (i in 1:21) {
+    utils::setTxtProgressBar(pb,i)
     M <- inf_mat(grad, init_design)
     crit_val[index] <- dscrit(M, par_int)
     index <- index + 1
     sensDs <- dssens(grad, M, par_int)
     xmax <- findmax(sensDs, min, max, grid.length)
     if ((sensDs(xmax) - length(par_int)) / length(par_int) < tol2) {
-      message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
@@ -171,9 +177,10 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
       init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
-      message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
+  base::close(pb)
   crit_val[index] <- dscrit(M, par_int)
   crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]
   conv <- data.frame("criteria" = crit_val, "step" = seq(1, length(crit_val), 1))
@@ -221,14 +228,16 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
+  pb <- utils::txtProgressBar(min = 0, max = 21, initial = 0, style = 3)
   for (i in 1:21) {
+    utils::setTxtProgressBar(pb,i)
     M <- inf_mat(grad, init_design)
     crit_val[index] <- icrit(M, matB)
     index <- index + 1
     sensI <- isens(grad, M, matB)
     xmax <- findmax(sensI, min, max, grid.length)
     if ((sensI(xmax) - crit_val[index-1]) < tol2) {
-      message(crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition reached: difference between sensitivity and criterion < ", tol2)
       break
     }
     init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
@@ -250,9 +259,10 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
       init_design <- update_design_total(init_design, join_thresh)
     }
     if (i == 21) {
-      message(crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
+      message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
+  base::close(pb)
   M <- inf_mat(grad, init_design)
   crit_val[index] <- icrit(M, matB)
   crit_val <- crit_val[1:(length(crit_val) - sum(crit_val == 0))]

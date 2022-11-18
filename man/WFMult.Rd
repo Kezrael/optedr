@@ -22,7 +22,7 @@ WFMult(
 )
 }
 \arguments{
-\item{init_design}{with the initial design for the algorithm. A dataframe with two columns:
+\item{init_design}{optional dataframe with the initial design for the algorithm. A dataframe with two columns:
 \itemize{
 \item \code{Point} contains the support points of the design.
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
@@ -30,7 +30,7 @@ WFMult(
 
 \item{grad}{function of partial derivatives of the model.}
 
-\item{Criterion}{character with the chosen optimality criterion. Can be one of the following:
+\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
@@ -42,7 +42,7 @@ WFMult(
 the \code{Criterion} chosen is 'Ds-Optimality'.}
 
 \item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region.}
+interest region for I-optimality.}
 
 \item{min}{numeric value with the inferior bound of the space of the design.}
 

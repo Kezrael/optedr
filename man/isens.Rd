@@ -18,7 +18,7 @@ region.}
 The sensitivity function as a matrix of single variable.
 }
 \description{
-Calculates the sensitivity function from the gradient vector, the Identity Matrix and the integral of the
+Calculates the sensitivity function from the gradient vector, the Information Matrix and the integral of the
 one-point Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
 for A-Optimality.
 }

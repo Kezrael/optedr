@@ -7,7 +7,7 @@
 crit(Criterion, M, k = 0, par_int = c(1), matB = NA)
 }
 \arguments{
-\item{Criterion}{Character with the chosen optimality criterion. Can be one of the following:
+\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
@@ -15,13 +15,13 @@ crit(Criterion, M, k = 0, par_int = c(1), matB = NA)
 \item 'I-Optimality'
 }}
 
-\item{M}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{information matrix for which the criterion value wants to be calculated.}
 
-\item{k}{Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
+\item{k}{numeric variable with the number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
 
-\item{par_int}{Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
+\item{par_int}{numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
 
-\item{matB}{Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
+\item{matB}{matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
 }
 \value{
 Numeric value of the optimality criterion for the information matrix.

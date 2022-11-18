@@ -7,11 +7,11 @@
 efficient_round(design, n, tol = 1e-05)
 }
 \arguments{
-\item{design}{a data.frame with columns "Point" and "Weight" that represents a design}
+\item{design}{a dataframe with columns "Point" and "Weight" that represents a design}
 
 \item{n}{an integer that represents the desired number of observations of the exact design}
 
-\item{tol}{optional parameter for the consideration of a integer in the rounding process}
+\item{tol}{optional parameter for the consideration of an integer in the rounding process}
 }
 \value{
 a data.frame with columns "Point" and "Weight" representing an exact design

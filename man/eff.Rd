@@ -7,7 +7,7 @@
 eff(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA)
 }
 \arguments{
-\item{Criterion}{Character with the chosen optimality criterion. Can be one of the following:
+\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
@@ -15,15 +15,15 @@ eff(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA)
 \item 'I-Optimality'
 }}
 
-\item{mat1}{First information matrix, for the numerator.}
+\item{mat1}{first information matrix, for the numerator.}
 
-\item{mat2}{Second information matrix, for the denominator.}
+\item{mat2}{second information matrix, for the denominator.}
 
-\item{k}{Number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
+\item{k}{number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
 
-\item{intPars}{Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
+\item{intPars}{numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
 
-\item{matB}{Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
+\item{matB}{matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
 }
 \value{
 Efficiency of first design with respect to the second design, as a decimal number.

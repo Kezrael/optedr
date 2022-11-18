@@ -76,7 +76,7 @@ dscrit <- function(M, par_int) {
 #'
 #' @description
 #' Calculates the value of the I-Optimality criterion function, which follows the expression:
-#' \deqn{\phi_I = Tr(M^{-1}\cdot B)
+#' \deqn{\phi_I = Tr(M^{-1} \cdot B)}
 #'
 #'
 #' @param M information matrix for which the criterion value wants to be calculated.

@@ -7,14 +7,14 @@
 dscrit(M, par_int)
 }
 \arguments{
-\item{M}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{information matrix for which the criterion value wants to be calculated.}
 
-\item{par_int}{Numeric vector with the index of the parameters of interest of the model.}
+\item{par_int}{numeric vector with the index of the parameters of interest of the model.}
 }
 \value{
 Numeric value of the Ds-optimality criterion for the information matrix.
 }
 \description{
-Calculates the value of the Ds-Optimality criterion, which follows the expression:
-\deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+Calculates the value of the Ds-Optimality criterion function, which follows the expression:
+\deqn{\phi_{Ds} = \left(\frac{|M_{22}|}{|M|}\right)^{1/s}}
 }

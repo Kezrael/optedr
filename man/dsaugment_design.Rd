@@ -17,26 +17,26 @@ dsaugment_design(
 )
 }
 \arguments{
-\item{init_design}{A dataframe with "Point" and "Weight" columns that represents the initial design to augment}
+\item{init_design}{dataframe with "Point" and "Weight" columns that represents the initial design to augment}
 
-\item{alpha}{Combined weight of the new points}
+\item{alpha}{combined weight of the new points}
 
-\item{model}{Formula that represent the model with x as the unknown}
+\item{model}{formula that represents the model with x as the independent variable}
 
-\item{parameters}{Character vector with the unknown parameters of the model to estimate}
+\item{parameters}{character vector with the unknown parameters of the model to estimate}
 
-\item{par_values}{Numeric vector with the initial values of the unknown parameters}
+\item{par_values}{numeric vector with the initial values of the unknown parameters}
 
-\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest.}
+\item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
-\item{design_space}{Numeric vector with the extremes of the space of the design}
+\item{design_space}{numeric vector with the limits of the space of the design}
 
-\item{calc_optimal_design}{Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
+\item{calc_optimal_design}{boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
 
-\item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
-A dataframe that represents the D-augmented design
+A dataframe that represents the Ds-augmented design
 }
 \description{
 Ds-Augments a design. The user gives an initial design for which he would like to add points
@@ -46,10 +46,11 @@ and the user can choose the points and weights to add.
 }
 \examples{
 init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-  c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-  c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
+augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+  c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), TRUE)
+augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+  c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), FALSE)
+
 }
 \seealso{
 Other augment designs: 

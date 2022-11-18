@@ -19,7 +19,7 @@ DsWFMult(
 )
 }
 \arguments{
-\item{init_design}{with the initial design for the algorithm. A dataframe with two columns:
+\item{init_design}{optional dataframe with the initial design for the algorithm. A dataframe with two columns:
 \itemize{
 \item \code{Point} contains the support points of the design.
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.

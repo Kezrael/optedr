@@ -7,9 +7,9 @@
 add_design(design_1, design_2, alpha)
 }
 \arguments{
-\item{design_1}{A dataframe with 'Point' and 'Weight' as column that represent the first design to add}
+\item{design_1}{A dataframe with 'Point' and 'Weight' as columns that represent the first design to add}
 
-\item{design_2}{A dataframe with 'Point' and 'Weight' as column that represent the second design to add}
+\item{design_2}{A dataframe with 'Point' and 'Weight' as columns that represent the second design to add}
 
 \item{alpha}{Weight of the first design}
 }

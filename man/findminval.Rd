@@ -7,17 +7,17 @@
 findminval(sens, min, max, grid.length)
 }
 \arguments{
-\item{sens}{A single variable numeric function to evaluate.}
+\item{sens}{a single variable numeric function to evaluate.}
 
-\item{min}{Minimum value of the search interval.}
+\item{min}{minimum value of the search grid.}
 
-\item{max}{Maximum value of the search interval.}
+\item{max}{maximum value of the search grid.}
 
-\item{grid.length}{Length of the search interval.}
+\item{grid.length}{length of the search grid.}
 }
 \value{
 The value of the minimum
 }
 \description{
-Searches the maximum of a function over a grid on a given interval.
+Searches the maximum of a function over a grid on a given grid.
 }

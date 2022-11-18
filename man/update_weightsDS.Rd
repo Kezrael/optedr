@@ -15,7 +15,7 @@ update_weightsDS(design, sens, s, delta)
 
 \item{sens}{Sensibility function for the design and model.}
 
-\item{s}{Number of interest parameters of the model}
+\item{s}{number of parameters of interest of the model}
 
 \item{delta}{A parameter of the algorithm that can be tuned. Must be \eqn{0< delta < 1}.}
 }

@@ -7,16 +7,16 @@
 gradient22(model, char_vars, values, par_int, weight_fun = function(x) 1)
 }
 \arguments{
-\item{model}{A formula describing the model, which must contain only \code{x}, the parameters defined in
+\item{model}{formula describing the model, which must contain only \code{x}, the parameters defined in
 \code{char_vars} and the numerical operators.}
 
-\item{char_vars}{A character vector of the parameters of the model.}
+\item{char_vars}{character vector of the parameters of the model.}
 
-\item{values}{Numeric vector with the nominal values of the parameters in \code{char_vars}.}
+\item{values}{numeric vector with the nominal values of the parameters in \code{char_vars}.}
 
-\item{par_int}{Vector of indexes indicating the subset of variables to omit in the calculation of the gradient.}
+\item{par_int}{vector of indexes indicating the subset of variables to omit in the calculation of the gradient.}
 
-\item{weight_fun}{Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
 }
 \value{
 A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}

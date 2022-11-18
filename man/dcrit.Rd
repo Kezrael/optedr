@@ -7,14 +7,14 @@
 dcrit(M, k)
 }
 \arguments{
-\item{M}{Information matrix for which the criterion value wants to be calculated.}
+\item{M}{information matrix for which the criterion value wants to be calculated.}
 
-\item{k}{Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
+\item{k}{numeric variable with the number of parameters of the model. Taken from the number of rows of the matrix if omitted.}
 }
 \value{
 numeric value of the D-optimality criterion for the information matrix.
 }
 \description{
-Calculates the value of the D-Optimality criterion, which follows the expression:
-\deqn{\phi_D = \frac{1}{|M|}^{1/k}}
+Calculates the value of the D-Optimality criterion function, which follows the expression:
+\deqn{\phi_D = \left(\frac{1}{|M|}\right)^{1/k}}
 }
