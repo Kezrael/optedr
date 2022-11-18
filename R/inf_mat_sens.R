@@ -7,11 +7,11 @@
 #' Calculates the gradient function of a \code{model} with respect to the parameters, \code{char_vars}, evaluates
 #' it at the provided \code{values} and returns the result as a function of the variable \code{x}.
 #'
-#' @param model A formula describing the model, which must contain only \code{x}, the parameters defined in
+#' @param model formula describing the model, which must contain only \code{x}, the parameters defined in
 #'   \code{char_vars} and the numerical operators.
-#' @param char_vars A character vector of the parameters of the model.
-#' @param values Numeric vector with the nominal values of the parameters in \code{char_vars}.
-#' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param char_vars character vector of the parameters of the model.
+#' @param values numeric vector with the nominal values of the parameters in \code{char_vars}.
+#' @param weight_fun optional function variable that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
@@ -62,7 +62,7 @@ inf_mat <- function(grad, design) {
 #' Calculates the sensitivity function given the desired \code{Criterion}, an information matrix and other
 #' necessary values depending on the chosen criterion.
 #'
-#' @param Criterion Character with the chosen optimality criterion. Can be one of the following:
+#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
@@ -131,7 +131,7 @@ dssens <- function(grad, M, par_int) {
 #' Sensitivity function for I-Optimality
 #'
 #' @description
-#' Calculates the sensitivity function from the gradient vector, the Identity Matrix and the integral of the
+#' Calculates the sensitivity function from the gradient vector, the Information Matrix and the integral of the
 #' one-point Identity Matrix over the interest region. If instead the identity matrix is used, it can be used
 #' for A-Optimality.
 #'

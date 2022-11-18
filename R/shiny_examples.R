@@ -30,7 +30,7 @@ shiny_optimal <- function() {
 #' Shiny D-augment
 #'
 #' @description
-#' Launches the demo shiny application to D-augment several preespecified models
+#' Launches the demo shiny application to D-augment several prespecified models
 #'
 #' @export
 #'

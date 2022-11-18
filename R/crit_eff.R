@@ -6,15 +6,15 @@
 #' Depending on the Criterion input, the function returns the output of the corresponding criterion function given
 #' the information matrix.
 #'
-#' @param Criterion Character with the chosen optimality criterion. Can be one of the following:
+#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param M Information matrix for which the criterion value wants to be calculated.
-#' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
-#' @param par_int Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
-#' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
+#' @param M information matrix for which the criterion value wants to be calculated.
+#' @param k numeric variable with the number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#' @param par_int numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
+#' @param matB matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Numeric value of the optimality criterion for the information matrix.
 crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
@@ -36,12 +36,12 @@ crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
 #' Criterion function for D-Optimality
 #'
 #' @description
-#' Calculates the value of the D-Optimality criterion, which follows the expression:
-#' \deqn{\phi_D = \frac{1}{|M|}^{1/k}}
+#' Calculates the value of the D-Optimality criterion function, which follows the expression:
+#' \deqn{\phi_D = \left(\frac{1}{|M|}\right)^{1/k}}
 #'
 #'
-#' @param M Information matrix for which the criterion value wants to be calculated.
-#' @param k Numeric number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#' @param M information matrix for which the criterion value wants to be calculated.
+#' @param k numeric variable with the number of parameters of the model. Taken from the number of rows of the matrix if omitted.
 #'
 #'
 #' @return numeric value of the D-optimality criterion for the information matrix.
@@ -54,12 +54,12 @@ dcrit <- function(M, k) {
 #' Criterion function for Ds-Optimality
 #'
 #' @description
-#' Calculates the value of the Ds-Optimality criterion, which follows the expression:
-#' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+#' Calculates the value of the Ds-Optimality criterion function, which follows the expression:
+#' \deqn{\phi_{Ds} = \left(\frac{|M_{22}|}{|M|}\right)^{1/s}}
 #'
 #'
-#' @param M Information matrix for which the criterion value wants to be calculated.
-#' @param par_int Numeric vector with the index of the parameters of interest of the model.
+#' @param M information matrix for which the criterion value wants to be calculated.
+#' @param par_int numeric vector with the index of the parameters of interest of the model.
 #'
 #'
 #' @return Numeric value of the Ds-optimality criterion for the information matrix.
@@ -75,16 +75,16 @@ dscrit <- function(M, par_int) {
 #' Criterion function for I-Optimality
 #'
 #' @description
-#' Calculates the value of the Ds-Optimality criterion, which follows the expression:
-#' \deqn{\phi_D = \frac{|M_{22}|}{|M|}^{1/s}}
+#' Calculates the value of the I-Optimality criterion function, which follows the expression:
+#' \deqn{\phi_I = Tr(M^{-1}\cdot B)
 #'
 #'
-#' @param M Information matrix for which the criterion value wants to be calculated.
-#' @param matB Matrix of the integral of the information matrix over the interest region. Identity matrix for
+#' @param M information matrix for which the criterion value wants to be calculated.
+#' @param matB matrix of the integral of the information matrix over the interest region. Identity matrix for
 #'   A-Optimality.
 #'
 #'
-#' @return Numeric value of the Ds-optimality criterion for the information matrix.
+#' @return Numeric value of the I-optimality criterion for the information matrix.
 icrit <- function(M, matB) {
   return(tr(matB %*% solve(M)))
 }
@@ -96,16 +96,16 @@ icrit <- function(M, matB) {
 
 #' Efficiency between two Information Matrices
 #'
-#' @param Criterion Character with the chosen optimality criterion. Can be one of the following:
+#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param mat1 First information matrix, for the numerator.
-#' @param mat2 Second information matrix, for the denominator.
-#' @param k Number of parameters of the model. Taken from the number of rows of the matrix if omitted.
-#' @param intPars Numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
-#' @param matB Matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
+#' @param mat1 first information matrix, for the numerator.
+#' @param mat2 second information matrix, for the denominator.
+#' @param k number of parameters of the model. Taken from the number of rows of the matrix if omitted.
+#' @param intPars numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
+#' @param matB matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Efficiency of first design with respect to the second design, as a decimal number.
 eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
@@ -134,13 +134,13 @@ eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
 #' Efficiency between optimal design and a user given design
 #'
 #' @description
-#' Takes a optimal design provided from the function \code{opt_des} and a user given design and compares their
+#' Takes an optimal design provided from the function \code{opt_des} and a user given design and compares their
 #' efficiency
 #'
 #' @seealso opt_des
 #'
-#' @param opt_des_obj An object given by the function \code{opt_des}.
-#' @param design A dataframe that represents the design. Must have two columns:
+#' @param opt_des_obj an object given by the function \code{opt_des}.
+#' @param design dataframe that represents the design. Must have two columns:
 #'   * \code{Point} contains the support points of the design.
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #'

@@ -7,22 +7,22 @@
 #' minimum efficiency. After that, the candidate points region is calculated
 #' and the user can choose the points and weights to add.
 #'
-#' @param criterion character with the chosen optimality criterion. Can be one of the following:
+#' @param criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param init_design A dataframe with "Point" and "Weight" columns that represents the initial design to augment
-#' @param alpha Combined weight of the new points
-#' @param model Formula that represent the model with x as the unknown
-#' @param parameters Character vector with the unknown parameters of the model to estimate
-#' @param par_values Numeric vector with the initial values of the unknown parameters
-#' @param design_space Numeric vector with the extremes of the space of the design
-#' @param calc_optimal_design Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
-#' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
-#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param init_design dataframe with "Point" and "Weight" columns that represents the initial design to augment
+#' @param alpha combined weight of the new points
+#' @param model formula that represents the model with x as the independent variable
+#' @param parameters character vector with the unknown parameters of the model to estimate
+#' @param par_values numeric vector with the initial values of the unknown parameters
+#' @param design_space numeric vector with the limits of the space of the design
+#' @param calc_optimal_design boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
+#' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region.
+#'   interest region for I-optimality.
 #' @param distribution character specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
@@ -93,17 +93,17 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
-#' @param init_design A dataframe with "Point" and "Weight" columns that represents the initial design to augment
-#' @param alpha Combined weight of the new points
-#' @param model Formula that represent the model with x as the unknown
-#' @param parameters Character vector with the unknown parameters of the model to estimate
-#' @param par_values Numeric vector with the initial values of the unknown parameters
-#' @param design_space Numeric vector with the extremes of the space of the design
-#' @param calc_optimal_design Boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
-#' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
-#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param init_design dataframe with "Point" and "Weight" columns that represents the initial design to augment
+#' @param alpha combined weight of the new points
+#' @param model formula that represent the model with x as the independent variable
+#' @param parameters character vector with the unknown parameters of the model to estimate
+#' @param par_values numeric vector with the initial values of the unknown parameters
+#' @param design_space numeric vector with the limits of the space of the design
+#' @param calc_optimal_design boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
+#' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region.
+#'   interest region for I-optimality.
 #' @param distribution character specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
@@ -319,7 +319,16 @@ daugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' minimum efficiency. After that, the candidate points region is calculated
 #' and the user can choose the points and weights to add.
 #'
-#' @inherit augment_design return params examples
+#' @inherit augment_design params
+#'
+#' @return A dataframe that represents the L-augmented design
+#'
+#' @examples
+#' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
+#' augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
+#' augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
 #'
 #' @family augment designs
 #'
@@ -465,7 +474,16 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' minimum efficiency. After that, the candidate points region is calculated
 #' and the user can choose the points and weights to add.
 #'
-#' @inherit augment_design return params examples
+#' @inherit augment_design params
+#'
+#' @return A dataframe that represents the Ds-augmented design
+#'
+#' @examples
+#' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
+#' augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), TRUE)
+#' augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
+#'   c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), FALSE)
 #'
 #' @family augment designs
 #'
@@ -898,12 +916,12 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
 #' \code{par_int}, \code{char_vars}, evaluates it at the provided \code{values} and returns the result as
 #' a function of the variable \code{x}.
 #'
-#' @param model A formula describing the model, which must contain only \code{x}, the parameters defined in
+#' @param model formula describing the model, which must contain only \code{x}, the parameters defined in
 #'   \code{char_vars} and the numerical operators.
-#' @param char_vars A character vector of the parameters of the model.
-#' @param values Numeric vector with the nominal values of the parameters in \code{char_vars}.
-#' @param par_int Vector of indexes indicating the subset of variables to omit in the calculation of the gradient.
-#' @param weight_fun Optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
+#' @param char_vars character vector of the parameters of the model.
+#' @param values numeric vector with the nominal values of the parameters in \code{char_vars}.
+#' @param par_int vector of indexes indicating the subset of variables to omit in the calculation of the gradient.
+#' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 gradient22 <- function(model, char_vars, values, par_int, weight_fun = function(x) 1) {
@@ -984,8 +1002,8 @@ add_points <- function(points, alpha, design){
 
 #' Add two designs
 #'
-#' @param design_1 A dataframe with 'Point' and 'Weight' as column that represent the first design to add
-#' @param design_2 A dataframe with 'Point' and 'Weight' as column that represent the second design to add
+#' @param design_1 A dataframe with 'Point' and 'Weight' as columns that represent the first design to add
+#' @param design_2 A dataframe with 'Point' and 'Weight' as columns that represent the second design to add
 #' @param alpha Weight of the first design
 #'
 #' @return A design as a dataframe with the weighted addition of the two designs

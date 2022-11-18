@@ -5,9 +5,9 @@
 #' an approximate design. It uses the multiplier (n - l/2) and evens the total
 #' number of observations afterwards.
 #'
-#' @param design a data.frame with columns "Point" and "Weight" that represents a design
+#' @param design a dataframe with columns "Point" and "Weight" that represents a design
 #' @param n an integer that represents the desired number of observations of the exact design
-#' @param tol optional parameter for the consideration of a integer in the rounding process
+#' @param tol optional parameter for the consideration of an integer in the rounding process
 #'
 #' @return a data.frame with columns "Point" and "Weight" representing an exact design
 #' with n observations

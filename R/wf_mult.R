@@ -4,11 +4,11 @@
 #' Depending on the \code{Criterion} the cocktail algorithm for the chosen criterion is called,
 #' and the necessary parameters for the functions are given from the user input.
 #'
-#' @param init_design with the initial design for the algorithm. A dataframe with two columns:
+#' @param init_design optional dataframe with the initial design for the algorithm. A dataframe with two columns:
 #'   * \code{Point} contains the support points of the design.
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #' @param grad function of partial derivatives of the model.
-#' @param Criterion character with the chosen optimality criterion. Can be one of the following:
+#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
@@ -16,7 +16,7 @@
 #' @param par_int numeric vector with the index of the \code{parameters} of interest. Only necessary when
 #'   the \code{Criterion} chosen is 'Ds-Optimality'.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region.
+#'   interest region for I-optimality.
 #' @param min numeric value with the inferior bound of the space of the design.
 #' @param max numeric value with the upper bound of the space of the design.
 #' @param grid.length numeric value that gives the grid to evaluate the sensitivity function when looking for a
@@ -291,11 +291,11 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #' @description
 #' The opt_des function calculates the optimal design for an optimality Criterion and a model input from the user.
 #' The parameters allows for the user to customize the parameters for the cocktail algorithm in case the default
-#' set don't provide a satisfactory output. Depending on the criterion, additional details are necessary.
+#' set does not provide a satisfactory output. Depending on the criterion, additional details are necessary.
 #' For 'Ds-Optimality' the par_int parameter is necessary. For 'I-Optimality' either the matB or reg_int must
 #' be provided.
 #'
-#' @param Criterion character with the chosen optimality criterion. Can be one of the following:
+#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
@@ -303,9 +303,8 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #' @param model formula describing the model to calculate the optimal design. Must use x as the variable.
 #' @param parameters character vector with the parameters of the models, as written in the \code{formula}.
 #' @param par_values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
-#' @param design_space numeric vector of length 2, first component with the minimum of the space of the design and
-#'   second component with the maximum.
-#' @param init_design optimal dataframe with the initial design for the algorithm. A dataframe with two columns:
+#' @param design_space numeric vector with the limits of the space of the design.
+#' @param init_design optional dataframe with the initial design for the algorithm. A dataframe with two columns:
 #'   * \code{Point} contains the support points of the design.
 #'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
 #' @param join_thresh optional numeric value that states how close, in real units, two points must be in order to
@@ -316,12 +315,12 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #' @param tol optional numeric value for the convergence of the weight optimizing algorithm.
 #' @param tol2 optional numeric value for the stop criterion: difference between maximum of sensitivity function
 #'   and optimality criterion.
-#' @param par_int optional numeric vector with the index of the \code{parameters} of interest.
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
 #' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region.
+#'   interest region for I-optimality.
 #' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
 #' @param desired_output not functional yet: decide which kind of output you want.
-#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#' @param distribution character variable specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'

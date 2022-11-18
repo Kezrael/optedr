@@ -7,7 +7,7 @@
 #' @param model formula describing the model to use. Must use x as the variable.
 #' @param char_vars character vector with the parameters of the models, as written in the \code{formula}
 #' @param values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
-#' @param distribution character specifying the probability distribution of the response. Can be one of the following:
+#' @param distribution character variable specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
@@ -64,12 +64,12 @@ weight_function <- function(model, char_vars, values, distribution = "Homoscedas
 #' Find Minimum Value
 #'
 #' @description
-#' Searches the maximum of a function over a grid on a given interval.
+#' Searches the maximum of a function over a grid on a given grid.
 #'
-#' @param sens A single variable numeric function to evaluate.
-#' @param min Minimum value of the search interval.
-#' @param max Maximum value of the search interval.
-#' @param grid.length Length of the search interval.
+#' @param sens a single variable numeric function to evaluate.
+#' @param min minimum value of the search grid.
+#' @param max maximum value of the search grid.
+#' @param grid.length length of the search grid.
 #'
 #' @return The value of the minimum
 findminval <- function(sens, min, max, grid.length) {
@@ -270,7 +270,7 @@ update_weights <- function(design, sens, k, delta) {
 #' which is to be applied iteratively until no sizable changes happen.
 #'
 #'
-#' @param s Number of interest parameters of the model
+#' @param s number of parameters of interest of the model
 #' @inheritParams update_weights
 #'
 #' @return returns the new weights of the design after one iteration.
@@ -530,10 +530,10 @@ plot.optdes <- function(x, ...) {
   x$optdes[["Value"]] <- rep(0, nrow(x$optdes))
   x$optdes[["Weight"]] <- round(x$optdes[["Weight"]], 2)
   p <- x$sens + ggplot2::geom_point(data = x$optdes, ggplot2::aes(x = Point, y = Value)
-                          , size = 4, shape = 16, color = "darkgreen") +
-                ggplot2::geom_text(data = x$optdes, ggplot2::aes(x = Point, y = Value, label = Weight),
-                                   hjust=1.5, vjust=1.5) +
-                ggplot2::labs(x = "Design Space", y = "Sensitivity Function")
+                                    , size = 4, shape = 16, color = "darkgreen") +
+    ggplot2::geom_text(data = x$optdes, ggplot2::aes(x = Point, y = Value, label = Weight),
+                       hjust=1.5, vjust=1.5) +
+    ggplot2::labs(x = "Design Space", y = "Sensitivity Function")
   p
 }
 
