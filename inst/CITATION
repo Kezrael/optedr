@@ -1,0 +1,13 @@
+citHeader("To cite optedr in publications use:")
+
+citEntry(
+  entry    = "Manual",
+  title    = "optedr: an optimal experimental design package",
+  author   = "Carlos de la Calle-Arroyo and Jesús López-Fidalgo and Licesio J. Rodríguez Aragón",
+  year     = "2022",
+  note     = "R package version 2.0.0",
+  url      = "https://CRAN.R-project.org/package=optedr",
+  textVersion = paste(
+
+  )
+)

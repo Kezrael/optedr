@@ -1,6 +1,6 @@
 Package: optedr
 Title: Calculating Optimal and D-Augmented Designs
-Version: 2.0.0
+Version: 2.0.1
 Authors@R: 
     c(person(given = "Carlos",
            family = "de la Calle-Arroyo",
@@ -28,7 +28,6 @@ Suggests:
     testthat (>= 3.0.0),
     mockery,
     markdown,
-    tidyverse,
     DT,
     shinydashboard,
     shinyalert,

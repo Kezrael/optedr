@@ -36,11 +36,11 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
   }
 
   # check that all the parameters are in the formula
-  if (!all(purrr::map_lgl(parameters, function(x) grepl(x, format(model))))) {
+  if (!all(purrr::map_lgl(parameters, function(x) grepl(x, paste(format(model),collapse=""))))) {
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The model must contain all the parameters")
   }
   # Check that x is in the formula
-  if (!grepl("x", format(model))) {
+  if (!grepl("x", paste(format(model),collapse=""))) {
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The model must use x as the variable")
   }
 

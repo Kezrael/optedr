@@ -965,7 +965,7 @@ crosspoints <- function(val, sens, gridlength, tol, xmin, xmax){
     return(sens(x) - val)
   }
 
-  sols <- unlist(purrr::map(purrr::map(seq(xmin, xmax, length.out = gridlength), nleqslv::nleqslv, fn = sensfix), function(x) x$x))
+  sols <- unlist(purrr::map(purrr::map(cli::cli_progress_along(seq(xmin, xmax, length.out = gridlength), name = "Calculating regions"), nleqslv::nleqslv, fn = sensfix), function(x) x$x))
 
   # Eliminar duplicados
   sols_upd <- update_sequence(sols, tol)
