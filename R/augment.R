@@ -965,7 +965,15 @@ crosspoints <- function(val, sens, gridlength, tol, xmin, xmax){
     return(sens(x) - val)
   }
 
-  sols <- unlist(purrr::map(purrr::map(cli::cli_progress_along(seq(xmin, xmax, length.out = gridlength), name = "Calculating regions"), nleqslv::nleqslv, fn = sensfix), function(x) x$x))
+  sols <- vector(mode = "numeric", length = gridlength)
+  cli::cli_progress_bar("Calculating regions", total = gridlength)
+  startsx <- seq(design_space[[1]], design_space[[2]], length.out = gridlength)
+  for(i in 1:gridlength){
+    sols[i] <- nleqslv::nleqslv(startsx[i], fn = sensfix)$x
+    cli::cli_progress_update()
+  }
+
+  # sols <- unlist(purrr::map(purrr::map(cli::cli_progress_along(seq(xmin, xmax, length.out = gridlength), name = "Calculating regions"), nleqslv::nleqslv, fn = sensfix), function(x) x$x))
 
   # Eliminar duplicados
   sols_upd <- update_sequence(sols, tol)

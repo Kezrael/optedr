@@ -76,11 +76,11 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
 
   # Check that delete_thresh is numeric and between 0 and 1
   if (!is.numeric(delete_thresh)) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " join_thresh must be numeric")
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " delete_thresh must be numeric")
   }
 
   if (delete_thresh >= 1 || delete_thresh <= 0) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " join_thresh must be in (0, 1)")
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " delete_thresh must be in (0, 1)")
   }
 
 
