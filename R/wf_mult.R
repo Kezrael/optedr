@@ -147,7 +147,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
-  cli_progress_bar("Calculating optimal design")
+  cli::cli_progress_bar("Calculating optimal design")
   for (i in 1:21) {
     cli::cli_progress_update()
     M <- inf_mat(grad, init_design)
@@ -228,7 +228,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   index <- 1
   # Maximum iterations for the optimize weights loop
   maxiter <- 100
-  cli_progress_bar("Calculating optimal design")
+  cli::cli_progress_bar("Calculating optimal design")
   for (i in 1:21) {
     cli::cli_progress_update()
     M <- inf_mat(grad, init_design)
