@@ -967,7 +967,7 @@ crosspoints <- function(val, sens, gridlength, tol, xmin, xmax){
 
   sols <- vector(mode = "numeric", length = gridlength)
   cli::cli_progress_bar("Calculating regions", total = gridlength)
-  startsx <- seq(design_space[[1]], design_space[[2]], length.out = gridlength)
+  startsx <- seq(xmin, xmax, length.out = gridlength)
   for(i in 1:gridlength){
     sols[i] <- nleqslv::nleqslv(startsx[i], fn = sensfix)$x
     cli::cli_progress_update()
