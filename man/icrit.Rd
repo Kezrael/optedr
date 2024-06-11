@@ -2,7 +2,7 @@
 % Please edit documentation in R/crit_eff.R
 \name{icrit}
 \alias{icrit}
-\title{Criterion function for I-Optimality}
+\title{Criterion function for I-Optimality and L-Optimality}
 \usage{
 icrit(M, matB)
 }

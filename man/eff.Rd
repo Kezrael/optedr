@@ -4,15 +4,16 @@
 \alias{eff}
 \title{Efficiency between two Information Matrices}
 \usage{
-eff(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA)
+eff(criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA)
 }
 \arguments{
-\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
+\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{mat1}{first information matrix, for the numerator.}

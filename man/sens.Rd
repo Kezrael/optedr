@@ -13,6 +13,7 @@ sens(Criterion, grad, M, par_int = c(1), matB = NA)
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{grad}{A function in a single variable that returns the partial derivatives vector of the model.}
@@ -22,7 +23,7 @@ sens(Criterion, grad, M, par_int = c(1), matB = NA)
 \item{par_int}{Numeric vector of the indexes of the parameters of interest for Ds-Optimality.}
 
 \item{matB}{Matrix resulting from the integration of the one-point Information Matrix along the interest
-region.}
+region or lineal matrix for L-Optimality.}
 }
 \value{
 The sensitivity function as a matrix of single variable.

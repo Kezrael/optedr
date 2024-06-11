@@ -12,6 +12,7 @@
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
+#'   * 'L-Optimality'
 #' @param init_design dataframe with "Point" and "Weight" columns that represents the initial design to augment
 #' @param alpha combined weight of the new points
 #' @param model formula that represents the model with x as the independent variable
@@ -21,8 +22,7 @@
 #' @param calc_optimal_design boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
-#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region for I-optimality.
+#' @param matB optional matrix of dimensions k x k, for L-optimality.
 #' @param distribution character specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
@@ -40,7 +40,7 @@
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
 #' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
-augment_design <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NA, distribution = NA, weight_fun = function(x) 1) {
+augment_design <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NULL, distribution = NA, weight_fun = function(x) 1) {
   # oldw <- getOption("warn")
   # options(warn = -1)
   if(interactive()){
@@ -66,10 +66,10 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
     } else if(criterion == "A-Optimality"){
       augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
     } else if(criterion == "I-Optimality"){
-      if(is.null(matB)){
-        grad <- gradient(model, parameters, par_values, weight_fun)
-        matB <- integrate_reg_int(grad, length(parameters), design_space)
-      }
+      grad <- gradient(model, parameters, par_values, weight_fun)
+      matB <- integrate_reg_int(grad, length(parameters), design_space)
+      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
+    } else if(criterion == "L-Optimality"){
       augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
     } else if(criterion == "Ds-Optimality"){
       augmented_design <- dsaugment_design(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
@@ -93,6 +93,7 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
+#'   * 'L-Optimality'
 #' @param init_design dataframe with "Point" and "Weight" columns that represents the initial design to augment
 #' @param alpha combined weight of the new points
 #' @param model formula that represent the model with x as the independent variable
@@ -102,8 +103,7 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #' @param calc_optimal_design boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response
 #' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
-#' @param matB optional matrix of dimensions k x k, integral of the information matrix of the model over the
-#'   interest region for I-optimality.
+#' @param matB optional matrix of dimensions k x k, for L-optimality.
 #' @param distribution character specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
@@ -142,10 +142,10 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
     } else if(criterion == "A-Optimality"){
       augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
     } else if(criterion == "I-Optimality"){
-      if(is.null(matB)){
-        grad <- gradient(model, parameters, par_values, weight_fun)
-        matB <- integrate_reg_int(grad, length(parameters), design_space)
-      }
+      grad <- gradient(model, parameters, par_values, weight_fun)
+      matB <- integrate_reg_int(grad, length(parameters), design_space)
+      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
+    }  else if(criterion == "L-Optimality"){
       augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
     } else if(criterion == "Ds-Optimality"){
       augment_region <- get_dsaugment_region(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)

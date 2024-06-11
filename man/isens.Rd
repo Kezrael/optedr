@@ -12,7 +12,7 @@ isens(grad, M, matB)
 \item{M}{Information Matrix for the sensitivity function.}
 
 \item{matB}{Matrix resulting from the integration of the one-point Information Matrix along the interest
-region.}
+region or lineal matrix for L-Optimality.}
 }
 \value{
 The sensitivity function as a matrix of single variable.

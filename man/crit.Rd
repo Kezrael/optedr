@@ -4,15 +4,16 @@
 \alias{crit}
 \title{Master function for the criterion function}
 \usage{
-crit(Criterion, M, k = 0, par_int = c(1), matB = NA)
+crit(criterion, M, k = 0, par_int = c(1), matB = NA)
 }
 \arguments{
-\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
+\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{M}{information matrix for which the criterion value wants to be calculated.}
@@ -21,12 +22,12 @@ crit(Criterion, M, k = 0, par_int = c(1), matB = NA)
 
 \item{par_int}{numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".}
 
-\item{matB}{matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".}
+\item{matB}{optional matrix of dimensions k x k, for I- and L-optimality.}
 }
 \value{
 Numeric value of the optimality criterion for the information matrix.
 }
 \description{
-Depending on the Criterion input, the function returns the output of the corresponding criterion function given
+Depending on the criterion input, the function returns the output of the corresponding criterion function given
 the information matrix.
 }

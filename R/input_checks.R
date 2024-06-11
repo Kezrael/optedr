@@ -7,7 +7,7 @@
 #' @inheritParams opt_des
 #'
 #'
-check_inputs <- function(Criterion, model, parameters, par_values, design_space,
+check_inputs <- function(criterion, model, parameters, par_values, design_space,
                          init_design,
                          join_thresh,
                          delete_thresh,
@@ -21,8 +21,8 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
                          weight_fun) {
   error_msg <- ""
   # Check for valid criterion
-  if (!Criterion %in% c("D-Optimality", "Ds-Optimality", "A-Optimality", "I-Optimality")) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " Choose a valid Criterion: D-Optimality, Ds-Optimality, A-Optimality or I-Optimality")
+  if (!criterion %in% c("D-Optimality", "Ds-Optimality", "A-Optimality", "I-Optimality", "L-Optimality")) {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " Choose a valid criterion: D-Optimality, Ds-Optimality, A-Optimality, I-Optimality or L-Optimality")
   }
 
   # Check that the model is a formula
@@ -113,7 +113,7 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
 
 
   # If Ds-Opt check par int
-  if (Criterion == "Ds-Optimality") {
+  if (criterion == "Ds-Optimality") {
     # Check that par_int is a numeric vector
     if (!is.numeric(par_int) || !is.atomic(par_int) || !is.vector(par_int)) {
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " par_int must be numeric vector")
@@ -132,23 +132,26 @@ check_inputs <- function(Criterion, model, parameters, par_values, design_space,
     }
   }
 
-  # If I-Optimality check matB and reg_int
-  if (Criterion == "I-Optimality") {
+  # If I-Optimality check reg_int
+  if (criterion == "I-Optimality") {
     # Check that matB or reg_int are provided
-    if (is.null(matB) && is.null(reg_int)) {
-      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " either matB or reg_int must be provided for I-Optimality")
-    }
-    # Send message if both are provided
-    if (!is.null(matB) && !is.null(reg_int)) {
-      warning(error_msg <- paste0("\n", crayon::blue(cli::symbol$info), " matB and reg_int are provided, matB will be used."))
-    }
-    # Check that matB is a matrix with the correct length
-    if (!is.null(matB) && (!is.matrix(matB) || nrow(matB) != length(parameters) || ncol(matB) != length(parameters))) {
-      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " matB must be a square matrix with as many rows as parameters")
+    if (is.null(reg_int)) {
+      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be provided for I-Optimality")
     }
     # Check that reg_int is a numeric vector of length 2
     if (!is.null(reg_int) && (!is.numeric(reg_int) || !is.atomic(reg_int) || !is.vector(reg_int) || length(reg_int) != 2)) {
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be numeric vector of length 2")
+    }
+  }
+  # If L-Optimality check matB
+  if (criterion == "L-Optimality") {
+    # Check that matB is provided
+    if (is.null(matB)) {
+      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " matB must be provided for L-Optimality")
+    }
+    # Check that matB is a matrix with the correct length
+    if (!is.null(matB) && (!is.matrix(matB) || nrow(matB) != length(parameters) || ncol(matB) != length(parameters))) {
+      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " matB must be a square matrix with as many rows as parameters")
     }
   }
   if(!is.function(weight_fun)){

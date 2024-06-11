@@ -3,31 +3,32 @@
 #' Master function for the criterion function
 #'
 #' @description
-#' Depending on the Criterion input, the function returns the output of the corresponding criterion function given
+#' Depending on the criterion input, the function returns the output of the corresponding criterion function given
 #' the information matrix.
 #'
-#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
+#' @param criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
+#'   * 'L-Optimality'
 #' @param M information matrix for which the criterion value wants to be calculated.
 #' @param k numeric variable with the number of parameters of the model. Taken from the number of rows of the matrix if omitted.
 #' @param par_int numeric vector with the index of the parameters of interest of the model. Only for "Ds-Optimality".
-#' @param matB matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
+#' @param matB optional matrix of dimensions k x k, for I- and L-optimality.
 #'
 #' @return Numeric value of the optimality criterion for the information matrix.
-crit <- function(Criterion, M, k = 0, par_int = c(1), matB = NA) {
-  if (identical(Criterion, "D-Optimality")) {
+crit <- function(criterion, M, k = 0, par_int = c(1), matB = NA) {
+  if (identical(criterion, "D-Optimality")) {
     return(dcrit(M, k))
   }
-  else if (identical(Criterion, "Ds-Optimality")) {
+  else if (identical(criterion, "Ds-Optimality")) {
     return(dscrit(M, par_int))
   }
-  else if (identical(Criterion, "A-Optimality")) {
+  else if (identical(criterion, "A-Optimality")) {
     return(icrit(M, diag(k)))
   }
-  else if (identical(Criterion, "I-Optimality")) {
+  else if (identical(criterion, "I-Optimality") || identical(criterion, "L-Optimality")) {
     return(icrit(M, matB))
   }
 }
@@ -72,7 +73,7 @@ dscrit <- function(M, par_int) {
   }
 }
 
-#' Criterion function for I-Optimality
+#' Criterion function for I-Optimality and L-Optimality
 #'
 #' @description
 #' Calculates the value of the I-Optimality criterion function, which follows the expression:
@@ -96,11 +97,12 @@ icrit <- function(M, matB) {
 
 #' Efficiency between two Information Matrices
 #'
-#' @param Criterion character variable with the chosen optimality criterion. Can be one of the following:
+#' @param criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
+#'   * 'L-Optimality'
 #' @param mat1 first information matrix, for the numerator.
 #' @param mat2 second information matrix, for the denominator.
 #' @param k number of parameters of the model. Taken from the number of rows of the matrix if omitted.
@@ -108,12 +110,12 @@ icrit <- function(M, matB) {
 #' @param matB matrix of the integral of the information matrix over the interest region. Only for "I-Optimality".
 #'
 #' @return Efficiency of first design with respect to the second design, as a decimal number.
-eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
-  if (identical(Criterion, "D-Optimality")) {
+eff <- function(criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
+  if (identical(criterion, "D-Optimality")) {
     if (k == 0) k <- nrow(mat1)
     return((det(mat1) / det(mat2))^(1 / k))
   }
-  else if (identical(Criterion, "Ds-Optimality")) {
+  else if (identical(criterion, "Ds-Optimality")) {
     if (length(mat1[-intPars, -intPars]) == 1) {
       return((mat2[-intPars, -intPars] / det(mat2) / (mat1[-intPars, -intPars] / det(mat1)))^(1 / length(intPars)))
     }
@@ -121,11 +123,11 @@ eff <- function(Criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
       return((det(mat2[-intPars, -intPars]) / det(mat2) / (det(mat1[-intPars, -intPars]) / det(mat1)))^(1 / length(intPars)))
     }
   }
-  else if (identical(Criterion, "A-Optimality")) {
+  else if (identical(criterion, "A-Optimality")) {
     if (k == 0) k <- nrow(mat1)
     return(tr(diag(k) %*% solve(mat2)) / tr(diag(k) %*% solve(mat1)))
   }
-  else if (identical(Criterion, "I-Optimality")) {
+  else if (identical(criterion, "I-Optimality") || identical(criterion, "L-Optimality")) {
     return(tr(matB %*% solve(mat2)) / tr(matB %*% solve(mat1)))
   }
 }
@@ -173,7 +175,7 @@ design_efficiency <- function(opt_des_obj, design) {
       return(eff)
     }
   }
-  else if (identical(opt_des_obj$criterion, "I-Optimality")) {
+  else if (identical(opt_des_obj$criterion, "I-Optimality")  || identical(opt_des_obj$criterion, "L-Optimality")) {
     eff <- tr(attr(opt_des_obj, "hidden_value") %*% solve(mat2)) / tr(attr(opt_des_obj, "hidden_value") %*% solve(mat1))
     message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)

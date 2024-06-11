@@ -67,11 +67,12 @@ inf_mat <- function(grad, design) {
 #'   * 'Ds-Optimality'
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
+#'   * 'L-Optimality'
 #' @param grad A function in a single variable that returns the partial derivatives vector of the model.
 #' @param M Information Matrix for the sensitivity function.
 #' @param par_int Numeric vector of the indexes of the parameters of interest for Ds-Optimality.
 #' @param matB Matrix resulting from the integration of the one-point Information Matrix along the interest
-#'   region.
+#'   region or lineal matrix for L-Optimality.
 #'
 #' @return The sensitivity function as a matrix of single variable.
 sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
@@ -84,7 +85,7 @@ sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
   else if (identical(Criterion, "A-Optimality")) {
     return(isens(grad, M, diag(nrow(M))))
   }
-  else if (identical(Criterion, "I-Optimality")) {
+  else if (identical(Criterion, "I-Optimality") || identical(Criterion, "L-Optimality")) {
     return(isens(grad, M, matB))
   }
 }

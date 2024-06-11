@@ -26,6 +26,7 @@ get_augment_region(
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{init_design}{dataframe with "Point" and "Weight" columns that represents the initial design to augment}
@@ -44,8 +45,7 @@ get_augment_region(
 
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
-\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region for I-optimality.}
+\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
 \itemize{

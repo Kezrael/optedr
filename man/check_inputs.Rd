@@ -5,7 +5,7 @@
 \title{Check Inputs}
 \usage{
 check_inputs(
-  Criterion,
+  criterion,
   model,
   parameters,
   par_values,
@@ -24,12 +24,13 @@ check_inputs(
 )
 }
 \arguments{
-\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
+\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{model}{formula describing the model to calculate the optimal design. Must use x as the variable.}
@@ -61,14 +62,13 @@ and optimality criterion.}
 
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
-\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region for I-optimality.}
+\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
 \item{desired_output}{not functional yet: decide which kind of output you want.}
 
-\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.}
 }
 \description{
 Function to check that the inputs given to the function \code{opt_des} are correct. If not, throws the

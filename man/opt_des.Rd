@@ -2,10 +2,10 @@
 % Please edit documentation in R/wf_mult.R
 \name{opt_des}
 \alias{opt_des}
-\title{Calculates the optimal design for a specified Criterion}
+\title{Calculates the optimal design for a specified criterion}
 \usage{
 opt_des(
-  Criterion,
+  criterion,
   model,
   parameters,
   par_values = c(1),
@@ -25,12 +25,13 @@ opt_des(
 )
 }
 \arguments{
-\item{Criterion}{character variable with the chosen optimality criterion. Can be one of the following:
+\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
 \itemize{
 \item 'D-Optimality'
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{model}{formula describing the model to calculate the optimal design. Must use x as the variable.}
@@ -62,8 +63,7 @@ and optimality criterion.}
 
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
-\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region for I-optimality.}
+\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
@@ -78,7 +78,7 @@ interest region for I-optimality.}
 \item 'Log-Normal' (work in progress)
 }}
 
-\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+\item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.}
 }
 \value{
 a list of two objects:
@@ -88,7 +88,7 @@ a list of two objects:
 }
 }
 \description{
-The opt_des function calculates the optimal design for an optimality Criterion and a model input from the user.
+The opt_des function calculates the optimal design for an optimality criterion and a model input from the user.
 The parameters allows for the user to customize the parameters for the cocktail algorithm in case the default
 set does not provide a satisfactory output. Depending on the criterion, additional details are necessary.
 For 'Ds-Optimality' the par_int parameter is necessary. For 'I-Optimality' either the matB or reg_int must

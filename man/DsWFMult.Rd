@@ -28,7 +28,7 @@ DsWFMult(
 \item{grad}{function of partial derivatives of the model.}
 
 \item{par_int}{numeric vector with the index of the \code{parameters} of interest. Only necessary when
-the \code{Criterion} chosen is 'Ds-Optimality'.}
+the \code{criterion} chosen is 'Ds-Optimality'.}
 
 \item{min}{numeric value with the inferior bound of the space of the design.}
 

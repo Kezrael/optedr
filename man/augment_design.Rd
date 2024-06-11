@@ -14,7 +14,7 @@ augment_design(
   design_space,
   calc_optimal_design,
   par_int = NA,
-  matB = NA,
+  matB = NULL,
   distribution = NA,
   weight_fun = function(x) 1
 )
@@ -26,6 +26,7 @@ augment_design(
 \item 'Ds-Optimality'
 \item 'A-Optimality'
 \item 'I-Optimality'
+\item 'L-Optimality'
 }}
 
 \item{init_design}{dataframe with "Point" and "Weight" columns that represents the initial design to augment}
@@ -44,8 +45,7 @@ augment_design(
 
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
-\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region for I-optimality.}
+\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{distribution}{character specifying the probability distribution of the response. Can be one of the following:
 \itemize{

@@ -81,3 +81,92 @@ efficient_round <- function(design, n, tol = 0.00001){
 }
 
 
+
+#' Combinatorial round
+#'
+#' @description
+#' Given an approximate design and a number of points, computes all the possible combinations of
+#' roundings of each point to the nearest integer, keeps the ones that amount to the requested number of points,
+#' and returns the one with the best value for the criterion function
+#'
+#' @param design either a dataframe with the design to round, or an object of class "optdes". If the former,
+#' the criterion, model and parameters must be specified. The dataframe should have two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param n integer with the desired number of points of the resulting design.
+#' @param criterion character variable with the chosen optimality criterion. Can be one of the following:
+#'   * 'D-Optimality'
+#'   * 'Ds-Optimality'
+#'   * 'A-Optimality'
+#'   * 'I-Optimality'
+#'   * 'L-Optimality'
+#' @param model formula describing the model. Must use x as the variable.
+#' @param parameters character vector with the parameters of the models, as written in the \code{formula}.
+#' @param par_values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
+#' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
+#' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
+#' @param matB optional matrix of dimensions k x k, for L-optimality.
+#'
+#'
+#' @return A data.frame with the rounded design to n number of points
+#' @export
+#'
+#' @examples
+#' aprox_design <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
+#' combinatorial_round(aprox_design, 27)
+combinatorial_round <- function(design, n, criterion = NULL, model = NULL, parameters = NULL, par_values = NULL, weight_fun = function(x) 1, par_int = NULL, reg_int = NULL,  matB = NULL){
+  if(class(design) == "optdes"){
+    design_df <- design$optdes
+    criterion <- design$criterion
+    crit_funct <- attr(des, "crit_function")
+  } else{
+    design$Weight <- design$Weight / sum(design$Weight)
+    if(is.null(criterion)){
+      error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " criterion must be specified or an 'optdes' object must be provided")
+      stop(error_msg, call. = FALSE)
+    } else {
+      grad <- gradient(model, parameters, par_values, weight_fun)
+      if (identical(Criterion, "D-Optimality")) {
+        crit_funct <- function(design){
+          M <- inf_mat(grad, design)
+          return(icrit(M, length(parameters)))}
+      }
+      else if (identical(Criterion, "Ds-Optimality")) {
+        crit_funct <- function(design){
+          M <- inf_mat(grad, design)
+          return(dscrit(M, par_int))}
+      }
+      else if (identical(Criterion, "A-Optimality")) {
+        crit_funct <- function(design){
+          M <- inf_mat(grad, design)
+          return(icrit(M, diag(length(parameters))))}
+      }
+      else if (identical(Criterion, "I-Optimality")) {
+        if (!is.null(reg_int)) {
+          matB <- integrate_reg_int(grad, k, reg_int)
+        } else{
+          error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be specified for I-Optimality")
+          stop(error_msg, call. = FALSE)
+        }
+        crit_funct <- function(design){
+          M <- inf_mat(grad, design)
+          return(icrit(M, matB))}
+      }
+      else if (identical(Criterion, "L-Optimality")) {
+        crit_funct <- function(design){
+          M <- inf_mat(grad, design)
+          return(icrit(M, matB))}
+      }
+    }
+  }
+  prod_weights <- design_df$Weight * n
+  combinations_df <- data.frame(matrix(c(ceiling(prod_weights), floor(prod_weights)), nrow = 2, byrow = TRUE))
+  combinations_df <- expand.grid(data = combinations_df)
+  combinations_df$n <- rowSums(combinations_df)
+  combinations_df <- combinations_df[combinations_df$n == n,]
+  combinations_df$crit <- map_dbl(1:nrow(combinations_df), function(x){temp_design <- data.frame("Point" = design_df$Point, "Weight" = unlist(combinations_df[x, 1:(ncol(combinations_df)-1)])/n); return(crit_funct(temp_design))})
+  opt_comb <- combinations_df[which.min(combinations_df$crit),]
+  output <- data.frame("Point" = design_df$Point, "Weight" = unlist(opt_comb[1, 1:(ncol(combinations_df)-2)]))
+  rownames(output) <- NULL
+  return(output)
+}

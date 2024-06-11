@@ -2,7 +2,7 @@
 % Please edit documentation in R/wf_mult.R
 \name{IWFMult}
 \alias{IWFMult}
-\title{Cocktail Algorithm implementation for I-Optimality and A-Optimality (with matB = diag(k))}
+\title{Cocktail Algorithm implementation for L-, I- and A-Optimality (with matB = diag(k))}
 \usage{
 IWFMult(
   init_design,
@@ -15,7 +15,8 @@ IWFMult(
   delete_thresh,
   delta_weights,
   tol,
-  tol2
+  tol2,
+  crit_name
 )
 }
 \arguments{
@@ -27,8 +28,7 @@ IWFMult(
 
 \item{grad}{function of partial derivatives of the model.}
 
-\item{matB}{optional matrix of dimensions k x k, integral of the information matrix of the model over the
-interest region for I-optimality.}
+\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{min}{numeric value with the inferior bound of the space of the design.}
 
