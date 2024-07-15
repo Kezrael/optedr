@@ -118,7 +118,7 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
   if(class(design) == "optdes"){
     design_df <- design$optdes
     criterion <- design$criterion
-    crit_funct <- attr(des, "crit_function")
+    crit_funct <- attr(design, "crit_function")
   } else{
     design_df <- design
     design_df$Weight <- design_df$Weight / sum(design_df$Weight)
