@@ -165,7 +165,7 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
   combinations_df <- expand.grid(data = combinations_df)
   combinations_df$n <- rowSums(combinations_df)
   combinations_df <- combinations_df[combinations_df$n == n,]
-  combinations_df$crit <- map_dbl(1:nrow(combinations_df), function(x){temp_design <- data.frame("Point" = design_df$Point, "Weight" = unlist(combinations_df[x, 1:(ncol(combinations_df)-1)])/n); return(crit_funct(temp_design))})
+  combinations_df$crit <- purrr::map_dbl(1:nrow(combinations_df), function(x){temp_design <- data.frame("Point" = design_df$Point, "Weight" = unlist(combinations_df[x, 1:(ncol(combinations_df)-1)])/n); return(crit_funct(temp_design))})
   opt_comb <- combinations_df[which.min(combinations_df$crit),]
   output <- data.frame("Point" = design_df$Point, "Weight" = unlist(opt_comb[1, 1:(ncol(combinations_df)-2)]))
   rownames(output) <- NULL
