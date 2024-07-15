@@ -130,7 +130,7 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
       if (identical(criterion, "D-Optimality")) {
         crit_funct <- function(design_df){
           M <- inf_mat(grad, design_df)
-          return(icrit(M, length(parameters)))}
+          return(dcrit(M, length(parameters)))}
       }
       else if (identical(criterion, "Ds-Optimality")) {
         crit_funct <- function(design_df){
