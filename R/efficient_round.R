@@ -120,25 +120,26 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
     criterion <- design$criterion
     crit_funct <- attr(des, "crit_function")
   } else{
-    design$Weight <- design$Weight / sum(design$Weight)
+    design_df <- design
+    design_df$Weight <- design_df$Weight / sum(design_df$Weight)
     if(is.null(criterion)){
       error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " criterion must be specified or an 'optdes' object must be provided")
       stop(error_msg, call. = FALSE)
     } else {
       grad <- gradient(model, parameters, par_values, weight_fun)
       if (identical(criterion, "D-Optimality")) {
-        crit_funct <- function(design){
-          M <- inf_mat(grad, design)
+        crit_funct <- function(design_df){
+          M <- inf_mat(grad, design_df)
           return(icrit(M, length(parameters)))}
       }
       else if (identical(criterion, "Ds-Optimality")) {
-        crit_funct <- function(design){
-          M <- inf_mat(grad, design)
+        crit_funct <- function(design_df){
+          M <- inf_mat(grad, design_df)
           return(dscrit(M, par_int))}
       }
       else if (identical(criterion, "A-Optimality")) {
-        crit_funct <- function(design){
-          M <- inf_mat(grad, design)
+        crit_funct <- function(design_df){
+          M <- inf_mat(grad, design_df)
           return(icrit(M, diag(length(parameters))))}
       }
       else if (identical(criterion, "I-Optimality")) {
@@ -148,13 +149,13 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
           error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be specified for I-Optimality")
           stop(error_msg, call. = FALSE)
         }
-        crit_funct <- function(design){
-          M <- inf_mat(grad, design)
+        crit_funct <- function(design_df){
+          M <- inf_mat(grad, design_df)
           return(icrit(M, matB))}
       }
       else if (identical(criterion, "L-Optimality")) {
-        crit_funct <- function(design){
-          M <- inf_mat(grad, design)
+        crit_funct <- function(design_df){
+          M <- inf_mat(grad, design_df)
           return(icrit(M, matB))}
       }
     }
