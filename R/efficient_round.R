@@ -126,22 +126,22 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
       stop(error_msg, call. = FALSE)
     } else {
       grad <- gradient(model, parameters, par_values, weight_fun)
-      if (identical(Criterion, "D-Optimality")) {
+      if (identical(criterion, "D-Optimality")) {
         crit_funct <- function(design){
           M <- inf_mat(grad, design)
           return(icrit(M, length(parameters)))}
       }
-      else if (identical(Criterion, "Ds-Optimality")) {
+      else if (identical(criterion, "Ds-Optimality")) {
         crit_funct <- function(design){
           M <- inf_mat(grad, design)
           return(dscrit(M, par_int))}
       }
-      else if (identical(Criterion, "A-Optimality")) {
+      else if (identical(criterion, "A-Optimality")) {
         crit_funct <- function(design){
           M <- inf_mat(grad, design)
           return(icrit(M, diag(length(parameters))))}
       }
-      else if (identical(Criterion, "I-Optimality")) {
+      else if (identical(criterion, "I-Optimality")) {
         if (!is.null(reg_int)) {
           matB <- integrate_reg_int(grad, k, reg_int)
         } else{
@@ -152,7 +152,7 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
           M <- inf_mat(grad, design)
           return(icrit(M, matB))}
       }
-      else if (identical(Criterion, "L-Optimality")) {
+      else if (identical(criterion, "L-Optimality")) {
         crit_funct <- function(design){
           M <- inf_mat(grad, design)
           return(icrit(M, matB))}
