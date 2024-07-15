@@ -290,7 +290,7 @@ ui <- shinydashboard::dashboardPage(
                     fluidRow(
                         valueBox(value = "Full custom design"#tags$p("Optimum Design", style = "font-size: 75%;")
                                  , "Chosen by the user", icon = icon("clipboard-list"), color = "aqua"),
-                        valueBox(value = "Sensitivity Function 3"#tags$p("Optimum Design", style = "font-size: 75%;")
+                        valueBox(value = "Sensitivity Function"#tags$p("Optimum Design", style = "font-size: 75%;")
                                  , "For the built design", icon = icon("bar-chart-o"), color = "green"),
                         valueBoxOutput("efficiencybuildes")
                     ),

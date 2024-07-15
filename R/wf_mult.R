@@ -44,13 +44,13 @@ WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA, min, m
     return(DsWFMult(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2))
   }
   else if (identical(criterion, "A-Optimality")) {
-    return(IWFMult(init_design, grad, diag(k), min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, crit_name, "A-Optimality"))
+    return(IWFMult(init_design, grad, diag(k), min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "A-Optimality"))
   }
   else if (identical(criterion, "I-Optimality")) {
-    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, crit_name, "I-Optimality"))
+    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "I-Optimality"))
   }
   else if (identical(criterion, "L-Optimality")) {
-    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, crit_name, "L-Optimality"))
+    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "L-Optimality"))
   }
 }
 
