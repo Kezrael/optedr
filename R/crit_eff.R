@@ -153,7 +153,7 @@ eff <- function(criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
 #' result <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 #' design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1 / 3, 1 / 3, 1 / 3))
 #' design_efficiency(result, design)
-design_efficiency <- function(opt_des_obj, design) {
+design_efficiency <- function(design, opt_des_obj) {
   # check_efficiency_input(opt_des_obj, design) COMPROBAR QUE EL NUMERO DE POUNTOS ES >= LENGTH GRAD/NROW MAT
   mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design)
   mat2 <- inf_mat(attr(opt_des_obj, "gradient"), opt_des_obj$optdes)
