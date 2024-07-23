@@ -419,7 +419,7 @@ plot_sens <- function(min, max, sens_function, criterion_value) {
     ggplot2::geom_line(mapping = ggplot2::aes(x = x, y = y), color = "steelblue3") +
     ggplot2::stat_function(fun = function(x) criterion_value, col = "goldenrod3") +
     ggplot2::xlim(min, max) +
-    ggplot2::labs(x = "X", y = "Y")
+    ggplot2::labs(x = "Design Space", y = "Sensitivity Function")
 }
 
 #' Plot Convergence of the algorithm
@@ -437,6 +437,7 @@ plot_convergence <- function(convergence) {
   step <- criteria <- NULL
   ggplot2::ggplot(data = convergence, ggplot2::aes(x = step, y = criteria)) +
     ggplot2::geom_line(color = "coral1") +
+    ggplot2::labs(y = "criterion") +
     ggplot2::theme_bw()
 }
 

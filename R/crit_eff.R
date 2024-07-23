@@ -155,8 +155,20 @@ eff <- function(criterion, mat1, mat2, k = 0, intPars = c(1), matB = NA) {
 #' design_efficiency(result, design)
 design_efficiency <- function(design, opt_des_obj) {
   # check_efficiency_input(opt_des_obj, design) COMPROBAR QUE EL NUMERO DE POUNTOS ES >= LENGTH GRAD/NROW MAT
-  mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design)
-  mat2 <- inf_mat(attr(opt_des_obj, "gradient"), opt_des_obj$optdes)
+  if("optdes" %in% class(design)){
+    mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design$optdes)
+  } else if("data.frame" %in% class(design)){
+    mat1 <- inf_mat(attr(opt_des_obj, "gradient"), design)
+  } else {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The arguments must be two optdes objects or a data.frame and an optdes object")
+    stop(error_msg, call. = FALSE)
+  }
+  if("optdes" %in% class(opt_des_obj)){
+    mat2 <- inf_mat(attr(opt_des_obj, "gradient"), opt_des_obj$optdes)
+  } else{
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The arguments must be two optdes objects or a data.frame and an optdes object")
+    stop(error_msg, call. = FALSE)
+  }
   if (identical(opt_des_obj$criterion, "D-Optimality")) {
     eff <- (det(mat1) / det(mat2))^(1 / attr(opt_des_obj, "hidden_value"))
     message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
@@ -175,7 +187,7 @@ design_efficiency <- function(design, opt_des_obj) {
       return(eff)
     }
   }
-  else if (identical(opt_des_obj$criterion, "I-Optimality")  || identical(opt_des_obj$criterion, "L-Optimality")) {
+  else if (identical(opt_des_obj$criterion, "A-Optimality")  || identical(opt_des_obj$criterion, "I-Optimality")  || identical(opt_des_obj$criterion, "L-Optimality")) {
     eff <- tr(attr(opt_des_obj, "hidden_value") %*% solve(mat2)) / tr(attr(opt_des_obj, "hidden_value") %*% solve(mat1))
     message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)
