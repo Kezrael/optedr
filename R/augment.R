@@ -343,7 +343,7 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
   min_eff <- findminval(eff_fun, design_space[[1]], design_space[[2]], 10000)
   max_eff <- findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000)
   if(calc_optimal_design){
-    optimal_design <- opt_des("I-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
+    optimal_design <- opt_des("L-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
     eff_1 <- (tr(matB %*% solve(inf_mat_opt)) / tr(matB %*% solve(inf_mat_1))) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
