@@ -8,23 +8,22 @@
 #' @param char_vars character vector with the parameters of the models, as written in the \code{formula}
 #' @param values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
 #' @param distribution character variable specifying the probability distribution of the response. Can be one of the following:
-#'   * 'Homoscedasticity'
+#'   * 'Normal', for normal homoscedastic (default)
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
 #'   * 'Poisson'
 #'   * 'Logistic'
-#'   * 'Log-Normal' (work in progress)
 #'
 #' @return one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
 #'
-weight_function <- function(model, char_vars, values, distribution = "Homoscedasticity") {
+weight_function <- function(model, char_vars, values, distribution = "Normal") {
   # vars <- as.list(match.call())[-(1:2)]
   # char_vars <- sapply(vars, as.character)
   if(!(distribution %in% c("Poisson", "Gamma", "Logistic", #"log-normal",
-                           "Homoscedasticity"))){
+                           "Normal"))){
     warning(crayon::yellow(cli::symbol$warning), " Not a valid distribution specified, using a normal homoscedastic")
     return(function(x) 1)
   }
-  else if(distribution == "Homoscedasticity"){
+  else if(distribution == "Normal"){
     return(function(x) 1)
   }
   else if(distribution == "Poisson"){
