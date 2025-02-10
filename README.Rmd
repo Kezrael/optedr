@@ -70,10 +70,10 @@ library(optedr)
 library(optedr)
 ```
 
-The calculation of an optimal design requires a to specify the `Criterion`, the `model`, the `parameters` and their initial values and the `design_space`.
+The calculation of an optimal design requires a to specify the `criterion`, the `model`, the `parameters` and their initial values and the `design_space`.
 
 ```{r}
-resArr.D <- opt_des(Criterion = "D-Optimality",
+resArr.D <- opt_des(criterion = "D-Optimality",
                     model = y ~ a*exp(-b/x),
                     parameters = c("a", "b"),
                     par_values = c(1, 1500),
