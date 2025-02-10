@@ -74,7 +74,7 @@ A list of two objects:
 }
 }
 \description{
-Depending on the \code{Criterion} the cocktail algorithm for the chosen criterion is called,
+Depending on the \code{criterion} the cocktail algorithm for the chosen criterion is called,
 and the necessary parameters for the functions are given from the user input.
 }
 \seealso{

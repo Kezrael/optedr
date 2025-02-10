@@ -1,6 +1,6 @@
 Package: optedr
 Title: Calculating Optimal and D-Augmented Designs
-Version: 2.1.1
+Version: 2.2.0
 Authors@R: 
     c(person(given = "Carlos",
            family = "de la Calle-Arroyo",
@@ -16,7 +16,7 @@ Authors@R:
            role = c("aut"),
            comment = c(ORCID = "0000-0003-4970-3877")) 
            )
-Description: Calculates D-, Ds-, A- and I-optimal designs for non-linear models, via an implementation of the cocktail algorithm (Yu, 2011, <doi:10.1007/s11222-010-9183-2>). Compares designs via their efficiency, and D-augments any design with a controlled efficiency. An efficient rounding function has been provided to transform approximate designs to exact designs.
+Description: Calculates D-, Ds-, A-, I- and L-optimal designs for non-linear models, via an implementation of the cocktail algorithm (Yu, 2011, <doi:10.1007/s11222-010-9183-2>). Compares designs via their efficiency, and augments any design with a controlled efficiency. An efficient rounding function has been provided to transform approximate designs to exact designs.
 License: GPL-3
 Encoding: UTF-8
 URL: https://github.com/kezrael/optedr
@@ -35,7 +35,8 @@ Suggests:
     hrbrthemes,
     shinyjs,
     orthopolynom,
-    magrittr
+    magrittr,
+    tidyverse
 Imports: 
     ggplot2,
     purrr,

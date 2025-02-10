@@ -46,6 +46,8 @@ the criterion, model and parameters must be specified. The dataframe should have
 
 \item{par_int}{optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.}
 
+\item{reg_int}{optional numeric vector with the ranges of integration, for I-optimality.}
+
 \item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 }
 \value{

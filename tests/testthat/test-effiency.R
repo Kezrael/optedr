@@ -8,7 +8,7 @@ test_that("efficiency works", {
           design_space = c(212, 422))
   design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
 
-  efficiency1 <- evaluate_promise(design_efficiency(resArr.D, design))
+  efficiency1 <- evaluate_promise(design_efficiency(design, resArr.D))
   expect_equal(round(efficiency1$result, 7), 0.3063763)
   # expect_equal(efficiency1$messages, "i The efficiency of the design is 30.6376288682445%\n")
 })
@@ -22,10 +22,11 @@ test_that("efficiency errors", {
   design2 <- data.frame("Puntos" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
 
   # wrong column names
-  expect_error(design_efficiency(resArr.D, design2), "non-conformable arrays")
+  expect_error(design_efficiency(design2, resArr.D), "non-conformable arrays")
 
   # No optdes object
   design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1/3, 1/3, 1/3))
 
   expect_error(design_efficiency(design, design), "could not find function")
 })
+

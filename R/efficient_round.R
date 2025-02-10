@@ -105,6 +105,7 @@ efficient_round <- function(design, n, tol = 0.00001){
 #' @param par_values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
 #' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
+#' @param reg_int optional numeric vector with the ranges of integration, for I-optimality.
 #' @param matB optional matrix of dimensions k x k, for L-optimality.
 #'
 #'
@@ -115,7 +116,7 @@ efficient_round <- function(design, n, tol = 0.00001){
 #' aprox_design <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 #' combinatorial_round(aprox_design, 27)
 combinatorial_round <- function(design, n, criterion = NULL, model = NULL, parameters = NULL, par_values = NULL, weight_fun = function(x) 1, par_int = NULL, reg_int = NULL,  matB = NULL){
-  if(class(design) == "optdes"){
+  if(inherits(design, "optdes")){
     design_df <- design$optdes
     criterion <- design$criterion
     crit_funct <- attr(design, "crit_function")
@@ -144,6 +145,7 @@ combinatorial_round <- function(design, n, criterion = NULL, model = NULL, param
       }
       else if (identical(criterion, "I-Optimality")) {
         if (!is.null(reg_int)) {
+          k <- length(par_values)
           matB <- integrate_reg_int(grad, k, reg_int)
         } else{
           error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " reg_int must be specified for I-Optimality")

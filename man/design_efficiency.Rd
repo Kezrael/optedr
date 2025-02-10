@@ -4,16 +4,16 @@
 \alias{design_efficiency}
 \title{Efficiency between optimal design and a user given design}
 \usage{
-design_efficiency(opt_des_obj, design)
+design_efficiency(design, opt_des_obj)
 }
 \arguments{
-\item{opt_des_obj}{an object given by the function \code{opt_des}.}
-
 \item{design}{dataframe that represents the design. Must have two columns:
 \itemize{
 \item \code{Point} contains the support points of the design.
 \item \code{Weight} contains the corresponding weights of the \code{Point}s.
 }}
+
+\item{opt_des_obj}{an object given by the function \code{opt_des}.}
 }
 \value{
 The efficiency as a value between 0 and 1
@@ -25,7 +25,7 @@ efficiency
 \examples{
 result <- opt_des("D-Optimality", y ~ a * exp(-b / x), c("a", "b"), c(1, 1500), c(212, 422))
 design <- data.frame("Point" = c(220, 240, 400), "Weight" = c(1 / 3, 1 / 3, 1 / 3))
-design_efficiency(result, design)
+design_efficiency(design, result)
 }
 \seealso{
 opt_des

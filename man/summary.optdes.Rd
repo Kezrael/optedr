@@ -15,7 +15,7 @@
 Summary function for optdes
 }
 \examples{
-rri <- opt_des(Criterion = "I-Optimality", model = y ~ a * exp(-b / x),
+rri <- opt_des(criterion = "I-Optimality", model = y ~ a * exp(-b / x),
   parameters = c("a", "b"), par_values = c(1, 1500), design_space = c(212, 422),
   reg_int = c(380, 422))
 summary(rri)

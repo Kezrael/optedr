@@ -1,7 +1,7 @@
 #' Master function for the cocktail algorithm, that calls the appropriate one given the criterion.
 #'
 #' @description
-#' Depending on the \code{Criterion} the cocktail algorithm for the chosen criterion is called,
+#' Depending on the \code{criterion} the cocktail algorithm for the chosen criterion is called,
 #' and the necessary parameters for the functions are given from the user input.
 #'
 #' @param init_design optional dataframe with the initial design for the algorithm. A dataframe with two columns:
@@ -227,7 +227,7 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
 #'
 #' @family cocktail algorithms
 #'
-IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, crit_name) {
+IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, criterion) {
   Point <- NULL
   crit_val <- numeric(2122)
   index <- 1
@@ -290,7 +290,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   plot_opt <- plot_sens(min, max, sensI, icrit(M, matB))
   l_return <- list(
     "optdes" = init_design, "convergence" = conv_plot,
-    "sens" = plot_opt, "criterion" = crit_name, "crit_value" = crit_val[length(crit_val)]
+    "sens" = plot_opt, "criterion" = criterion, "crit_value" = crit_val[length(crit_val)]
   )
   attr(l_return, "hidden_value") <- matB
   attr(l_return, "gradient") <- grad
