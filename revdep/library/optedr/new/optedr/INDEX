@@ -1,0 +1,65 @@
+DWFMult                 Cocktail Algorithm implementation for
+                        D-Optimality
+DsWFMult                Cocktail Algorithm implementation for
+                        Ds-Optimality
+IWFMult                 Cocktail Algorithm implementation for L-, I-
+                        and A-Optimality (with matB = diag(k))
+WFMult                  Master function for the cocktail algorithm,
+                        that calls the appropriate one given the
+                        criterion.
+add_design              Add two designs
+add_points              Update design given crosspoints and alpha
+augment_design          Augment Design
+check_inputs            Check Inputs
+combinatorial_round     Combinatorial round
+crit                    Master function for the criterion function
+crosspoints             Calculate crosspoints
+daugment_design         D-Augment Design
+dcrit                   Criterion function for D-Optimality
+delete_points           Remove low weight points
+design_efficiency       Efficiency between optimal design and a user
+                        given design
+dsaugment_design        Ds-Augment Design
+dscrit                  Criterion function for Ds-Optimality
+dsens                   Sensitivity function for D-Optimality
+dssens                  Sensitivity function for Ds-Optimality
+eff                     Efficiency between two Information Matrices
+efficient_round         Efficient Round
+findmax                 Find Maximum
+findmaxval              Find Maximum Value
+findminval              Find Minimum Value
+getCross2               Give effective limits to candidate points
+                        region
+getPar                  Parity of the crosspoints
+getStart                Find where the candidate points region starts
+get_augment_region      Get Augment Regions
+get_daugment_region     Get D-augment region
+get_dsaugment_region    Get Ds-augment region
+get_laugment_region     Get L-augment region
+gradient                Gradient function
+gradient22              Gradient function for a subset of variables
+icrit                   Criterion function for I-Optimality and
+                        L-Optimality
+inf_mat                 Information Matrix
+integrate_reg_int       Integrate IM
+isens                   Sensitivity function for I-Optimality
+laugment_design         L-Augment Design
+opt_des                 Calculates the optimal design for a specified
+                        criterion
+plot.optdes             Plot function for optdes
+plot_convergence        Plot Convergence of the algorithm
+plot_sens               Plot sensitivity function
+print.optdes            Print function for optdes
+sens                    Master function to calculate the sensitivity
+                        function
+shiny_augment           Shiny D-augment
+shiny_optimal           Shiny Optimal
+summary.optdes          Summary function for optdes
+tr                      Trace
+update_design           Update Design with new point
+update_design_total     Merge close points of a design
+update_sequence         Deletes duplicates points
+update_weights          Update weight D-Optimality
+update_weightsDS        Update weight Ds-Optimality
+update_weightsI         Update weight I-Optimality
+weight_function         Weight function per distribution

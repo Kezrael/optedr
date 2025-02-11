@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head><title>R: Calculating Optimal and D-Augmented Designs</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body><div class="container">
+<h1> Calculating Optimal and D-Augmented Designs
+<img class="toplogo" src="../../../doc/html/Rlogo.svg" alt="[R logo]" />
+</h1>
+<hr/>
+<div style="text-align: center;">
+<a href="../../../doc/html/packages.html"><img class="arrow" src="../../../doc/html/left.jpg" alt="[Up]" /></a>
+<a href="../../../doc/html/index.html"><img class="arrow" src="../../../doc/html/up.jpg" alt="[Top]" /></a>
+</div><h2>Documentation for package &lsquo;optedr&rsquo; version 2.2.0</h2>
+
+<ul><li><a href="../DESCRIPTION">DESCRIPTION file</a>.</li>
+<li><a href="../NEWS">Package NEWS</a>.</li>
+</ul>
+
+<h2>Help Pages</h2>
+
+
+<table style="width: 100%;">
+<tr><td style="width: 25%;"><a href="add_design.html">add_design</a></td>
+<td>Add two designs</td></tr>
+<tr><td style="width: 25%;"><a href="add_points.html">add_points</a></td>
+<td>Update design given crosspoints and alpha</td></tr>
+<tr><td style="width: 25%;"><a href="augment_design.html">augment_design</a></td>
+<td>Augment Design</td></tr>
+<tr><td style="width: 25%;"><a href="check_inputs.html">check_inputs</a></td>
+<td>Check Inputs</td></tr>
+<tr><td style="width: 25%;"><a href="combinatorial_round.html">combinatorial_round</a></td>
+<td>Combinatorial round</td></tr>
+<tr><td style="width: 25%;"><a href="crit.html">crit</a></td>
+<td>Master function for the criterion function</td></tr>
+<tr><td style="width: 25%;"><a href="crosspoints.html">crosspoints</a></td>
+<td>Calculate crosspoints</td></tr>
+<tr><td style="width: 25%;"><a href="daugment_design.html">daugment_design</a></td>
+<td>D-Augment Design</td></tr>
+<tr><td style="width: 25%;"><a href="dcrit.html">dcrit</a></td>
+<td>Criterion function for D-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="delete_points.html">delete_points</a></td>
+<td>Remove low weight points</td></tr>
+<tr><td style="width: 25%;"><a href="design_efficiency.html">design_efficiency</a></td>
+<td>Efficiency between optimal design and a user given design</td></tr>
+<tr><td style="width: 25%;"><a href="dsaugment_design.html">dsaugment_design</a></td>
+<td>Ds-Augment Design</td></tr>
+<tr><td style="width: 25%;"><a href="dscrit.html">dscrit</a></td>
+<td>Criterion function for Ds-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="dsens.html">dsens</a></td>
+<td>Sensitivity function for D-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="dssens.html">dssens</a></td>
+<td>Sensitivity function for Ds-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="DsWFMult.html">DsWFMult</a></td>
+<td>Cocktail Algorithm implementation for Ds-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="DWFMult.html">DWFMult</a></td>
+<td>Cocktail Algorithm implementation for D-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="eff.html">eff</a></td>
+<td>Efficiency between two Information Matrices</td></tr>
+<tr><td style="width: 25%;"><a href="efficient_round.html">efficient_round</a></td>
+<td>Efficient Round</td></tr>
+<tr><td style="width: 25%;"><a href="findmax.html">findmax</a></td>
+<td>Find Maximum</td></tr>
+<tr><td style="width: 25%;"><a href="findmaxval.html">findmaxval</a></td>
+<td>Find Maximum Value</td></tr>
+<tr><td style="width: 25%;"><a href="findminval.html">findminval</a></td>
+<td>Find Minimum Value</td></tr>
+<tr><td style="width: 25%;"><a href="getCross2.html">getCross2</a></td>
+<td>Give effective limits to candidate points region</td></tr>
+<tr><td style="width: 25%;"><a href="getPar.html">getPar</a></td>
+<td>Parity of the crosspoints</td></tr>
+<tr><td style="width: 25%;"><a href="getStart.html">getStart</a></td>
+<td>Find where the candidate points region starts</td></tr>
+<tr><td style="width: 25%;"><a href="get_augment_region.html">get_augment_region</a></td>
+<td>Get Augment Regions</td></tr>
+<tr><td style="width: 25%;"><a href="get_daugment_region.html">get_daugment_region</a></td>
+<td>Get D-augment region</td></tr>
+<tr><td style="width: 25%;"><a href="get_dsaugment_region.html">get_dsaugment_region</a></td>
+<td>Get Ds-augment region</td></tr>
+<tr><td style="width: 25%;"><a href="get_laugment_region.html">get_laugment_region</a></td>
+<td>Get L-augment region</td></tr>
+<tr><td style="width: 25%;"><a href="gradient.html">gradient</a></td>
+<td>Gradient function</td></tr>
+<tr><td style="width: 25%;"><a href="gradient22.html">gradient22</a></td>
+<td>Gradient function for a subset of variables</td></tr>
+<tr><td style="width: 25%;"><a href="icrit.html">icrit</a></td>
+<td>Criterion function for I-Optimality and L-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="inf_mat.html">inf_mat</a></td>
+<td>Information Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="integrate_reg_int.html">integrate_reg_int</a></td>
+<td>Integrate IM</td></tr>
+<tr><td style="width: 25%;"><a href="isens.html">isens</a></td>
+<td>Sensitivity function for I-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="IWFMult.html">IWFMult</a></td>
+<td>Cocktail Algorithm implementation for L-, I- and A-Optimality (with matB = diag(k))</td></tr>
+<tr><td style="width: 25%;"><a href="laugment_design.html">laugment_design</a></td>
+<td>L-Augment Design</td></tr>
+<tr><td style="width: 25%;"><a href="opt_des.html">opt_des</a></td>
+<td>Calculates the optimal design for a specified criterion</td></tr>
+<tr><td style="width: 25%;"><a href="plot.optdes.html">plot.optdes</a></td>
+<td>Plot function for optdes</td></tr>
+<tr><td style="width: 25%;"><a href="plot_convergence.html">plot_convergence</a></td>
+<td>Plot Convergence of the algorithm</td></tr>
+<tr><td style="width: 25%;"><a href="plot_sens.html">plot_sens</a></td>
+<td>Plot sensitivity function</td></tr>
+<tr><td style="width: 25%;"><a href="print.optdes.html">print.optdes</a></td>
+<td>Print function for optdes</td></tr>
+<tr><td style="width: 25%;"><a href="sens.html">sens</a></td>
+<td>Master function to calculate the sensitivity function</td></tr>
+<tr><td style="width: 25%;"><a href="shiny_augment.html">shiny_augment</a></td>
+<td>Shiny D-augment</td></tr>
+<tr><td style="width: 25%;"><a href="shiny_optimal.html">shiny_optimal</a></td>
+<td>Shiny Optimal</td></tr>
+<tr><td style="width: 25%;"><a href="summary.optdes.html">summary.optdes</a></td>
+<td>Summary function for optdes</td></tr>
+<tr><td style="width: 25%;"><a href="tr.html">tr</a></td>
+<td>Trace</td></tr>
+<tr><td style="width: 25%;"><a href="update_design.html">update_design</a></td>
+<td>Update Design with new point</td></tr>
+<tr><td style="width: 25%;"><a href="update_design_total.html">update_design_total</a></td>
+<td>Merge close points of a design</td></tr>
+<tr><td style="width: 25%;"><a href="update_sequence.html">update_sequence</a></td>
+<td>Deletes duplicates points</td></tr>
+<tr><td style="width: 25%;"><a href="update_weights.html">update_weights</a></td>
+<td>Update weight D-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="update_weightsDS.html">update_weightsDS</a></td>
+<td>Update weight Ds-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="update_weightsI.html">update_weightsI</a></td>
+<td>Update weight I-Optimality</td></tr>
+<tr><td style="width: 25%;"><a href="weight_function.html">weight_function</a></td>
+<td>Weight function per distribution</td></tr>
+<tr><td style="width: 25%;"><a href="WFMult.html">WFMult</a></td>
+<td>Master function for the cocktail algorithm, that calls the appropriate one given the criterion.</td></tr>
+</table>
+</div></body></html>

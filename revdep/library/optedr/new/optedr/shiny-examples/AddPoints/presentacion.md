@@ -1,0 +1,39 @@
+Presentation
+------------
+
+This Shiny application presents different ways of applying the
+methodology to add points to a design with controlled efficiency for a
+number of different models. The aim is to provide an interactive tool
+that demonstrates the methodological procedures experimenters can follow
+in order to modify or enhance their designs.
+
+The working of the app is as follows
+
+-   The user should first decide the model to be used and the associated
+    parameters- at least the space of the design- in Set-Up & Optimal
+    Design. The user should then calculate the optimal design for their
+    choice.
+-   Custom Design is one of the subsequent choices.
+    -   In Design Proposal, the user chooses the weight to give to new
+        points and a consequent efficiency, and the app gives the design
+        resulting from adding all the points of the limits of the
+        feasible region for this user choice. The feasible region can be
+        visualized beforehand.
+    -   In Restricted Design, the choice of weight and efficiency must
+        also be made, which gives the feasible region. Then the user can
+        add points within the region to the design up to the desired
+        weight (if over or under that number, the weights will be scaled
+        down/up) and calculate the efficiency of their design.
+-   Your Design is another possibility if you want more freedom for the
+    design to be evaluated:
+    -   First you should Build your design, and you can then evaluate
+        its the efficiency.
+    -   Then, in Enhance my design, an analogous procedure to that in
+        Restricted Design can be followed, where, after the choice of
+        weights and efficiency, the user adds points in the feasible
+        region. The difference is that rather than start with the
+        optimal design, the initial design is the user input in Build
+        your design.
+
+**NOTE**: the inputs for the user to choose are on the left sidebar,
+while the main body of the app is used only to reflect the outputs.

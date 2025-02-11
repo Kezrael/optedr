@@ -1,0 +1,43 @@
+Package: optedr
+Title: Calculating Optimal and D-Augmented Designs
+Version: 2.2.0
+Authors@R: 
+    c(person(given = "Carlos",
+           family = "de la Calle-Arroyo",
+           role = c("aut", "cre"),
+           email = "carlos.calle.arroyo@gmail.com",
+           comment = c(ORCID = "0000-0002-5099-888X")),
+      person(given = "Jesús",
+           family = "López-Fidalgo",
+           role = c("aut"),
+           comment = c(ORCID = "0000-0001-7502-8188")), 
+      person(given = "Licesio J.",
+           family = "Rodríguez-Aragón",
+           role = c("aut"),
+           comment = c(ORCID = "0000-0003-4970-3877")) 
+           )
+Description: Calculates D-, Ds-, A-, I- and L-optimal designs for non-linear models, via an implementation of the cocktail algorithm (Yu, 2011, <doi:10.1007/s11222-010-9183-2>). Compares designs via their efficiency, and augments any design with a controlled efficiency. An efficient rounding function has been provided to transform approximate designs to exact designs.
+License: GPL-3
+Encoding: UTF-8
+URL: https://github.com/kezrael/optedr,
+        https://github.com/Kezrael/optedr
+BugReports: https://github.com/Kezrael/optedr/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests: testthat (>= 3.0.0), mockery, markdown, DT, shinydashboard,
+        shinyalert, plotly, hrbrthemes, shinyjs, orthopolynom,
+        magrittr, tidyverse
+Imports: ggplot2, purrr, rlang, crayon, cli, dplyr, nleqslv, shiny,
+        utils
+Config/testthat/edition: 3
+RemoteType: local
+RemoteUrl: C:\Users\Carlos\Documents\Investigacion-UniOvi\R\optedr
+NeedsCompilation: no
+Packaged: 2025-02-11 09:40:13 UTC; Carlos
+Author: Carlos de la Calle-Arroyo [aut, cre]
+    (<https://orcid.org/0000-0002-5099-888X>),
+  Jesús López-Fidalgo [aut] (<https://orcid.org/0000-0001-7502-8188>),
+  Licesio J. Rodríguez-Aragón [aut]
+    (<https://orcid.org/0000-0003-4970-3877>)
+Maintainer: Carlos de la Calle-Arroyo <carlos.calle.arroyo@gmail.com>
+Built: R 4.3.2; ; 2025-02-11 09:40:14 UTC; windows

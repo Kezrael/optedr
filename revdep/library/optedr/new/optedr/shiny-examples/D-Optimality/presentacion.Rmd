@@ -1,0 +1,29 @@
+---
+title: "Presentación"
+author: "Carlos de la Calle"
+date: "21/03/2020"
+output: html_document
+fontsize: 12pt
+---
+
+
+## Presentation
+
+This Shiny Application is a tool for calculating optimal designs for Antoine's Equation given different initial estimations of the unknown parameters, $\theta^{(0)}$, and design space, $\mathcal{X}$.
+
+This application uses the *Cocktail Algorithm* to calculate optimal designs for Antoine's Equation. The details of the algorithm can be found in the original work accompanying this application.
+
+The functioning of the different tabs of the app are as follows
+
+* <u>Presentation</u>: description of how the app works.
+* <u>Optimal design</u>: calculates $D-$, $D_s-$, $A-$ and $I-$ optimal designs for Antoine's Equation. The user determines the probability distribution of the reponse (homoscedastic or heteroscedastic), the criteria and the associated parameters by either manually selecting them or choosing a substance from the sample list included. Then, after making extra choices if necessary, the user calculates the optimal design by clicking *Calculate Optimal Design*. <br />
+When the optimal design is algorithmically computed, there is the chance to show the ``convergence of the algorithm''. The graphic represents the value of the criterion function for each step of the algorithm, either adding a new point or each iteration of the multiplicative weight optimization strategy.  
+* <u>Custom design</u>: after a design has been calculated in *Optimal Design*, this menu allows the user to create their own design by adding points and their corresponding weights, and to compare the efficiency of their design with the optimum design calculated before. Points need to be in the design space of the optimal design, and their weights are standardized to sum to 1.
+* <u>Contact</u>: information for contacting the authors of the app.
+
+
+**NOTE**: The inputs for the user to choose are on the left sidebar, while the main body of the app is used only to reflect the outputs.
+
+**NOTE**: For some set of parameters the Information Matrix might be poorly conditioned, which causes the inverse calculating function to fail, and hence an error is prompted to the user.
+
+
