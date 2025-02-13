@@ -1,6 +1,6 @@
 Package: optedr
 Title: Calculating Optimal and D-Augmented Designs
-Version: 2.2.0
+Version: 2.2.0.9000
 Authors@R: 
     c(person(given = "Carlos",
            family = "de la Calle-Arroyo",
