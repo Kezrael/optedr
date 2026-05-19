@@ -4,7 +4,7 @@
 \alias{efficient_round}
 \title{Efficient Round}
 \usage{
-efficient_round(design, n, tol = 1e-05)
+efficient_round(design, n, tol = 1e-05, seed = NULL)
 }
 \arguments{
 \item{design}{a dataframe with columns "Point" and "Weight" that represents a design}
@@ -12,6 +12,11 @@ efficient_round(design, n, tol = 1e-05)
 \item{n}{an integer that represents the desired number of observations of the exact design}
 
 \item{tol}{optional parameter for the consideration of an integer in the rounding process}
+
+\item{seed}{optional integer seed for reproducibility. When the rounded weights sum to less
+than \code{n}, a random tie-breaking step is used; supplying \code{seed} makes that step
+deterministic by calling \code{set.seed(seed)} immediately before it. \code{NULL} (default)
+leaves the global RNG state unchanged.}
 }
 \value{
 a data.frame with columns "Point" and "Weight" representing an exact design
@@ -31,4 +36,7 @@ efficient_round(design_test, 20)
 exact_design <- efficient_round(design_test, 21)
 aprox_design <- exact_design
 aprox_design$Weight <- aprox_design$Weight/sum(aprox_design$Weight)
+
+# Reproducible tie-breaking
+efficient_round(design_test, 20, seed = 42)
 }

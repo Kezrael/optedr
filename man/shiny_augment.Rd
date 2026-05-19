@@ -7,7 +7,9 @@
 shiny_augment()
 }
 \description{
-Launches the demo shiny application to D-augment several prespecified models
+Launches the demo Shiny application to D-augment several pre-specified
+models. Requires an interactive R session; if called non-interactively
+a message with the web URL is emitted instead.
 }
 \examples{
 shiny_augment()

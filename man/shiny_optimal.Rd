@@ -7,7 +7,9 @@
 shiny_optimal()
 }
 \description{
-Launches the demo shiny application to calculate optimal designs for Antoine's Equation
+Launches the demo Shiny application to calculate optimal designs for
+Antoine's Equation. Requires an interactive R session; if called
+non-interactively a message with the web URL is emitted instead.
 }
 \examples{
 shiny_optimal()
