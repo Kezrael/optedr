@@ -6,6 +6,9 @@
 #        no interactiva, inv_spd fallback).
 # =============================================================================
 
+# Instalar desde GitHub (solo la primera vez o para actualizar):
+# remotes::install_github("Kezrael/optedr")
+
 # library(optedr)
 devtools::load_all()
 
