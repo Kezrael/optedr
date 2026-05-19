@@ -7,10 +7,10 @@
 # =============================================================================
 
 # Instalar desde GitHub (solo la primera vez o para actualizar):
-# remotes::install_github("Kezrael/optedr")
+remotes::install_github("Kezrael/optedr")
 
-# library(optedr)
-devtools::load_all()
+library(optedr)
+# devtools::load_all()
 
 # -----------------------------------------------------------------------------
 # 1. Diseño D-óptimo — modelo biparamétrico
