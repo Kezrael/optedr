@@ -8,6 +8,10 @@
 #' @param design a dataframe with columns "Point" and "Weight" that represents a design
 #' @param n an integer that represents the desired number of observations of the exact design
 #' @param tol optional parameter for the consideration of an integer in the rounding process
+#' @param seed optional integer seed for reproducibility. When the rounded weights sum to less
+#'   than \code{n}, a random tie-breaking step is used; supplying \code{seed} makes that step
+#'   deterministic by calling \code{set.seed(seed)} immediately before it. \code{NULL} (default)
+#'   leaves the global RNG state unchanged.
 #'
 #' @return a data.frame with columns "Point" and "Weight" representing an exact design
 #' with n observations
@@ -22,7 +26,10 @@
 #' exact_design <- efficient_round(design_test, 21)
 #' aprox_design <- exact_design
 #' aprox_design$Weight <- aprox_design$Weight/sum(aprox_design$Weight)
-efficient_round <- function(design, n, tol = 0.00001){
+#'
+#' # Reproducible tie-breaking
+#' efficient_round(design_test, 20, seed = 42)
+efficient_round <- function(design, n, tol = 0.00001, seed = NULL){
   if(n%%1!=0 | n <= 0){
     stop("n must be a possitive integer")
   }
@@ -57,6 +64,7 @@ efficient_round <- function(design, n, tol = 0.00001){
       message(crayon::blue(cli::symbol$info), " An alternative with size n is returned")
     }
     else if(sum(app_weights) < n){
+      if (!is.null(seed)) set.seed(seed)
       candidates_to_increase <- sample(candidates_to_increase)
       index <- 1
       while(sum(app_weights) < n){
