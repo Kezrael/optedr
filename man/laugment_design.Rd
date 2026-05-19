@@ -13,7 +13,9 @@ laugment_design(
   design_space,
   calc_optimal_design,
   matB,
-  weight_fun = function(x) 1
+  weight_fun = function(x) 1,
+  delta_val = NULL,
+  new_points = NULL
 )
 }
 \arguments{
@@ -34,6 +36,13 @@ laugment_design(
 \item{matB}{optional matrix of dimensions k x k, for L-optimality.}
 
 \item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+
+\item{delta_val}{optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
+the user is prompted interactively. Providing this value enables non-interactive use.}
+
+\item{new_points}{optional dataframe with \code{Point} and \code{Weight} columns specifying the points
+to add. All points must lie within the candidate region determined by \code{delta_val}. If \code{NULL}
+(default), the user is prompted interactively.}
 }
 \value{
 A dataframe that represents the L-augmented design
@@ -45,11 +54,11 @@ minimum efficiency. After that, the candidate points region is calculated
 and the user can choose the points and weights to add.
 }
 \examples{
+\dontrun{
 init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-  c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
+}
 
 }
 \seealso{

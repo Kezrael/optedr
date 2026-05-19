@@ -258,7 +258,13 @@ getCross2 <- function(cross, min, max, start, par){
 #' @return returns the new weights of the design after one iteration.
 update_weights <- function(design, sens, k, delta) {
   weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / k)^delta
-  return(weights / sum(weights))
+  w_sum <- sum(weights)
+  if (!is.finite(w_sum) || w_sum == 0)
+    stop("Weight update produced non-finite values. ",
+         "The model is likely not identifiable in all specified parameters -",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
+  return(weights / w_sum)
 }
 
 
@@ -275,7 +281,13 @@ update_weights <- function(design, sens, k, delta) {
 #' @return returns the new weights of the design after one iteration.
 update_weightsDS <- function(design, sens, s, delta) {
   weights <- design$Weight * (purrr::map_dbl(design$Point, sens) / s)^delta
-  return(weights)
+  w_sum <- sum(weights)
+  if (!is.finite(w_sum) || w_sum == 0)
+    stop("Weight update produced non-finite values. ",
+         "The model is likely not identifiable in all specified parameters -",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
+  return(weights / w_sum)
 }
 
 #' Update weight I-Optimality
@@ -293,9 +305,13 @@ update_weightsDS <- function(design, sens, s, delta) {
 update_weightsI <- function(design, sens, crit, delta) {
   exponent <- function(a, pow) (abs(a)^pow)*sign(a)
   weights <- design$Weight * exponent((purrr::map_dbl(design$Point, sens) / crit), delta)
-  # weights[is.nan(weights)] <- 0
-  # weights <- weights/sum(weights)
-  return(weights/sum(weights))
+  w_sum <- sum(weights)
+  if (!is.finite(w_sum) || w_sum == 0)
+    stop("Weight update produced non-finite values. ",
+         "The model is likely not identifiable in all specified parameters -",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
+  return(weights / w_sum)
 }
 
 
@@ -396,6 +412,55 @@ tr <- function(M) {
 }
 
 
+# Validates the Atwood efficiency bound and warns when it falls outside [0, 100],
+# which indicates a degenerate information matrix (model not identifiable or design
+# is singular). A bound > 100 % is the silent-failure signature of A/I/L-optimality
+# applied to a non-identifiable model (pseudoinverse causes the ET condition to
+# trigger prematurely).
+check_atwood <- function(atwood) {
+  val <- as.numeric(atwood)
+  if (!is.finite(val) || val < 0 || val > 100) {
+    warning(sprintf(
+      paste0("The Atwood efficiency bound is %.4g%%, which is outside [0, 100]. ",
+             "This indicates a degenerate information matrix -the model is likely ",
+             "not identifiable in all specified parameters. ",
+             "Check for parameter redundancy (see any preceding warnings)."),
+      val
+    ), call. = FALSE)
+  }
+}
+
+# Stable inverse for symmetric positive definite matrices (information matrices).
+# Primary path: Cholesky (fast, exact for SPD).
+# Fallback: Moore-Penrose pseudoinverse via SVD with a warning, for cases where
+# the matrix is theoretically invertible but numerically non-PD (e.g., extreme
+# parameter scales). Uses only base R -no extra dependencies.
+inv_spd <- function(M) {
+  result <- tryCatch(chol2inv(chol(M)), error = function(e) NULL)
+  if (!is.null(result)) return(result)
+  s <- svd(M)
+  tol <- max(dim(M)) * max(s$d) * .Machine$double.eps
+  d_inv <- ifelse(s$d > tol, 1 / s$d, 0)
+  n_zero <- sum(d_inv == 0)
+  if (n_zero > 0) {
+    warning(sprintf(
+      paste0("The information matrix has %d near-zero singular value(s) ",
+             "(rank %d out of %d). The model likely has %d fewer identifiable ",
+             "parameter(s) than specified -check for parameter redundancy or collinearity."),
+      n_zero, nrow(M) - n_zero, nrow(M), n_zero
+    ), call. = FALSE)
+  } else {
+    warning(
+      "Information matrix is not positive definite; falling back to Moore-Penrose pseudoinverse. ",
+      "Results may be unreliable. Check that the design has enough distinct support points ",
+      "and that model parameters are on similar scales.",
+      call. = FALSE
+    )
+  }
+  s$v %*% diag(d_inv) %*% t(s$u)
+}
+
+
 #' Plot sensitivity function
 #'
 #' @description
@@ -490,7 +555,7 @@ summary.optdes <- function(object, ...) {
   print(attr(attr(object, "weight_fun"), "srcref"))
   cat("Optimal design for ", object$criterion, ":\n")
   print.data.frame(object$optdes, ...)
-  cat("\n Minimum efficiency (Atwood): ", paste0(attr(object, "atwood"), "%"))
+  cat("\n Minimum efficiency (Atwood): ", paste0(object$atwood, "%"))
   cat("\n Criterion value: ", object$crit_value)
 }
 

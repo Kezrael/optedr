@@ -17,7 +17,6 @@ check_inputs <- function(criterion, model, parameters, par_values, design_space,
                          par_int,
                          matB,
                          reg_int,
-                         desired_output,
                          weight_fun) {
   error_msg <- ""
   # Check for valid criterion

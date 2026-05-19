@@ -15,7 +15,8 @@ DsWFMult(
   delete_thresh,
   delta_weights,
   tol,
-  tol2
+  tol2,
+  max_iter
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ in order to not be deleted from the design.}
 \item{tol}{numeric value for the convergence of the weight optimizing algorithm.}
 
 \item{tol2}{numeric value for the stop condition of the algorithm.}
+
+\item{max_iter}{maximum number of outer iterations of the cocktail algorithm.}
 }
 \value{
 list correspondent to the output of the correspondent algorithm called, dependent on the criterion.

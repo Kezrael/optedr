@@ -16,7 +16,8 @@ IWFMult(
   delta_weights,
   tol,
   tol2,
-  criterion
+  criterion,
+  max_iter
 )
 }
 \arguments{
@@ -57,6 +58,8 @@ in order to not be deleted from the design.}
 \item 'I-Optimality'
 \item 'L-Optimality'
 }}
+
+\item{max_iter}{maximum number of outer iterations of the cocktail algorithm.}
 }
 \value{
 list correspondent to the output of the correspondent algorithm called, dependent on the criterion.

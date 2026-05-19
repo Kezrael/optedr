@@ -13,7 +13,8 @@ get_dsaugment_region(
   par_int,
   design_space,
   calc_optimal_design,
-  weight_fun = function(x) 1
+  weight_fun = function(x) 1,
+  delta_val = NULL
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ get_dsaugment_region(
 \item{calc_optimal_design}{boolean parameter, if TRUE, the optimal design is calculated and efficiencies of the initial and augmented design are given}
 
 \item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response}
+
+\item{delta_val}{optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
+the user is prompted interactively. Providing this value enables non-interactive use.}
 }
 \value{
 A vector of the points limiting the candidate points region
@@ -44,11 +48,12 @@ design for which he would like to add points and specifies the weight of the new
 is prompted to choose a minimum efficiency. After that, the candidate points region is calculated.
 }
 \examples{
+\donttest{
 init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-  c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-  c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
+get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a - b/(c + x)),
+  c("a", "b", "c"), c(8.07131, 1730.63, 233.426), c(1, 100), FALSE,
+  delta_val = 0.85)
+}
 }
 \seealso{
 Other augment region: 

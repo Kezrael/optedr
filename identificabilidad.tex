@@ -1,0 +1,414 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{lmodern}
+
+\geometry{margin=2.5cm}
+
+\newtheorem{definition}{Definicion}
+\newtheorem{theorem}{Teorema}
+\newtheorem{proposition}{Proposicion}
+\newtheorem{corollary}{Corolario}
+\newtheorem{example}{Ejemplo}
+\newtheorem{remark}{Observacion}
+
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\spn}{span}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bxi}{\boldsymbol{\xi}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\ff}{\mathbf{f}}
+
+\title{Identificabilidad de par\'ametros en modelos no lineales\\
+       y su relaci\'on con el dise\~no \'optimo de experimentos}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\bigskip
+
+% =============================================================
+\section{Identificabilidad estad\'istica}
+% =============================================================
+
+\subsection{Definici\'on general}
+
+Sea un modelo estad\'istico parametrizado por $\btheta \in \Theta \subseteq \R^p$, y sean
+$\{P_{\btheta} : \btheta \in \Theta\}$ las distribuciones de probabilidad inducidas por el
+modelo sobre el espacio de observaciones $\mathcal{Y}$.
+
+\begin{definition}[Identificabilidad]
+El modelo es \textbf{identificable} si la aplicaci\'on $\btheta \mapsto P_{\btheta}$ es
+inyectiva:
+\[
+  P_{\btheta_1} = P_{\btheta_2} \implies \btheta_1 = \btheta_2.
+\]
+En modelos de regresi\'on no lineal con varianza homoscedástica, $P_{\btheta}$ queda
+determinada por la funci\'on de respuesta $\eta(\cdot,\btheta)$, por lo que la condici\'on
+equivale a
+\[
+  \eta(x, \btheta_1) = \eta(x, \btheta_2) \quad \forall x \in \mathcal{X}
+  \implies \btheta_1 = \btheta_2.
+\]
+\end{definition}
+
+Cuando el modelo \emph{no} es identificable, existen al menos dos valores distintos del
+par\'ametro, $\btheta_1 \neq \btheta_2$, que producen la misma funci\'on de respuesta.
+Por tanto, ning\'un conjunto de observaciones ---por grande o bien elegido que sea--- permite
+distinguir entre ellos: la verosimilitud es plana en la direcci\'on $\btheta_1 - \btheta_2$.
+
+\subsection{Consecuencias en estimaci\'on}
+
+\begin{theorem}[Cota de Cram\'er--Rao]
+Bajo condiciones de regularidad, la varianza de cualquier estimador insesgado $\hat{\btheta}$
+satisface
+\[
+  \Var(\hat{\btheta}) \geq \mathcal{I}(\btheta)^{-1},
+\]
+donde $\mathcal{I}(\btheta)$ es la \textbf{matriz de informaci\'on de Fisher}.
+\end{theorem}
+
+Si el modelo no es identificable, la matriz $\mathcal{I}(\btheta)$ es singular: tiene al menos
+un valor propio nulo.  Su inversa no existe, lo que equivale a afirmar que la varianza del
+estimador es infinita en ciertas direcciones del espacio param\'etrico: \emph{es imposible
+estimar esas combinaciones de par\'ametros con precisi\'on finita, independientemente del
+tama\~no muestral.}
+
+% =============================================================
+\section{Identificabilidad estructural en modelos de regresi\'on}
+% =============================================================
+
+\subsection{Marco del dise\~no \'optimo}
+
+Consideremos un modelo de regresi\'on no lineal de un factor:
+\[
+  y_i = \eta(x_i, \btheta) + \varepsilon_i,
+  \quad \varepsilon_i \stackrel{iid}{\sim} \mathcal{N}(0, \sigma^2),
+\]
+con $\btheta \in \R^p$, $x \in \mathcal{X} \subset \R$ y funci\'on de respuesta $\eta$
+diferenciable respecto a $\btheta$.  El \textbf{vector gradiente} en el punto de dise\~no $x$
+es
+\[
+  \ff(x, \btheta) \coloneqq \frac{\partial \eta(x, \btheta)}{\partial \btheta} \in \R^p.
+\]
+
+Un \textbf{dise\~no aproximado} es una medida de probabilidad discreta
+$\xi = \{(x_i, w_i)\}_{i=1}^n$ sobre $\mathcal{X}$, con $w_i > 0$ y $\sum_i w_i = 1$.
+La \textbf{matriz de informaci\'on normalizada} asociada es
+\[
+  M(\xi, \btheta)
+  = \sum_{i=1}^{n} w_i \, \ff(x_i, \btheta)\,\ff(x_i, \btheta)^\top
+  \in \R^{p \times p}.
+\]
+
+Esta matriz es siempre semidefinida positiva.  Su rango determina cuántas combinaciones
+lineales de par\'ametros pueden estimarse:
+
+\begin{proposition}
+$\rank M(\xi, \btheta)
+  = \dim\spn\{\ff(x_i, \btheta) : i = 1, \ldots, n\}
+  \leq \min(n, p)$.
+\end{proposition}
+
+\subsection{Identificabilidad y rango de la matriz de informaci\'on}
+
+\begin{definition}[Identificabilidad estructural]
+El modelo $\eta(\cdot, \btheta)$ es \textbf{estructuralmente identificable} si existe un
+dise\~no $\xi$ tal que $\rank M(\xi, \btheta) = p$.  En caso contrario existe un subespacio
+propio $\mathcal{N} \subset \R^p$, $\dim \mathcal{N} \geq 1$, tal que
+\[
+  \ell^\top \ff(x, \btheta) = 0 \quad \forall x \in \mathcal{X},
+  \quad \ell \in \mathcal{N}.
+\]
+Esto significa que el modelo es insensible a perturbaciones del par\'ametro en la
+direcci\'on $\ell$:
+\[
+  \eta(x, \btheta + \varepsilon\,\ell) = \eta(x, \btheta) \quad
+  \forall x \in \mathcal{X},\; \varepsilon \in \R.
+\]
+\end{definition}
+
+La identificabilidad estructural es una propiedad del \emph{modelo}, no del dise\~no.
+Si $\ff(x, \btheta)$ yace en un subespacio de dimensi\'on $r < p$ para todo
+$x \in \mathcal{X}$, entonces $\rank M(\xi,\btheta) \leq r$ para \emph{cualquier} dise\~no.
+
+\begin{corollary}
+Si el modelo no es estructuralmente identificable, la matriz $M(\xi,\btheta)$ es singular
+para todo dise\~no $\xi$, y ning\'un criterio de optimalidad que requiera $M^{-1}$ (D, A,
+I, L, Ds) est\'a bien definido.
+\end{corollary}
+
+% =============================================================
+\section{Criterio D-\'optimo y Teorema de Equivalencia}
+% =============================================================
+
+\subsection{Criterio D}
+
+El criterio D-\'optimo minimiza el volumen de la regi\'on de confianza asint\'otica del
+estimador de m\'axima verosimilitud:
+\[
+  \Phi_D(\xi) = \bigl(\det M(\xi,\btheta)\bigr)^{-1/p}.
+\]
+Requiere $\det M > 0$, es decir, $\rank M = p$.
+
+\subsection{Teorema de Equivalencia de Kiefer--Wolfowitz}
+
+\begin{theorem}[Kiefer--Wolfowitz, 1960]
+Un dise\~no $\xi^*$ es D-\'optimo si y solo si
+\[
+  d(x, \xi^*) \leq p \quad \forall x \in \mathcal{X},
+\]
+donde $d(x, \xi) = \ff(x)^\top M(\xi)^{-1} \ff(x)$ es la \textbf{funci\'on de sensibilidad}.
+La igualdad se alcanza en todos los puntos de soporte del dise\~no \'optimo.
+\end{theorem}
+
+La condici\'on de parada del algoritmo cocktail es precisamente
+\[
+  \frac{\max_{x \in \mathcal{X}} d(x,\xi) - p}{p} < \texttt{tol}_2,
+\]
+que verifica num\'ericamente el teorema de equivalencia.
+
+Si $M(\xi)$ es singular, $M(\xi)^{-1}$ no existe y se usa la pseudoinversa de
+Moore--Penrose $M(\xi)^+$.  En ese caso $d(x,\xi) = \ff(x)^\top M^+ \ff(x)$ puede ser
+finito pero las actualizaciones de pesos producen valores $\mathrm{NaN}$, generando un
+error expl\'icito.
+
+% =============================================================
+\section{Criterio A-\'optimo y el fallo silencioso}
+% =============================================================
+
+\subsection{Criterio A}
+
+El criterio A-\'optimo minimiza la traza de la inversa de la matriz de informaci\'on:
+\[
+  \Phi_A(\xi) = \tr\bigl(M(\xi)^{-1}\bigr).
+\]
+Su funci\'on de sensibilidad es
+\[
+  d_A(x,\xi) = \ff(x)^\top M^{-2} \ff(x),
+\]
+y el Teorema de Equivalencia para A-optimalidad establece que $\xi^*$ es A-\'optimo si y
+solo si
+\[
+  d_A(x,\xi^*) \leq \tr(M^{-1}) \quad \forall x \in \mathcal{X},
+\]
+con igualdad en los puntos de soporte del \'optimo.
+
+\subsection{Por qu\'e A-optimalidad falla de forma silenciosa}
+
+Cuando $M$ tiene rango $r < p$, la pseudoinversa $M^+$ proyecta sobre el subespacio columna
+de $M$.  Para matrices $M$ semidefinidas positivas y su pseudoinversa $M^+$, la desigualdad
+que en el caso de rango completo es $\max_x d_A(x,\xi) \geq \tr(M^{-1})$ (base del Teorema
+de Equivalencia) puede \emph{invertirse}: $\max_x d_A(x,\xi) < \tr(M^+)$.  Esto hace que
+la condici\'on de parada del algoritmo,
+\[
+  \max_x d_A(x,\xi) - \tr(M^+) < \texttt{tol}_2,
+\]
+se satisfaga desde la primera iteraci\'on, sin mover ning\'un punto.
+
+La \textbf{cota de Atwood} para A-optimalidad es
+\[
+  \text{atwood}
+  = \left(2 - \frac{\max_x d_A(x,\xi)}{\tr(M^+)}\right) \times 100\,\%.
+\]
+Para un dise\~no v\'alido debe pertenecer a $[0, 100]$.  Si $\max_x d_A(x,\xi) \approx 0$,
+la cota es $\approx 200\,\%$: valor imposible que delata el fallo.
+
+\begin{remark}
+El mismo fallo silencioso ocurre con los criterios I y L, que emplean el mismo algoritmo
+interno que A.  Los criterios D y Ds fallan de manera ruidosa (error en el bucle de pesos)
+porque sus f\'ormulas involucran $\det M = 0$.
+\end{remark}
+
+% =============================================================
+\section{An\'alisis del modelo BET}
+\label{sec:bet}
+% =============================================================
+
+\subsection{El modelo}
+
+La isoterma de adsorci\'on BET (Brunauer, Emmett y Teller) en su forma triparamétrica es
+\[
+  \eta(x;\, w, c, k)
+  = \frac{w\,c\,k\,x}{(1-x)\bigl(1 + (c-1)\,k\,x\bigr)},
+  \quad x \in (0,1),
+\]
+con par\'ametros $(w, c, k) \in \R^3$, $w > 0$, $c > 1$, $k > 0$.
+
+\subsection{Reparametrizaci\'on y redundancia}
+
+Definamos los par\'ametros efectivos
+\[
+  \alpha \coloneqq w\,c\,k, \qquad \beta \coloneqq (c-1)\,k.
+\]
+En estas nuevas variables el modelo se reescribe como
+\[
+  \eta(x;\, \alpha, \beta) = \frac{\alpha\,x}{(1-x)(1 + \beta\,x)},
+\]
+que depende de \emph{dos} par\'ametros libres.  La aplicaci\'on inversa
+$(w, c, k) \mapsto (\alpha, \beta)$,
+\[
+  w\,c\,k = \alpha, \qquad (c-1)\,k = \beta,
+\]
+tiene dos ecuaciones y tres inc\'ognitas: el sistema tiene una familia de soluciones de
+dimensi\'on 1.  Por tanto, \emph{los par\'ametros originales $(w, c, k)$ no son
+individualmente identificables.}
+
+\subsection{Demostraci\'on de rango deficiente}
+
+El vector gradiente del modelo en $(w, c, k)$ se obtiene por la regla de la cadena:
+\[
+  \ff(x;\,w,c,k) =
+  \begin{pmatrix}
+    \partial\eta/\partial w \\[4pt]
+    \partial\eta/\partial c \\[4pt]
+    \partial\eta/\partial k
+  \end{pmatrix}
+  = \frac{\partial \eta}{\partial \alpha}
+    \begin{pmatrix} ck \\ kw \\ wc \end{pmatrix}
+  + \frac{\partial \eta}{\partial \beta}
+    \begin{pmatrix} 0 \\ k \\ c-1 \end{pmatrix},
+\]
+donde
+\[
+  \frac{\partial \eta}{\partial \alpha}
+  = \frac{x}{(1-x)(1+\beta x)},
+  \qquad
+  \frac{\partial \eta}{\partial \beta}
+  = \frac{-\alpha\,x^2}{(1-x)(1+\beta x)^2}.
+\]
+
+\begin{proposition}
+Para todo $x \in \mathcal{X}$ y todo $(w,c,k)$, el gradiente $\ff(x;w,c,k)$ pertenece al
+subespacio vectorial
+\[
+  \mathcal{V} = \spn\!\left\{
+    \mathbf{v}_1 \coloneqq
+    \begin{pmatrix} ck \\ kw \\ wc \end{pmatrix},\quad
+    \mathbf{v}_2 \coloneqq
+    \begin{pmatrix} 0 \\ k \\ c-1 \end{pmatrix}
+  \right\} \subset \R^3,
+  \quad \dim\mathcal{V} = 2.
+\]
+\end{proposition}
+
+\begin{proof}
+Inmediato de la descomposici\'on anterior:
+$\ff(x) = \lambda_1(x)\,\mathbf{v}_1 + \lambda_2(x)\,\mathbf{v}_2$
+con $\lambda_i(x)$ escalares que dependen de $x$ pero $\mathbf{v}_1, \mathbf{v}_2$ son
+constantes respecto a $x$.  Para ver que $\dim\mathcal{V} = 2$, basta observar que
+$\mathbf{v}_1$ y $\mathbf{v}_2$ son linealmente independientes (su segunda coordenada da
+$kw \neq k\cdot 0 = 0$ para $w \neq 0$).
+\end{proof}
+
+\begin{corollary}
+\[
+  \rank M(\xi;\, w,c,k)
+  \leq \dim\mathcal{V} = 2 < 3 = p
+  \qquad \forall\, \xi.
+\]
+La matriz de informaci\'on es singular para \emph{cualquier} dise\~no y \emph{cualquier}
+valor de los par\'ametros nominales.
+\end{corollary}
+
+\subsection{Verificaci\'on num\'erica}
+
+Para $(w, c, k) = (1, 10, 0.5)$ los vectores directores del subespacio son
+\[
+  \mathbf{v}_1 = \begin{pmatrix} 5 \\ 0.5 \\ 10 \end{pmatrix},
+  \qquad
+  \mathbf{v}_2 = \begin{pmatrix} 0 \\ 0.5 \\ 9 \end{pmatrix}.
+\]
+Un c\'alculo directo muestra que no son proporcionales, confirmando $\dim\mathcal{V} = 2$.
+El determinante de $M(\xi)$ es cero y sus valores singulares son de la forma
+$(\sigma_1, \sigma_2, 0)$ para cualquier dise\~no $\xi$.
+
+% =============================================================
+\section{Diagn\'ostico en la pr\'actica}
+% =============================================================
+
+\subsection{S\'intomas en \texttt{optedr}}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lll@{}}
+  \toprule
+  Criterio & S\'intoma observable & Causa matem\'atica \\
+  \midrule
+  D & Error en el bucle de pesos & $\det M = 0 \Rightarrow \text{NaN}$ \\
+  Ds & Error en el bucle de pesos & Id\'entico a D \\
+  A, I, L & Convergencia falsa; atwood $\approx 200\,\%$ &
+    Desigualdad del TE se invierte con $M^+$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+La implementaci\'on en \texttt{optedr} emite diagn\'osticos en cadena:
+\begin{enumerate}
+  \item \texttt{inv\_spd} detecta el n\'umero de valores singulares nulos de $M$
+        y emite un aviso indicando cuántos par\'ametros son no identificables.
+  \item Las funciones \texttt{update\_weights*} detectan pesos no finitos y lanzan un error
+        accionable que remite al aviso anterior.
+  \item Los tres algoritmos cocktail verifican que la cota de Atwood pertenezca a $[0, 100]$
+        y avisan si no es as\'i.
+\end{enumerate}
+
+\subsection{Soluci\'on: reparametrizaci\'on}
+
+La soluci\'on es utilizar los par\'ametros efectivos identificables:
+\[
+  \eta(x;\,\alpha,\beta) = \frac{\alpha\, x}{(1-x)(1 + \beta\, x)},
+  \quad \alpha = wck,\; \beta = (c-1)k.
+\]
+
+\begin{example}
+En \texttt{R} con el paquete \texttt{optedr}:
+\begin{verbatim}
+result <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ (a * x) / ((1 - x) * (1 + b * x)),
+  parameters   = c("a", "b"),
+  par_values   = c(5, 4.5),    # a = wck = 5,  b = (c-1)k = 4.5
+  design_space = c(0.05, 0.8)
+)
+\end{verbatim}
+Este modelo tiene $p = 2$ par\'ametros, la matriz de informaci\'on es $2\times 2$ de rango
+pleno, y el algoritmo converge al dise\~no D-\'optimo de dos puntos de soporte.
+\end{example}
+
+Si la interpretaci\'on f\'isica requiere conocer $w$, $c$ y $k$ por separado, es necesaria
+informaci\'on adicional que fije uno de los tres par\'ametros (restricci\'on te\'orica o
+experimento previo).
+
+% =============================================================
+\section{Resumen}
+% =============================================================
+
+\begin{itemize}
+  \item Un modelo es \textbf{identificable} si par\'ametros distintos producen respuestas
+        distintas; si no, la matriz de informaci\'on es singular para todo dise\~no.
+  \item La redundancia param\'etrica se detecta algebraicamente: el gradiente
+        $\ff(x,\btheta)$ yace en un subespacio de dimensi\'on $r < p$ para todo $x$.
+  \item En el modelo BET con parametrizaci\'on $(w,c,k)$, la descomposici\'on
+        $\ff(x) = \lambda_1(x)\,\mathbf{v}_1 + \lambda_2(x)\,\mathbf{v}_2$ muestra que
+        $\rank M \leq 2 < 3$ para cualquier dise\~no.
+  \item D y Ds fallan de manera ruidosa (error en el bucle de pesos);
+        A, I y L fallan de manera silenciosa (convergencia falsa, atwood $> 100\,\%$).
+  \item La soluci\'on es reparametrizar con los par\'ametros efectivos identificables
+        $(\alpha, \beta) = (wck,\, (c-1)k)$.
+\end{itemize}
+
+\end{document}

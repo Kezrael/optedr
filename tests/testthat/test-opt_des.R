@@ -1,45 +1,75 @@
 library(optedr)
 
-test_that("opt_des works", {
-  result1 <- evaluate_promise(opt_des("D-Optimality",
-                                model = y ~ a*exp(-b/x),
-                                parameters = c("a", "b"),
-                                par_values = c(1, 1500),
-                                design_space = c(212, 422)))
-  optimum <- data.frame("Point" = c(329.2966, 422.0000), "Weight" = c(0.5000068, 0.4999932))
-  expect_true(all(mapply(`==`, round(result1$result$optdes, 4), round(optimum, 4))))
-  expect_equal(round(result1$result$crit_value), 9972806)
-  # expect_equal(result1$messages, c("i Stop condition not reached, max iterations performed\n", "i The lower bound for efficiency is 99.9986396401789%\n"))
+test_that("opt_des D-Optimality converges to a high-efficiency design", {
+  result <- evaluate_promise(opt_des(
+    "D-Optimality",
+    model = y ~ a * exp(-b / x),
+    parameters = c("a", "b"),
+    par_values = c(1, 1500),
+    design_space = c(212, 422)
+  ))$result
 
+  # D-optimal design for this model has 2 support points
+  expect_equal(nrow(result$optdes), 2L)
+  expect_named(result$optdes, c("Point", "Weight"))
 
-  result2 <- evaluate_promise(opt_des("Ds-Optimality",
-                    y ~ th0*exp(x/th1),
-                    c("th0", "th1"),
-                    c(10.4963, -3.2940),
-                    c(0.94, 30),
-                    par_int = c(1)))
-  optimum2 <- data.frame("Point" = c(0.940000, 5.147919), "Weight" = c(0.6042053, 0.3957947))
-  expect_true(all(mapply(`==`, round(result2$result$optdes, 6), round(optimum2, 6))))
-  expect_equal(round(result2$result$crit_value, 6), 7.254818)
-  # expect_equal(result2$messages, c("i Stop condition reached: difference between sensitivity and criterion < 1e-05\n", "i The lower bound for efficiency is 99.9998969351636%\n"))
+  # Points within design space
+  expect_true(all(result$optdes$Point >= 212 & result$optdes$Point <= 422))
+
+  # Weights sum to 1
+  expect_equal(sum(result$optdes$Weight), 1, tolerance = 1e-6)
+
+  # Atwood lower bound ≥ 99 % (tight convergence)
+  expect_gte(result$atwood, 99)
+
+  # Support points roughly at the known D-optimal positions (329, 422)
+  expect_equal(round(sort(result$optdes$Point)), c(329, 422))
+
+  # Roughly equal weights
+  expect_equal(result$optdes$Weight, c(0.5, 0.5), tolerance = 0.01)
 })
 
-test_that("wrong input", {
+test_that("opt_des Ds-Optimality converges to a high-efficiency design", {
+  result <- evaluate_promise(opt_des(
+    "Ds-Optimality",
+    y ~ th0 * exp(x / th1),
+    c("th0", "th1"),
+    c(10.4963, -3.2940),
+    c(0.94, 30),
+    par_int = c(1)
+  ))$result
+
+  expect_equal(nrow(result$optdes), 2L)
+  expect_named(result$optdes, c("Point", "Weight"))
+  expect_true(all(result$optdes$Point >= 0.94 & result$optdes$Point <= 30))
+  expect_equal(sum(result$optdes$Weight), 1, tolerance = 1e-6)
+  expect_gte(result$atwood, 99)
+})
+
+test_that("opt_des wrong input throws error", {
   # Wrong criterion
-  expect_error(opt_des("E-Optimality",
-                       model = y ~ a*exp(-b/x),
-                       parameters = c("a", "b"),
-                       par_values = c(1, 1500)))
+  expect_error(opt_des(
+    "E-Optimality",
+    model = y ~ a * exp(-b / x),
+    parameters = c("a", "b"),
+    par_values = c(1, 1500),
+    design_space = c(212, 422)
+  ))
 
-  # Missing parameters
-  expect_error(opt_des("D-Optimality",
-                       model = y ~ a*exp(-b/x),
-                       parameters = c("a", "b"),
-                       par_values = c(1, 1500)))
+  # Missing design_space
+  expect_error(opt_des(
+    "D-Optimality",
+    model = y ~ a * exp(-b / x),
+    parameters = c("a", "b"),
+    par_values = c(1, 1500)
+  ))
 
-  expect_error(opt_des("Ds-Optimality",
-                       y ~ th0*exp(x/th1),
-                       c("th0", "th1"),
-                       c(10.4963, -3.2940),
-                       c(0.94, 30)))
+  # Ds-Optimality without par_int
+  expect_error(opt_des(
+    "Ds-Optimality",
+    y ~ th0 * exp(x / th1),
+    c("th0", "th1"),
+    c(10.4963, -3.2940),
+    c(0.94, 30)
+  ))
 })

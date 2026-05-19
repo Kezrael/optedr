@@ -46,12 +46,13 @@ gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
 #'
 #' @return The information matrix of the design, a \eqn{k\times k} matrix where k is the length of the gradient.
 inf_mat <- function(grad, design) {
-  matrix_ret <- 0 * diag(length(grad(design$Point[[1]])))
-  for (i in seq_along(design$Weight)) {
-    f_col <- as.matrix(grad(design$Point[[i]]), nrow = 1, byrow = TRUE, dimnames = NULL)
-    matrix_ret <- matrix_ret + (t(f_col) %*% f_col) * design$Weight[[i]]
-  }
-  return(matrix_ret)
+  k <- length(grad(design$Point[[1]]))
+  # F_mat: k x n matrix, column i = gradient at point i
+  F_mat <- vapply(design$Point, function(x) as.vector(grad(x)), numeric(k))
+  # vapply returns a vector (not matrix) when k == 1; reshape to 1 x n
+  if (!is.matrix(F_mat)) F_mat <- matrix(F_mat, nrow = 1L)
+  # M = F diag(w) F^T = crossprod(sqrt(w) * F^T), uses LAPACK DSYRK internally
+  crossprod(sqrt(design$Weight) * t(F_mat))
 }
 
 # Sensibility Function ------------------------------------
@@ -99,7 +100,7 @@ sens <- function(Criterion, grad, M, par_int = c(1), matB = NA) {
 #' @inherit sens params return
 #'
 dsens <- function(grad, M) {
-  invMat <- solve(M)
+  invMat <- inv_spd(M)
   sens_ret <- function(xval) {
     f_col <- as.matrix(grad(xval), nrow = 1, ncol = 3, byrow = TRUE, dimnames = NULL)
     return(f_col %*% invMat %*% t(f_col))
@@ -116,11 +117,11 @@ dsens <- function(grad, M) {
 #' @inherit sens params return
 #'
 dssens <- function(grad, M, par_int) {
-  invMat <- solve(M)
+  invMat <- inv_spd(M)
   if (length(M[-par_int, -par_int]) == 1) {
     invMat22 <- 1 / M[-par_int, -par_int]
   } else {
-    invMat22 <- solve(M[-par_int, -par_int])
+    invMat22 <- inv_spd(M[-par_int, -par_int])
   }
   sens_ret <- function(xval) {
     f_col <- as.matrix(grad(xval), nrow = 1, byrow = TRUE, dimnames = NULL)
@@ -139,7 +140,7 @@ dssens <- function(grad, M, par_int) {
 #' @inherit sens params return
 #'
 isens <- function(grad, M, matB) {
-  invMat <- solve(M)
+  invMat <- inv_spd(M)
   sens_ret <- function(xval) {
     f_col <- as.matrix(grad(xval), nrow = 1, ncol = 3, byrow = TRUE, dimnames = NULL)
     return(f_col %*% invMat %*% matB %*% invMat %*% t(f_col))

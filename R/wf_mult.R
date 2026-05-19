@@ -29,6 +29,7 @@
 #' @param delta_weights numeric value in (0, 1), parameter of the algorithm.
 #' @param tol numeric value for the convergence of the weight optimizing algorithm.
 #' @param tol2 numeric value for the stop condition of the algorithm.
+#' @param max_iter maximum number of outer iterations of the cocktail algorithm.
 #'
 #' @return list correspondent to the output of the correspondent algorithm called, dependent on the criterion.
 #'   A list of two objects:
@@ -36,21 +37,21 @@
 #'   * sens: a plot with the sensitivity function to check for optimality of the design.
 #'
 #' @family cocktail algorithms
-WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
+WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter) {
   if (identical(criterion, "D-Optimality")) {
-    return(DWFMult(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2))
+    return(DWFMult(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter))
   }
   else if (identical(criterion, "Ds-Optimality")) {
-    return(DsWFMult(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2))
+    return(DsWFMult(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter))
   }
   else if (identical(criterion, "A-Optimality")) {
-    return(IWFMult(init_design, grad, diag(k), min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "A-Optimality"))
+    return(IWFMult(init_design, grad, diag(k), min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "A-Optimality", max_iter))
   }
   else if (identical(criterion, "I-Optimality")) {
-    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "I-Optimality"))
+    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "I-Optimality", max_iter))
   }
   else if (identical(criterion, "L-Optimality")) {
-    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "L-Optimality"))
+    return(IWFMult(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, "L-Optimality", max_iter))
   }
 }
 
@@ -58,21 +59,20 @@ WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA, min, m
 #' Cocktail Algorithm implementation for D-Optimality
 #'
 #' @description
-#' Function that calculates the DsOptimal design. The rest of the parameters can help the convergence of the
+#' Function that calculates the D-Optimal design. The rest of the parameters can help the convergence of the
 #' algorithm.
 #'
 #' @inherit WFMult return params examples
 #'
 #' @family cocktail algorithms
 #'
-DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2) {
+DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter) {
   Point <- NULL
-  crit_val <- numeric(2122)
+  maxiter_weights <- 100L
+  crit_val <- numeric(max_iter * (maxiter_weights + 1L) + 1L)
   index <- 1
-  # Maximum iterations for the optimize weights loop
-  maxiter <- 100
   cli::cli_progress_bar("Calculating optimal design")
-  for (i in 1:21) {
+  for (i in seq_len(max_iter)) {
     cli::cli_progress_update()
     M <- inf_mat(grad, init_design)
     crit_val[index] <- dcrit(M, k)
@@ -93,14 +93,14 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
       index <- index + 1
       sensM <- dsens(grad, M)
       init_design$Weight <- update_weights(init_design, sensM, k, delta_weights)
-      stopw <- any(max(abs(weightsInit - init_design$Weight) < tol)) || iter >= maxiter
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter_weights
       iter <- iter + 1
     }
     init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
       init_design <- update_design_total(init_design, join_thresh)
     }
-    if (i == 21) {
+    if (i == max_iter) {
       message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
@@ -119,18 +119,18 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
   atwood <- k / sensM(xmax) * 100
-
+  check_atwood(atwood)
   message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
 
   plot_opt <- plot_sens(min, max, sensM, k)
   l_return <- list(
     "optdes" = init_design, "convergence" = conv_plot,
-    "sens" = plot_opt, "criterion" = "D-Optimality", "crit_value" = crit_val[length(crit_val)]
+    "sens" = plot_opt, "criterion" = "D-Optimality", "crit_value" = crit_val[length(crit_val)],
+    "atwood" = atwood
   )
   attr(l_return, "hidden_value") <- k
   attr(l_return, "gradient") <- grad
-  attr(l_return, "atwood") <- atwood
-  attr(l_return, "crit_function") <- function(design){M <- inf_mat(grad, design); return(dcrit(M, k))}
+  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); return(dcrit(M, k)) }
   class(l_return) <- "optdes"
   l_return
 }
@@ -145,14 +145,13 @@ DWFMult <- function(init_design, grad, min, max, grid.length, join_thresh, delet
 #'
 #' @family cocktail algorithms
 #'
-DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2) {
+DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter) {
   Point <- NULL
-  crit_val <- numeric(2122)
+  maxiter_weights <- 100L
+  crit_val <- numeric(max_iter * (maxiter_weights + 1L) + 1L)
   index <- 1
-  # Maximum iterations for the optimize weights loop
-  maxiter <- 100
   cli::cli_progress_bar("Calculating optimal design")
-  for (i in 1:21) {
+  for (i in seq_len(max_iter)) {
     cli::cli_progress_update()
     M <- inf_mat(grad, init_design)
     crit_val[index] <- dscrit(M, par_int)
@@ -173,14 +172,14 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
       M <- inf_mat(grad, init_design)
       sensDs <- dssens(grad, M, par_int)
       init_design$Weight <- update_weightsDS(init_design, sensDs, length(par_int), delta_weights)
-      stopw <- any(max(abs(weightsInit - init_design$Weight)) < tol) || iter >= maxiter
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter_weights
       iter <- iter + 1
     }
     init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
       init_design <- update_design_total(init_design, join_thresh)
     }
-    if (i == 21) {
+    if (i == max_iter) {
       message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
@@ -198,19 +197,18 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
   atwood <- (2 - sensM(xmax) / length(par_int)) * 100
-
+  check_atwood(atwood)
   message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
-
 
   plot_opt <- plot_sens(min, max, sensDs, length(par_int))
   l_return <- list(
     "optdes" = init_design, "convergence" = conv_plot,
-    "sens" = plot_opt, "criterion" = "Ds-Optimality", "crit_value" = crit_val[length(crit_val)]
+    "sens" = plot_opt, "criterion" = "Ds-Optimality", "crit_value" = crit_val[length(crit_val)],
+    "atwood" = atwood
   )
   attr(l_return, "hidden_value") <- par_int
   attr(l_return, "gradient") <- grad
-  attr(l_return, "atwood") <- atwood
-  attr(l_return, "crit_function") <- function(design){M <- inf_mat(grad, design);return(dscrit(M, par_int))}
+  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); return(dscrit(M, par_int)) }
   class(l_return) <- "optdes"
   l_return
 }
@@ -227,14 +225,13 @@ DsWFMult <- function(init_design, grad, par_int, min, max, grid.length, join_thr
 #'
 #' @family cocktail algorithms
 #'
-IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, criterion) {
+IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh, delete_thresh, delta_weights, tol, tol2, criterion, max_iter) {
   Point <- NULL
-  crit_val <- numeric(2122)
+  maxiter_weights <- 100L
+  crit_val <- numeric(max_iter * (maxiter_weights + 1L) + 1L)
   index <- 1
-  # Maximum iterations for the optimize weights loop
-  maxiter <- 100
   cli::cli_progress_bar("Calculating optimal design")
-  for (i in 1:21) {
+  for (i in seq_len(max_iter)) {
     cli::cli_progress_update()
     M <- inf_mat(grad, init_design)
     crit_val[index] <- icrit(M, matB)
@@ -256,14 +253,14 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
       index <- index + 1
       sensI <- isens(grad, M, matB)
       init_design$Weight <- update_weightsI(init_design, sensI, crit, delta_weights)
-      stopw <- any(max(abs(weightsInit - init_design$Weight)) < tol) || iter >= maxiter
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter_weights
       iter <- iter + 1
     }
     init_design <- delete_points(init_design, delete_thresh)
     if (i %% 5 == 0) {
       init_design <- update_design_total(init_design, join_thresh)
     }
-    if (i == 21) {
+    if (i == max_iter) {
       message("\n", crayon::blue(cli::symbol$info), " Stop condition not reached, max iterations performed")
     }
   }
@@ -277,25 +274,23 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
   init_design <- dplyr::arrange(init_design, Point)
   rownames(init_design) <- NULL
 
-
   M <- inf_mat(grad, init_design)
   sensM <- isens(grad, M, matB)
   xmax <- findmax(sensM, min, max, grid.length * 10)
 
   atwood <- (2 - sensM(xmax) / icrit(M, matB)) * 100
-
+  check_atwood(atwood)
   message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
-
 
   plot_opt <- plot_sens(min, max, sensI, icrit(M, matB))
   l_return <- list(
     "optdes" = init_design, "convergence" = conv_plot,
-    "sens" = plot_opt, "criterion" = criterion, "crit_value" = crit_val[length(crit_val)]
+    "sens" = plot_opt, "criterion" = criterion, "crit_value" = crit_val[length(crit_val)],
+    "atwood" = atwood
   )
   attr(l_return, "hidden_value") <- matB
   attr(l_return, "gradient") <- grad
-  attr(l_return, "atwood") <- atwood
-  attr(l_return, "crit_function") <- function(design){M <- inf_mat(grad, design);return(icrit(M, matB))}
+  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); return(icrit(M, matB)) }
   class(l_return) <- "optdes"
   l_return
 }
@@ -335,7 +330,7 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #' @param par_int optional numeric vector with the index of the \code{parameters} of interest for Ds-optimality.
 #' @param matB optional matrix of dimensions k x k, for L-optimality.
 #' @param reg_int optional numeric vector of two components with the bounds of the interest region for I-Optimality.
-#' @param desired_output not functional yet: decide which kind of output you want.
+#' @param max_iter optional integer with the maximum number of outer iterations of the cocktail algorithm.
 #' @param distribution character variable specifying the probability distribution of the response. Can be one of the following:
 #'   * 'Homoscedasticity'
 #'   * 'Gamma', which can be used for exponential or normal heteroscedastic with constant relative error
@@ -344,9 +339,13 @@ IWFMult <- function(init_design, grad, matB, min, max, grid.length, join_thresh,
 #'   * 'Log-Normal' (work in progress)
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.
 #'
-#' @return a list of two objects:
-#'   * optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
-#'   * sens: a plot with the sensitivity function to check for optimality of the design.
+#' @return a list with the following components:
+#'   * \code{optdes}: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
+#'   * \code{sens}: a ggplot of the sensitivity function to check optimality via the Equivalence Theorem.
+#'   * \code{convergence}: a ggplot of the criterion value over algorithm iterations.
+#'   * \code{criterion}: the criterion used.
+#'   * \code{crit_value}: the criterion value at the optimal design.
+#'   * \code{atwood}: lower bound on the efficiency of the design (Atwood, 1976).
 #' @export
 #'
 #' @examples
@@ -363,7 +362,7 @@ opt_des <- function(criterion, model, parameters,
                     par_int = NULL,
                     matB = NULL,
                     reg_int = NULL,
-                    desired_output = c(1, 2),
+                    max_iter = 21L,
                     distribution = NA,
                     weight_fun = function(x) 1) {
   k <- length(parameters)
@@ -373,9 +372,12 @@ opt_des <- function(criterion, model, parameters,
   if (is.null(init_design)) init_design <- data.frame("Point" = seq(design_space[[1]], design_space[[2]], length.out = k * (k + 1) / 2 + 1), "Weight" = rep(1 / (k * (k + 1) / 2 + 1), times = k * (k + 1) / 2 + 1))
   check_inputs(
     criterion, model, parameters, par_values, design_space, init_design, join_thresh, delete_thresh,
-    delta, tol, tol2, par_int, matB, reg_int, desired_output, weight_fun
+    delta, tol, tol2, par_int, matB, reg_int, weight_fun
   )
   if (design_space[1] > design_space[2]) design_space <- rev(design_space)
+  if (!is.na(distribution)) {
+    weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+  }
   grad <- gradient(model, parameters, par_values, weight_fun)
   if (join_thresh == -1) join_thresh <- (design_space[[2]] - design_space[[1]]) / 10
   if (identical(criterion, "I-Optimality")) {
@@ -384,14 +386,8 @@ opt_des <- function(criterion, model, parameters,
     }
   }
 
-  if(!is.na(distribution)){
-    weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
-  }
-
-  output <- WFMult(init_design, grad, criterion, par_int = par_int, matB, design_space[[1]], design_space[[2]], 1000, join_thresh, delete_thresh, k, delta, tol, tol2)
+  output <- WFMult(init_design, grad, criterion, par_int = par_int, matB, design_space[[1]], design_space[[2]], 1000, join_thresh, delete_thresh, k, delta, tol, tol2, max_iter)
   attr(output, "model") <- model
   attr(output, "weight_fun") <- weight_fun
   return(output)
 }
-
-

@@ -19,7 +19,7 @@ opt_des(
   par_int = NULL,
   matB = NULL,
   reg_int = NULL,
-  desired_output = c(1, 2),
+  max_iter = 21L,
   distribution = NA,
   weight_fun = function(x) 1
 )
@@ -67,7 +67,7 @@ and optimality criterion.}
 
 \item{reg_int}{optional numeric vector of two components with the bounds of the interest region for I-Optimality.}
 
-\item{desired_output}{not functional yet: decide which kind of output you want.}
+\item{max_iter}{optional integer with the maximum number of outer iterations of the cocktail algorithm.}
 
 \item{distribution}{character variable specifying the probability distribution of the response. Can be one of the following:
 \itemize{
@@ -81,10 +81,14 @@ and optimality criterion.}
 \item{weight_fun}{optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.}
 }
 \value{
-a list of two objects:
+a list with the following components:
 \itemize{
-\item optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
-\item sens: a plot with the sensitivity function to check for optimality of the design.
+\item \code{optdes}: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
+\item \code{sens}: a ggplot of the sensitivity function to check optimality via the Equivalence Theorem.
+\item \code{convergence}: a ggplot of the criterion value over algorithm iterations.
+\item \code{criterion}: the criterion used.
+\item \code{crit_value}: the criterion value at the optimal design.
+\item \code{atwood}: lower bound on the efficiency of the design (Atwood, 1976).
 }
 }
 \description{

@@ -29,54 +29,56 @@
 #'   * 'Poisson'
 #'   * 'Logistic'
 #'   * 'Log-Normal' (work in progress)
+#' @param delta_val optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
+#'   the user is prompted interactively. Providing this value enables non-interactive use.
+#' @param new_points optional dataframe with \code{Point} and \code{Weight} columns specifying the points
+#'   to add. All points must lie within the candidate region determined by \code{delta_val}. If \code{NULL}
+#'   (default), the user is prompted interactively.
 #'
-#'
-#' @return A dataframe that represents the D-augmented design
+#' @return A dataframe that represents the augmented design
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-#' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-#' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
-augment_design <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NULL, distribution = NA, weight_fun = function(x) 1) {
-  # oldw <- getOption("warn")
-  # options(warn = -1)
-  if(interactive()){
-    if(!is.na(distribution)){
-      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
-
-        # dplyr::case_when(criterion == "D-Optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
-        #                                    criterion == "A-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
-        #                                    criterion == "I-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
-        #                                    criterion == "Ds-Optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun),
-        #                                    TRUE ~ NA)
-    }
-    # else {
-    #
-    #   augmented_design <- dplyr::case_when(criterion == "D-Optimality" ~ daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
-    #                                        criterion == "A-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
-    #                                        criterion == "I-Optimality" ~ laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
-    #                                        criterion == "Ds-Optimality" ~ dsaugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f),
-    #                                        TRUE ~ NA)
-    # }
-    if(criterion == "D-Optimality"){
-      augmented_design <- daugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun)
-    } else if(criterion == "A-Optimality"){
-      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
-    } else if(criterion == "I-Optimality"){
-      grad <- gradient(model, parameters, par_values, weight_fun)
-      matB <- integrate_reg_int(grad, length(parameters), design_space)
-      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
-    } else if(criterion == "L-Optimality"){
-      augmented_design <- laugment_design(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
-    } else if(criterion == "Ds-Optimality"){
-      augmented_design <- dsaugment_design(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
-    } else return(NA)
-    return(augmented_design)
+#' region <- get_augment_region("D-Optimality", init_des, 0.25,
+#'   y ~ 10^(a - b/(c + x)), c("a", "b", "c"),
+#'   c(8.07131, 1730.63, 233.426), c(1, 100), FALSE, delta_val = 0.85)
+#' new_pts <- data.frame(Point = mean(region[1:2]), Weight = 1)
+#' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a - b/(c + x)),
+#'   c("a", "b", "c"), c(8.07131, 1730.63, 233.426), c(1, 100), FALSE,
+#'   delta_val = 0.85, new_points = new_pts)
+#' }
+augment_design <- function(criterion, init_design, alpha, model, parameters, par_values,
+                           design_space, calc_optimal_design,
+                           par_int = NA, matB = NULL, distribution = NA,
+                           weight_fun = function(x) 1,
+                           delta_val = NULL, new_points = NULL) {
+  if (!is.na(distribution)) {
+    weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
-  return(NA)
+  if (criterion == "D-Optimality") {
+    daugment_design(init_design, alpha, model, parameters, par_values, design_space,
+                    calc_optimal_design, weight_fun, delta_val = delta_val, new_points = new_points)
+  } else if (criterion == "A-Optimality") {
+    laugment_design(init_design, alpha, model, parameters, par_values, design_space,
+                    calc_optimal_design, matB = diag(length(parameters)), weight_fun,
+                    delta_val = delta_val, new_points = new_points)
+  } else if (criterion == "I-Optimality") {
+    grad <- gradient(model, parameters, par_values, weight_fun)
+    matB <- integrate_reg_int(grad, length(parameters), design_space)
+    laugment_design(init_design, alpha, model, parameters, par_values, design_space,
+                    calc_optimal_design, matB, weight_fun, delta_val = delta_val, new_points = new_points)
+  } else if (criterion == "L-Optimality") {
+    laugment_design(init_design, alpha, model, parameters, par_values, design_space,
+                    calc_optimal_design, matB, weight_fun, delta_val = delta_val, new_points = new_points)
+  } else if (criterion == "Ds-Optimality") {
+    dsaugment_design(init_design, alpha, model, parameters, par_values, par_int, design_space,
+                     calc_optimal_design, weight_fun, delta_val = delta_val, new_points = new_points)
+  } else {
+    stop("Invalid criterion. Choose from: D-Optimality, Ds-Optimality, A-Optimality, ",
+         "I-Optimality, L-Optimality", call. = FALSE)
+  }
 }
 
 
@@ -110,55 +112,178 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'   * 'Poisson'
 #'   * 'Logistic'
 #'   * 'Log-Normal' (work in progress)
-#'
+#' @param delta_val optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
+#'   the user is prompted interactively. Providing this value enables non-interactive use.
 #'
 #' @return A vector of the points limiting the candidate points region
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
-#' get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-#' get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
-get_augment_region <- function(criterion, init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int = NA, matB = NA, distribution = NA, weight_fun = function(x) 1) {
-  if(interactive()){
-    if(!is.na(distribution)){
-      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
-      # augment_region <- dplyr::case_when(criterion == "D-Optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun),
-      #                                      criterion == "A-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun),
-      #                                      criterion == "I-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun),
-      #                                      criterion == "Ds-Optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_fun))
-    }
-    # else {
-    #   weight_f <- weight_function(model, char_vars, values, distribution = distribution)
-    #   augment_region <- dplyr::case_when(criterion == "D-Optimality" ~ get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_f),
-    #                                        criterion == "A-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_f),
-    #                                        criterion == "I-Optimality" ~ get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_f),
-    #                                        criterion == "Ds-Optimality" ~ get_dsaugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, par_int, weight_f))
-    # }
-    if(criterion == "D-Optimality"){
-      augment_region <- get_daugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun)
-    } else if(criterion == "A-Optimality"){
-      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB = diag(length(parameters)), weight_fun)
-    } else if(criterion == "I-Optimality"){
-      grad <- gradient(model, parameters, par_values, weight_fun)
-      matB <- integrate_reg_int(grad, length(parameters), design_space)
-      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
-    }  else if(criterion == "L-Optimality"){
-      augment_region <- get_laugment_region(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun)
-    } else if(criterion == "Ds-Optimality"){
-      augment_region <- get_dsaugment_region(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun)
-    } else return(NA)
-    return(augment_region)
+#' get_augment_region("D-Optimality", init_des, 0.25, y ~ 10^(a - b/(c + x)),
+#'   c("a", "b", "c"), c(8.07131, 1730.63, 233.426), c(1, 100), FALSE,
+#'   delta_val = 0.85)
+#' }
+get_augment_region <- function(criterion, init_design, alpha, model, parameters, par_values,
+                               design_space, calc_optimal_design,
+                               par_int = NA, matB = NA, distribution = NA,
+                               weight_fun = function(x) 1,
+                               delta_val = NULL) {
+  if (!is.na(distribution)) {
+    weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
-  return(NA)
+  if (criterion == "D-Optimality") {
+    get_daugment_region(init_design, alpha, model, parameters, par_values, design_space,
+                        calc_optimal_design, weight_fun, delta_val = delta_val)
+  } else if (criterion == "A-Optimality") {
+    get_laugment_region(init_design, alpha, model, parameters, par_values, design_space,
+                        calc_optimal_design, matB = diag(length(parameters)), weight_fun,
+                        delta_val = delta_val)
+  } else if (criterion == "I-Optimality") {
+    grad <- gradient(model, parameters, par_values, weight_fun)
+    matB <- integrate_reg_int(grad, length(parameters), design_space)
+    get_laugment_region(init_design, alpha, model, parameters, par_values, design_space,
+                        calc_optimal_design, matB, weight_fun, delta_val = delta_val)
+  } else if (criterion == "L-Optimality") {
+    get_laugment_region(init_design, alpha, model, parameters, par_values, design_space,
+                        calc_optimal_design, matB, weight_fun, delta_val = delta_val)
+  } else if (criterion == "Ds-Optimality") {
+    get_dsaugment_region(init_design, alpha, model, parameters, par_values, par_int,
+                         design_space, calc_optimal_design, weight_fun, delta_val = delta_val)
+  } else {
+    stop("Invalid criterion. Choose from: D-Optimality, Ds-Optimality, A-Optimality, ",
+         "I-Optimality, L-Optimality", call. = FALSE)
+  }
 }
 
 
+# --- Private helpers for interactive augmentation ---------------------------
+
+# Prompts the user to choose a delta value within [delta_range[1], delta_range[2]].
+# If delta_val is provided, validates it and returns it directly (non-interactive mode).
+# Returns the chosen value, or NULL after 1000 failed interactive attempts.
+ask_delta <- function(delta_range, delta_val = NULL) {
+  if (!is.null(delta_val)) {
+    if (delta_val < delta_range[[1]] || delta_val > delta_range[[2]])
+      stop("delta_val (", round(delta_val, 4), ") is outside the valid range [",
+           round(delta_range[[1]], 4), ", ", round(delta_range[[2]], 4), "].", call. = FALSE)
+    return(delta_val)
+  }
+  if (!interactive())
+    stop("Supply delta_val for non-interactive use.", call. = FALSE)
+  val <- -Inf
+  eval_count <- 0
+  while (val < delta_range[[1]] || val > delta_range[[2]]) {
+    val <- suppressWarnings(as.numeric(readline(prompt = paste(
+      "Choose a value for the minimum relative efficiency between",
+      crayon::magenta(ceiling(delta_range[[1]] * 100) / 100), "and",
+      crayon::magenta(floor(delta_range[[2]] * 100) / 100), ": \n"
+    ))))
+    if (is.na(val)) {
+      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
+      val <- -Inf
+    } else if (val < delta_range[[1]] || val > delta_range[[2]]) {
+      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
+    }
+    eval_count <- eval_count + 1
+    if (eval_count > 1000) return(NULL)
+  }
+  val
+}
+
+# Builds the augment region plot: efficiency curve, candidate region segments,
+# crosspoints, and the delta range bar.
+plot_augment_region <- function(eff_fun, cross, delta_range, cand_points_reg, design_space) {
+  x_value <- eff <- NULL
+  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
+  y_val <- purrr::map_dbl(x_val, eff_fun)
+  efficiency <- eff_fun(cross[[1]])
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
+    ggplot2::geom_hline(yintercept = efficiency, color = "goldenrod3") +
+    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
+    ggplot2::labs(x = "x", y = "Efficiency") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.border = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   axis.line = ggplot2::element_line(colour = "black"))
+  for (i in 1:(length(cand_points_reg) / 2)) {
+    p <- p + ggplot2::annotate("segment", x = cand_points_reg[2*i-1], xend = cand_points_reg[2*i],
+                               y = efficiency, yend = efficiency, linewidth = 1.5, color = "green3")
+  }
+  cutoffpoints <- data.frame("x_value" = cross, "eff" = purrr::map_dbl(cross, eff_fun))
+  p +
+    ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff),
+                        shape = 16, size = 2, color = "firebrick3") +
+    ggplot2::annotate("segment", x = design_space[[1]], xend = design_space[[1]],
+                      y = delta_range[1], yend = delta_range[2],
+                      colour = "mediumpurple2", linewidth = 1.5)
+}
+
+# Selects new points from the candidate region, either from new_points (non-interactive)
+# or via readline prompts (interactive). Returns a data.frame with Point and Weight columns.
+select_new_points <- function(cand_points_reg, design_space, new_points = NULL) {
+  n_regions <- length(cand_points_reg) / 2
+  in_region <- function(pt) any(vapply(seq_len(n_regions), function(i)
+    pt >= cand_points_reg[2*i-1] & pt <= cand_points_reg[2*i], logical(1)))
+  if (!is.null(new_points)) {
+    if (!is.data.frame(new_points) || !identical(names(new_points), c("Point", "Weight")))
+      stop("new_points must be a data.frame with 'Point' and 'Weight' columns.", call. = FALSE)
+    if (any(new_points$Weight <= 0))
+      stop("All weights in new_points must be positive.", call. = FALSE)
+    out_space <- new_points$Point < design_space[[1]] | new_points$Point > design_space[[2]]
+    if (any(out_space))
+      stop("Points outside the design space [", design_space[[1]], ", ", design_space[[2]], "]: ",
+           paste(round(new_points$Point[out_space], 4), collapse = ", "), call. = FALSE)
+    bad <- !vapply(new_points$Point, in_region, logical(1))
+    if (any(bad))
+      stop("Points outside the candidate region for the chosen efficiency: ",
+           paste(round(new_points$Point[bad], 4), collapse = ", "), call. = FALSE)
+    return(new_points)
+  }
+  if (!interactive())
+    stop("Supply new_points for non-interactive use.", call. = FALSE)
+  cutoff_text <- paste(
+    vapply(seq_len(n_regions), function(i)
+      paste0("[", ceiling(cand_points_reg[2*i-1] * 100) / 100, "-",
+             floor(cand_points_reg[2*i] * 100) / 100, "]"),
+      character(1)),
+    collapse = ", ")
+  result <- data.frame(Point = double(), Weight = double())
+  point_to_add <- -1
+  while (!is.na(point_to_add)) {
+    cat("The region(s) are ", crayon::green(cutoff_text))
+    point_to_add <- suppressWarnings(as.numeric(
+      readline(prompt = "Choose a point to add or enter another character to finish: \n")
+    ))
+    if (!is.na(point_to_add)) {
+      if (in_region(point_to_add)) {
+        weight_ok <- FALSE
+        while (!weight_ok) {
+          weight_to_add <- suppressWarnings(as.numeric(
+            readline(prompt = "Choose the weight of the point: \n")
+          ))
+          if (is.na(weight_to_add)) {
+            cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
+          } else if (weight_to_add <= 0) {
+            cat(crayon::red(cli::symbol$cross), "The weight must be positive")
+          } else {
+            result[nrow(result) + 1, ] <- c(point_to_add, weight_to_add)
+            weight_ok <- TRUE
+          }
+        }
+      } else {
+        cat(crayon::red(cli::symbol$cross), "The point is outside the candidate points region \n")
+      }
+    }
+  }
+  result
+}
 
 
-
+# --- Criterion-specific augment functions -----------------------------------
 
 #' D-Augment Design
 #'
@@ -172,143 +297,38 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
 #'
 #' @family augment designs
 #'
-daugment_design <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-  x_value <- NULL
+daugment_design <- function(init_design, alpha, model, parameters, par_values, design_space,
+                            calc_optimal_design, weight_fun = function(x) 1,
+                            delta_val = NULL, new_points = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
-  min_sens <- findminval(sens_1, design_space[[1]], design_space[[2]], 10000)
-  max_sens <- findmaxval(sens_1, design_space[[1]], design_space[[2]], 10000)
-  min_eff <- -(-1 + alpha)*((-1 + alpha - min_sens*alpha)/(-1 + alpha))^(1/length(parameters))
-  max_eff <- -(-1 + alpha)*((-1 + alpha - max_sens*alpha)/(-1 + alpha))^(1/length(parameters))
-  if(calc_optimal_design){
+  eff_fun <- function(x) (1 - alpha) * (1 + alpha * sens_1(x) / (1 - alpha))^(1 / length(parameters))
+  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("D-Optimality", model, parameters, par_values, design_space, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
-    eff_1 <- (det(inf_mat_1) / det(inf_mat_opt))^(1 / length(parameters))*100
+    eff_1 <- (det(inf_mat_1) / det(inf_mat_opt))^(1 / length(parameters)) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_eff, max_eff)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
-  val_to_add <- ((1 - alpha)/alpha*((delta_val/(1 - alpha))^length(parameters) - 1))
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
+  val_to_add <- (1 - alpha) / alpha * ((delta_val / (1 - alpha))^length(parameters) - 1)
   cross <- sort(crosspoints(val_to_add, sens_1, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], val_to_add, sens_1)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  eff <- function(x){
-    return((1 - alpha) * (1 + alpha * sens_1(x)/(1 - alpha))^(1 / length(parameters)))
-  }
-  y_val <- purrr::map_dbl(x_val, eff)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  eff(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                                                        panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- eff(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, eff)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  cutoff_text <- ""
-  for(i in 1:(length(cand_points_reg)/2)){
-    if(i != 1){
-      cutoff_text <- paste0(cutoff_text, ", [", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-    else {
-      cutoff_text <- paste0(cutoff_text, "[", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-
-  }
-
-  new_points <- data.frame(Point = double(), Weight = double())
-
-  point_to_add <- -1
-  while(!is.na(point_to_add)){
-    cat("The region(s) are ", crayon::green(cutoff_text))
-    point_to_add <- suppressWarnings(as.numeric(readline(prompt="Choose a point to add or enter another character to finish: \n")))
-    if(!is.na(point_to_add)){
-      in_cand_reg <- F
-      for(i in 1:(length(cand_points_reg)/2)){
-        if(point_to_add >= cand_points_reg[2*i-1] & point_to_add <= cand_points_reg[2*i]){
-          in_cand_reg <- T
-          break
-        }
-      }
-      if(in_cand_reg){
-        weight_ok <- 0
-        while(weight_ok == 0){
-          weight_to_add <- suppressWarnings(as.numeric(readline(prompt = "Choose the weight of the point: \n")))
-          if(is.na(weight_to_add)){
-            cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
-          }
-          else if(weight_to_add <= 0){
-            cat(crayon::red(cli::symbol$cross), "The weight must be positive")
-          }
-          else {
-            new_points[nrow(new_points) + 1,] = c(point_to_add, weight_to_add)
-            weight_ok <- 1
-          }
-        }
-      }
-      else{
-        cat(crayon::red(cli::symbol$cross), "The point is outside the candidate points region \n")
-      }
-    }
-  }
-  if(nrow(new_points > 0)){
-    aug_design <- add_design(init_design, new_points, alpha)
-  }
-  else{
-    aug_design <- init_design
-  }
-
-  # options(warn = oldw)
-  if(calc_optimal_design){
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], val_to_add, sens_1),
+                               getPar(cross))
+  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
+  pts <- select_new_points(cand_points_reg, design_space, new_points)
+  aug_design <- if (nrow(pts) > 0) add_design(init_design, pts, alpha) else init_design
+  if (calc_optimal_design) {
     inf_mat_aug <- inf_mat(grad, aug_design)
-    eff_2 <- (det(inf_mat_aug) / det(inf_mat_opt))^(1 / length(parameters))*100
+    eff_2 <- (det(inf_mat_aug) / det(inf_mat_opt))^(1 / length(parameters)) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the augmented design is ", round(eff_2, digits = 2), "%")
   }
-
-  return(aug_design)
+  aug_design
 }
-
 
 
 #' L-Augment Design
@@ -324,145 +344,46 @@ daugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' @return A dataframe that represents the L-augmented design
 #'
 #' @examples
+#' \dontrun{
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 #' augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), TRUE)
-#' augment_design("I-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), FALSE)
+#' }
 #'
 #' @family augment designs
 #'
-laugment_design <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun = function(x) 1) {
-  x_value <- NULL
+laugment_design <- function(init_design, alpha, model, parameters, par_values, design_space,
+                            calc_optimal_design, matB, weight_fun = function(x) 1,
+                            delta_val = NULL, new_points = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   dsens_1 <- dsens(grad, inf_mat_1)
   isens_1 <- isens(grad, inf_mat_1, matB)
   crit_1 <- icrit(inf_mat_1, matB)
-  eff_fun <- function(x) (1-alpha)*(crit_1/(crit_1 - alpha*isens_1(x)/ (1-alpha+alpha*dsens_1(x))))
-  min_eff <- findminval(eff_fun, design_space[[1]], design_space[[2]], 10000)
-  max_eff <- findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000)
-  if(calc_optimal_design){
+  eff_fun <- function(x) (1 - alpha) * (crit_1 / (crit_1 - alpha * isens_1(x) / (1 - alpha + alpha * dsens_1(x))))
+  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("L-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
-    eff_1 <- (tr(matB %*% solve(inf_mat_opt)) / tr(matB %*% solve(inf_mat_1))) * 100
+    eff_1 <- (tr(matB %*% inv_spd(inf_mat_opt)) / tr(matB %*% inv_spd(inf_mat_1))) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_eff, max_eff)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < min_eff || delta_val > max_eff){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
   cross <- sort(crosspoints(delta_val, eff_fun, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], delta_val, eff_fun)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  y_val <- purrr::map_dbl(x_val, eff_fun)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  eff_fun(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- eff_fun(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, eff_fun)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  cutoff_text <- ""
-  for(i in 1:(length(cand_points_reg)/2)){
-    if(i != 1){
-      cutoff_text <- paste0(cutoff_text, ", [", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-    else {
-      cutoff_text <- paste0(cutoff_text, "[", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-
-  }
-
-  new_points <- data.frame(Point = double(), Weight = double())
-
-  point_to_add <- -1
-  while(!is.na(point_to_add)){
-    cat("The region(s) are ", crayon::green(cutoff_text))
-    point_to_add <- suppressWarnings(as.numeric(readline(prompt="Choose a point to add or enter another character to finish: \n")))
-    if(!is.na(point_to_add)){
-      in_cand_reg <- F
-      for(i in 1:(length(cand_points_reg)/2)){
-        if(point_to_add >= cand_points_reg[2*i-1] & point_to_add <= cand_points_reg[2*i]){
-          in_cand_reg <- T
-          break
-        }
-      }
-      if(in_cand_reg){
-        weight_ok <- 0
-        while(weight_ok == 0){
-          weight_to_add <- suppressWarnings(as.numeric(readline(prompt = "Choose the weight of the point: \n")))
-          if(is.na(weight_to_add)){
-            cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
-          }
-          else if(weight_to_add <= 0){
-            cat(crayon::red(cli::symbol$cross), "The weight must be positive")
-          }
-          else {
-            new_points[nrow(new_points) + 1,] = c(point_to_add, weight_to_add)
-            weight_ok <- 1
-          }
-        }
-      }
-      else{
-        cat(crayon::red(cli::symbol$cross), "The point is outside the candidate points region \n")
-      }
-    }
-  }
-  if(nrow(new_points > 0)){
-    aug_design <- add_design(init_design, new_points, alpha)
-  }
-  else{
-    aug_design <- init_design
-  }
-
-  # options(warn = oldw)
-  if(calc_optimal_design){
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], delta_val, eff_fun),
+                               getPar(cross))
+  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
+  pts <- select_new_points(cand_points_reg, design_space, new_points)
+  aug_design <- if (nrow(pts) > 0) add_design(init_design, pts, alpha) else init_design
+  if (calc_optimal_design) {
     inf_mat_aug <- inf_mat(grad, aug_design)
-    eff_2 <- (tr(matB %*% solve(inf_mat_opt)) / tr(matB %*% solve(inf_mat_aug))) * 100
+    eff_2 <- (tr(matB %*% inv_spd(inf_mat_opt)) / tr(matB %*% inv_spd(inf_mat_aug))) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the augmented design is ", round(eff_2, digits = 2), "%")
   }
-
-  return(aug_design)
+  aug_design
 }
 
 
@@ -479,159 +400,55 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
 #' @return A dataframe that represents the Ds-augmented design
 #'
 #' @examples
+#' \dontrun{
 #' init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 #' augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
 #'   c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), TRUE)
-#' augment_design("Ds-Optimality", init_des, 0.25, y ~ 10^(a-b/(c+x)), c("a","b","c"),
-#'   c(8.07131,  1730.63, 233.426), c(1, 100), par_int = c(1), FALSE)
+#' }
 #'
 #' @family augment designs
 #'
-dsaugment_design <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-  x_value <- NULL
+dsaugment_design <- function(init_design, alpha, model, parameters, par_values, par_int,
+                             design_space, calc_optimal_design, weight_fun = function(x) 1,
+                             delta_val = NULL, new_points = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   grad22 <- gradient22(model, parameters, par_values, par_int, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   inf_mat_22 <- inf_mat(grad22, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
   sens_22 <- dsens(grad22, inf_mat_22)
-  # dssens_1 <- dssens(grad, inf_mat_1, par_int)
-  dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1/length(par_int))
-  min_sens <- findminval(dseff, design_space[[1]], design_space[[2]], 10000)
-  max_sens <- findmaxval(dseff, design_space[[1]], design_space[[2]], 10000)
-  if(calc_optimal_design){
+  dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1 / length(par_int))
+  delta_range <- c(findminval(dseff, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(dseff, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("Ds-Optimality", model, parameters, par_values, design_space, par_int = par_int, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
     if (length(inf_mat_1[-par_int, -par_int]) == 1) {
-      eff_1 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_1[-par_int, -par_int] / det(inf_mat_1)))^(1 / length(par_int))*100
+      eff_1 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_1[-par_int, -par_int] / det(inf_mat_1)))^(1 / length(par_int)) * 100
     } else {
-      eff_1 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_1[-par_int, -par_int]) / det(inf_mat_1)))^(1 / length(par_int))*100
+      eff_1 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_1[-par_int, -par_int]) / det(inf_mat_1)))^(1 / length(par_int)) * 100
     }
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_sens, max_sens)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
   cross <- sort(crosspoints(delta_val, dseff, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-  # val_to_add <- sens_val_to_add(delta_val, alpha, length(parameters))
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], delta_val, dseff)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  # eff <- function(x){
-  #   return((1 - alpha) * (1 + alpha * sens_1(x)/(1 - alpha))^(1 / length(parameters)))
-  # }
-  y_val <- purrr::map_dbl(x_val, dseff)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  dseff(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- dseff(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, dseff)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  cutoff_text <- ""
-  for(i in 1:(length(cand_points_reg)/2)){
-    if(i != 1){
-      cutoff_text <- paste0(cutoff_text, ", [", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-    else {
-      cutoff_text <- paste0(cutoff_text, "[", ceiling(cand_points_reg[2*i-1]*100)/100, "-", floor(cand_points_reg[2*i]*100)/100, "]")
-    }
-
-  }
-
-  new_points <- data.frame(Point = double(), Weight = double())
-
-  point_to_add <- -1
-  while(!is.na(point_to_add)){
-    cat("The region(s) are ", crayon::green(cutoff_text))
-    point_to_add <- suppressWarnings(as.numeric(readline(prompt="Choose a point to add or enter another character to finish: \n")))
-    if(!is.na(point_to_add)){
-      in_cand_reg <- F
-      for(i in 1:(length(cand_points_reg)/2)){
-        if(point_to_add >= cand_points_reg[2*i-1] & point_to_add <= cand_points_reg[2*i]){
-          in_cand_reg <- T
-          break
-        }
-      }
-      if(in_cand_reg){
-        weight_ok <- 0
-        while(weight_ok == 0){
-          weight_to_add <- suppressWarnings(as.numeric(readline(prompt = "Choose the weight of the point: \n")))
-          if(is.na(weight_to_add)){
-            cat(crayon::red(cli::symbol$cross), "The weight must be a positive number")
-          }
-          else if(weight_to_add <= 0){
-            cat(crayon::red(cli::symbol$cross), "The weight must be positive")
-          }
-          else {
-            new_points[nrow(new_points) + 1,] = c(point_to_add, weight_to_add)
-            weight_ok <- 1
-          }
-        }
-      }
-      else{
-        cat(crayon::red(cli::symbol$cross), "The point is outside the candidate points region \n")
-      }
-    }
-  }
-  if(nrow(new_points > 0)){
-    aug_design <- add_design(init_design, new_points, alpha)
-  }
-  else{
-    aug_design <- init_design
-  }
-
-  # options(warn = oldw)
-  if(calc_optimal_design){
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], delta_val, dseff),
+                               getPar(cross))
+  plot(plot_augment_region(dseff, cross, delta_range, cand_points_reg, design_space))
+  pts <- select_new_points(cand_points_reg, design_space, new_points)
+  aug_design <- if (nrow(pts) > 0) add_design(init_design, pts, alpha) else init_design
+  if (calc_optimal_design) {
     inf_mat_aug <- inf_mat(grad, aug_design)
     if (length(inf_mat_aug[-par_int, -par_int]) == 1) {
-      eff_2 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_aug[-par_int, -par_int] / det(inf_mat_aug)))^(1 / length(par_int))*100
+      eff_2 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_aug[-par_int, -par_int] / det(inf_mat_aug)))^(1 / length(par_int)) * 100
     } else {
-      eff_2 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_aug[-par_int, -par_int]) / det(inf_mat_aug)))^(1 / length(par_int))*100
+      eff_2 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_aug[-par_int, -par_int]) / det(inf_mat_aug)))^(1 / length(par_int)) * 100
     }
     message(crayon::blue(cli::symbol$info), " The efficiency of the augmented design is ", round(eff_2, digits = 2), "%")
   }
-
-  return(aug_design)
+  aug_design
 }
 
 
@@ -646,83 +463,31 @@ dsaugment_design <- function(init_design, alpha, model, parameters, par_values, 
 #'
 #' @family augment regions
 #'
-get_daugment_region <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-  x_value <- NULL
+get_daugment_region <- function(init_design, alpha, model, parameters, par_values, design_space,
+                                calc_optimal_design, weight_fun = function(x) 1,
+                                delta_val = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
-  min_sens <- findminval(sens_1, design_space[[1]], design_space[[2]], 10000)
-  max_sens <- findmaxval(sens_1, design_space[[1]], design_space[[2]], 10000)
-  min_eff <- -(-1 + alpha)*((-1 + alpha - min_sens*alpha)/(-1 + alpha))^(1/length(parameters))
-  max_eff <- -(-1 + alpha)*((-1 + alpha - max_sens*alpha)/(-1 + alpha))^(1/length(parameters))
-  if(calc_optimal_design){
+  eff_fun <- function(x) (1 - alpha) * (1 + alpha * sens_1(x) / (1 - alpha))^(1 / length(parameters))
+  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("D-Optimality", model, parameters, par_values, design_space, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
-    eff_1 <- (det(inf_mat_1) / det(inf_mat_opt))^(1 / length(parameters))*100
+    eff_1 <- (det(inf_mat_1) / det(inf_mat_opt))^(1 / length(parameters)) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_eff, max_eff)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
-  val_to_add <- ((1 - alpha)/alpha*((delta_val/(1 - alpha))^length(parameters) - 1))
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
+  val_to_add <- (1 - alpha) / alpha * ((delta_val / (1 - alpha))^length(parameters) - 1)
   cross <- sort(crosspoints(val_to_add, sens_1, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], val_to_add, sens_1)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  eff <- function(x){
-    return((1 - alpha) * (1 + alpha * sens_1(x)/(1 - alpha))^(1 / length(parameters)))
-  }
-  y_val <- purrr::map_dbl(x_val, eff)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  eff(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- eff(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, eff)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  return(cand_points_reg)
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], val_to_add, sens_1),
+                               getPar(cross))
+  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
+  cand_points_reg
 }
-
 
 
 #' Get L-augment region
@@ -736,77 +501,31 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
 #'
 #' @family augment region
 #'
-get_laugment_region <- function(init_design, alpha, model, parameters, par_values, design_space, calc_optimal_design, matB, weight_fun = function(x) 1) {
-  x_value <- NULL
+get_laugment_region <- function(init_design, alpha, model, parameters, par_values, design_space,
+                                calc_optimal_design, matB, weight_fun = function(x) 1,
+                                delta_val = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   dsens_1 <- dsens(grad, inf_mat_1)
   isens_1 <- isens(grad, inf_mat_1, matB)
   crit_1 <- icrit(inf_mat_1, matB)
-  eff_fun <- function(x) (1-alpha)*(crit_1/(crit_1 - alpha*isens_1(x)/ (1-alpha+alpha*dsens_1(x))))
-  min_eff <- findminval(eff_fun, design_space[[1]], design_space[[2]], 10000)
-  max_eff <- findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000)
-  if(calc_optimal_design){
+  eff_fun <- function(x) (1 - alpha) * (crit_1 / (crit_1 - alpha * isens_1(x) / (1 - alpha + alpha * dsens_1(x))))
+  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("I-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
-    eff_1 <- (tr(matB %*% solve(inf_mat_opt)) / tr(matB %*% solve(inf_mat_1))) * 100
+    eff_1 <- (tr(matB %*% inv_spd(inf_mat_opt)) / tr(matB %*% inv_spd(inf_mat_1))) * 100
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_eff, max_eff)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < min_eff || delta_val > max_eff){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
   cross <- sort(crosspoints(delta_val, eff_fun, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], delta_val, eff_fun)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  y_val <- purrr::map_dbl(x_val, eff_fun)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  eff_fun(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- eff_fun(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, eff_fun)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  return(cand_points_reg)
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], delta_val, eff_fun),
+                               getPar(cross))
+  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
+  cand_points_reg
 }
 
 
@@ -821,93 +540,40 @@ get_laugment_region <- function(init_design, alpha, model, parameters, par_value
 #'
 #' @family augment region
 #'
-get_dsaugment_region <- function(init_design, alpha, model, parameters, par_values, par_int, design_space, calc_optimal_design, weight_fun = function(x) 1) {
-  x_value <- NULL
+get_dsaugment_region <- function(init_design, alpha, model, parameters, par_values, par_int,
+                                 design_space, calc_optimal_design, weight_fun = function(x) 1,
+                                 delta_val = NULL) {
   grad <- gradient(model, parameters, par_values, weight_fun)
   grad22 <- gradient22(model, parameters, par_values, par_int, weight_fun)
   inf_mat_1 <- inf_mat(grad, init_design)
   inf_mat_22 <- inf_mat(grad22, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
   sens_22 <- dsens(grad22, inf_mat_22)
-  # dssens_1 <- dssens(grad, inf_mat_1, par_int)
-  dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1/length(par_int))
-  min_sens <- findminval(dseff, design_space[[1]], design_space[[2]], 10000)
-  max_sens <- findmaxval(dseff, design_space[[1]], design_space[[2]], 10000)
-  if(calc_optimal_design){
+  dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1 / length(par_int))
+  delta_range <- c(findminval(dseff, design_space[[1]], design_space[[2]], 10000),
+                   findmaxval(dseff, design_space[[1]], design_space[[2]], 10000))
+  if (calc_optimal_design) {
     optimal_design <- opt_des("Ds-Optimality", model, parameters, par_values, design_space, par_int = par_int, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
     if (length(inf_mat_1[-par_int, -par_int]) == 1) {
-      eff_1 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_1[-par_int, -par_int] / det(inf_mat_1)))^(1 / length(par_int))*100
+      eff_1 <- (inf_mat_opt[-par_int, -par_int] / det(inf_mat_opt) / (inf_mat_1[-par_int, -par_int] / det(inf_mat_1)))^(1 / length(par_int)) * 100
     } else {
-      eff_1 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_1[-par_int, -par_int]) / det(inf_mat_1)))^(1 / length(par_int))*100
+      eff_1 <- (det(inf_mat_opt[-par_int, -par_int]) / det(inf_mat_opt) / (det(inf_mat_1[-par_int, -par_int]) / det(inf_mat_1)))^(1 / length(par_int)) * 100
     }
     message(crayon::blue(cli::symbol$info), " The efficiency of the initial design is ", round(eff_1, digits = 2), "%")
   }
-  delta_range <- c(min_sens, max_sens)
-  delta_val <- -Inf
-  eval <- 0
-  while(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-    # Incluir gráfico?
-    # try/catch, or check NA
-    delta_val <- suppressWarnings(as.numeric(readline(prompt=paste("Choose a value for the minimum relative efficiency between", crayon::magenta(ceiling(delta_range[[1]]*100)/100), "and", crayon::magenta(floor(delta_range[[2]]*100)/100), ": \n"))))
-    if(is.na(delta_val)){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be a number")
-      delta_val <- -Inf
-    } else if(delta_val < delta_range[[1]] || delta_val > delta_range[[2]]){
-      cat(crayon::red(cli::symbol$cross), "The efficiency must be in the given range")
-    }
-    eval <- eval + 1
-    if(eval > 1000){
-      return(NULL)
-    }
-  }
-  # Puntos de corte y valor del corte
+  delta_val <- ask_delta(delta_range, delta_val)
+  if (is.null(delta_val)) return(NULL)
   cross <- sort(crosspoints(delta_val, dseff, 10000, 10^(-3), design_space[[1]], design_space[[2]]))
-  # val_to_add <- sens_val_to_add(delta_val, alpha, length(parameters))
-
-  # # Obtener start y par para tener las regiones
-  start <- getStart(cross, design_space[[1]], design_space[[2]], delta_val, dseff)
-  par <- getPar(cross)
-  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]], start, par)
-
-  x_val <- seq(design_space[[1]], design_space[[2]], length.out = 10000)
-  # eff <- function(x){
-  #   return((1 - alpha) * (1 + alpha * sens_1(x)/(1 - alpha))^(1 / length(parameters)))
-  # }
-  y_val <- purrr::map_dbl(x_val, dseff)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_line(mapping = ggplot2::aes(x = x_val, y = y_val), color = "steelblue3") +
-    ggplot2::geom_hline(yintercept =  dseff(cross[1]), color = "goldenrod3") +
-    ggplot2::xlim(design_space[[1]], design_space[[2]]) +
-    ggplot2::labs(x = "x", y = "Efficiency") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.border = ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(), axis.line = ggplot2::element_line(colour = "black"))
-
-  efficiency <- dseff(cross[1])
-  for(i in 1:(length(cand_points_reg)/2)){
-    loop_input = paste("ggplot2::geom_segment(ggplot2::aes(x=",cand_points_reg[2*i-1],",xend=",cand_points_reg[2*i],",y=efficiency,yend=efficiency), size = 1.5, color = 'green3')", sep="")
-    p <- p + eval(parse(text=loop_input))
-  }
-
-  values <- purrr::map_dbl(cross, dseff)
-  cutoffpoints <- data.frame("x_value" = cross, "eff" = values)
-
-  p <- p + ggplot2::geom_point(data = cutoffpoints, ggplot2::aes(x = x_value, y = eff), shape = 16, size = 2, color = "firebrick3")
-
-  p <- p + ggplot2::geom_segment(ggplot2::aes(x = design_space[[1]], xend = design_space[[1]], y = delta_range[1], yend = delta_range[2]), col = "mediumpurple2", size = 1.5)
-
-  # Graph of region of candidates points
-  plot(p)
-
-  return(cand_points_reg)
+  cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
+                               getStart(cross, design_space[[1]], design_space[[2]], delta_val, dseff),
+                               getPar(cross))
+  plot(plot_augment_region(dseff, cross, delta_range, cand_points_reg, design_space))
+  cand_points_reg
 }
 
 
-
-
-
+# --- Other private functions ------------------------------------------------
 
 #' Gradient function for a subset of variables
 #'
@@ -925,8 +591,6 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 gradient22 <- function(model, char_vars, values, par_int, weight_fun = function(x) 1) {
-  # vars <- as.list(match.call())[-(1:2)]
-  # char_vars <- sapply(vars, as.character)
   ext_char_vars <- c(char_vars, "x")
   arglist <- lapply(ext_char_vars, function(x) NULL)
   f <- as.function(append(stats::setNames(arglist, ext_char_vars), quote({})))
@@ -941,8 +605,6 @@ gradient22 <- function(model, char_vars, values, par_int, weight_fun = function(
 }
 
 
-
-
 #' Calculate crosspoints
 #'
 #' @description
@@ -952,40 +614,28 @@ gradient22 <- function(model, char_vars, values, par_int, weight_fun = function(
 #'
 #' @param val Efficiency value to solve in the curve relationing the space of the design and efficiency of new design
 #' @param sens Sensitivity function of the design for the model
-#' @param gridlength Number of points in the grid to find the crosspoints
-#' @param tol Tolerance that establishes how close two points close to one another are considered the same
+#' @param gridlength Number of points in the initial grid used to bracket roots
+#' @param tol Tolerance for root refinement passed to \code{uniroot}
 #' @param xmin Minimum of the space of the design
 #' @param xmax Maximum of the space of the design
 #'
 #' @return A numeric vector of crosspoints that define the candidate points region
 #'
-crosspoints <- function(val, sens, gridlength, tol, xmin, xmax){
-
-  sensfix <- function(x){
-    return(sens(x) - val)
-  }
-
-  sols <- vector(mode = "numeric", length = gridlength)
-  cli::cli_progress_bar("Calculating regions", total = gridlength)
-  startsx <- seq(xmin, xmax, length.out = gridlength)
-  for(i in 1:gridlength){
-    sols[i] <- nleqslv::nleqslv(startsx[i], fn = sensfix)$x
-    cli::cli_progress_update()
-  }
-
-  # sols <- unlist(purrr::map(purrr::map(cli::cli_progress_along(seq(xmin, xmax, length.out = gridlength), name = "Calculating regions"), nleqslv::nleqslv, fn = sensfix), function(x) x$x))
-
-  # Eliminar duplicados
-  sols_upd <- update_sequence(sols, tol)
-
-  # Quedarnos con puntos dentro del espacio de diseño
-  sols_upd <- sols_upd[sols_upd >= xmin & sols_upd <= xmax]
-
-  # Eliminar los que no son soluciones
-  sols_upd <- sols_upd[abs(purrr::map_dbl(sols_upd, sens) - val) < tol]
-
-
-  return(sort(sols_upd))
+crosspoints <- function(val, sens, gridlength, tol, xmin, xmax) {
+  f <- function(x) sens(x) - val
+  grid <- seq(xmin, xmax, length.out = gridlength)
+  fvals <- purrr::map_dbl(grid, f)
+  # Brackets: consecutive grid cells where the function changes sign
+  brackets <- which(fvals[-gridlength] * fvals[-1] < 0)
+  if (length(brackets) == 0) return(numeric(0))
+  # Refine each bracket to the exact root with uniroot
+  roots <- vapply(brackets, function(i) {
+    tryCatch(
+      stats::uniroot(f, lower = grid[i], upper = grid[i + 1L], tol = tol)$root,
+      error = function(e) NA_real_
+    )
+  }, numeric(1))
+  sort(roots[!is.na(roots)])
 }
 
 

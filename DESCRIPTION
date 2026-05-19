@@ -37,14 +37,13 @@ Suggests:
     orthopolynom,
     magrittr,
     tidyverse
-Imports: 
+Imports:
     ggplot2,
     purrr,
     rlang,
     crayon,
     cli,
     dplyr,
-    nleqslv,
     shiny,
     utils
 Config/testthat/edition: 3

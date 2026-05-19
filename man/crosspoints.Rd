@@ -11,9 +11,9 @@ crosspoints(val, sens, gridlength, tol, xmin, xmax)
 
 \item{sens}{Sensitivity function of the design for the model}
 
-\item{gridlength}{Number of points in the grid to find the crosspoints}
+\item{gridlength}{Number of points in the initial grid used to bracket roots}
 
-\item{tol}{Tolerance that establishes how close two points close to one another are considered the same}
+\item{tol}{Tolerance for root refinement passed to \code{uniroot}}
 
 \item{xmin}{Minimum of the space of the design}
 
