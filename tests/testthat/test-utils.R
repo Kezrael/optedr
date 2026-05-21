@@ -36,13 +36,13 @@ test_that("inv_spd pseudoinverse satisfies Moore-Penrose condition M M+ M = M", 
 
 test_that("findminval and findmaxval find global extrema on a grid", {
   f <- function(x) (x - 3)^2
-  expect_equal(optedr:::findminval(f, 0, 6, 1000),  0, tolerance = 0.01)
-  expect_equal(optedr:::findmaxval(f, 0, 6, 1000),  9, tolerance = 0.1)
+  expect_equal(optedr:::findminval(f, c(0, 6), 1000),  0, tolerance = 0.01)
+  expect_equal(optedr:::findmaxval(f, c(0, 6), 1000),  9, tolerance = 0.1)
 })
 
 test_that("findmax returns x location of maximum", {
   f <- function(x) -(x - 3)^2
-  expect_equal(optedr:::findmax(f, 0, 6, 1000), 3, tolerance = 0.01)
+  expect_equal(optedr:::findmax(f, c(0, 6), 1000), 3, tolerance = 0.01)
 })
 
 # check_atwood() --------------------------------------------------------

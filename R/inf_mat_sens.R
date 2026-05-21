@@ -15,19 +15,20 @@
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
-  # vars <- as.list(match.call())[-(1:2)]
-  # char_vars <- sapply(vars, as.character)
-  ext_char_vars <- c(char_vars, "x")
+  design_vars   <- detect_design_vars(model, char_vars)
+  ext_char_vars <- c(char_vars, design_vars)
   arglist <- lapply(ext_char_vars, function(x) NULL)
-  f <- as.function(append(stats::setNames(arglist, ext_char_vars), quote({})))
+  f  <- as.function(append(stats::setNames(arglist, ext_char_vars), quote({})))
   f1 <- stats::deriv(model, char_vars, f)
+  # x_val: scalar for single-factor, or named numeric vector for multi-factor.
+  # c(values, x_val) passes parameters positionally and design variables by name
+  # via do.call — works for both cases without branching.
   f2 <- function(x_val) {
     attr(do.call(f1, as.list(c(values, x_val))), "gradient")
   }
-  f3 <- function(x){
-    return(f2(x)*weight_fun(x))
-  }
-  return(f3)
+  f3 <- function(x) f2(x) * weight_fun(x)
+  attr(f3, "design_vars") <- design_vars
+  f3
 }
 
 
@@ -46,12 +47,26 @@ gradient <- function(model, char_vars, values, weight_fun = function(x) 1) {
 #'
 #' @return The information matrix of the design, a \eqn{k\times k} matrix where k is the length of the gradient.
 inf_mat <- function(grad, design) {
-  k <- length(grad(design$Point[[1]]))
-  # F_mat: k x n matrix, column i = gradient at point i
-  F_mat <- vapply(design$Point, function(x) as.vector(grad(x)), numeric(k))
-  # vapply returns a vector (not matrix) when k == 1; reshape to 1 x n
+  dvars <- attr(grad, "design_vars")
+  if (is.null(dvars)) dvars <- "x"          # backward compat if attr absent
+  design <- normalize_design_cols(design, dvars)
+
+  if (!is_multifactor(dvars)) {
+    # ── Single-factor path (current implementation) ──────────────────────────
+    k     <- length(grad(design[[dvars]][[1L]]))
+    F_mat <- vapply(design[[dvars]], function(x) as.vector(grad(x)), numeric(k))
+  } else {
+    # ── Multi-factor path ─────────────────────────────────────────────────────
+    # Evaluate gradient at each design point (a named row vector)
+    x0    <- unlist(design[1L, dvars])
+    k     <- length(grad(x0))
+    F_mat <- vapply(seq_len(nrow(design)), function(i) {
+      as.vector(grad(unlist(design[i, dvars])))
+    }, numeric(k))
+  }
+
   if (!is.matrix(F_mat)) F_mat <- matrix(F_mat, nrow = 1L)
-  # M = F diag(w) F^T = crossprod(sqrt(w) * F^T), uses LAPACK DSYRK internally
+  # M = F diag(w) F^T = crossprod(sqrt(w) * F^T)  [LAPACK DSYRK]
   crossprod(sqrt(design$Weight) * t(F_mat))
 }
 

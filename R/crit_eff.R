@@ -159,14 +159,23 @@ design_efficiency <- function(design, opt_des_obj) {
          " The second argument must be an optdes object returned by opt_des()",
          call. = FALSE)
   }
-  grad <- attr(opt_des_obj, "gradient")
+  grad       <- attr(opt_des_obj, "gradient")
+  dvars      <- attr(grad, "design_vars")
+  if (is.null(dvars)) dvars <- "x"
+
   if ("optdes" %in% class(design)) {
     mat1 <- inf_mat(grad, design$optdes)
   } else if ("data.frame" %in% class(design)) {
-    if (!identical(names(design), c("Point", "Weight")))
+    # Accept both "Point" (1D backward compat) and x1/x2/... column names
+    design <- normalize_design_cols(design, dvars)
+    missing_vars <- setdiff(dvars, names(design))
+    if (length(missing_vars) > 0L || !"Weight" %in% names(design)) {
+      expected <- if (length(dvars) == 1L && dvars == "x") "'Point' and 'Weight'" else
+        paste0("'", paste(c(dvars, "Weight"), collapse = "', '"), "'")
       stop(crayon::red(cli::symbol$cross),
-           " The first argument must be a data.frame with 'Point' and 'Weight' columns",
+           " The design data.frame must have columns ", expected,
            call. = FALSE)
+    }
     mat1 <- inf_mat(grad, design)
   } else {
     stop(crayon::red(cli::symbol$cross),

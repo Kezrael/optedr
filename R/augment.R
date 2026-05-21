@@ -54,6 +54,12 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
                            par_int = NA, matB = NULL, distribution = NA,
                            weight_fun = function(x) 1,
                            delta_val = NULL, new_points = NULL) {
+  if (is_multifactor(detect_design_vars(model, parameters)))
+    stop("augment_design() is not yet implemented for multi-factor models.\n",
+         "The candidate region in d > 1 dimensions cannot be represented as a union of intervals.\n",
+         "Future options include: (A) an indicator function evaluable at any proposed point,\n",
+         "  (B) a sampled set of candidates, or (C) a heatmap of the efficiency function for d = 2.",
+         call. = FALSE)
   if (!is.na(distribution)) {
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
@@ -130,6 +136,12 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
                                par_int = NA, matB = NA, distribution = NA,
                                weight_fun = function(x) 1,
                                delta_val = NULL) {
+  if (is_multifactor(detect_design_vars(model, parameters)))
+    stop("get_augment_region() is not yet implemented for multi-factor models.\n",
+         "The candidate region in d > 1 dimensions cannot be represented as a union of intervals.\n",
+         "Future options include: (A) an indicator function evaluable at any proposed point,\n",
+         "  (B) a sampled set of candidates, or (C) a heatmap of the efficiency function for d = 2.",
+         call. = FALSE)
   if (!is.na(distribution)) {
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
@@ -304,8 +316,8 @@ daugment_design <- function(init_design, alpha, model, parameters, par_values, d
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
   eff_fun <- function(x) (1 - alpha) * (1 + alpha * sens_1(x) / (1 - alpha))^(1 / length(parameters))
-  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(eff_fun, design_space, 10000),
+                   findmaxval(eff_fun, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("D-Optimality", model, parameters, par_values, design_space, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
@@ -361,8 +373,8 @@ laugment_design <- function(init_design, alpha, model, parameters, par_values, d
   isens_1 <- isens(grad, inf_mat_1, matB)
   crit_1 <- icrit(inf_mat_1, matB)
   eff_fun <- function(x) (1 - alpha) * (crit_1 / (crit_1 - alpha * isens_1(x) / (1 - alpha + alpha * dsens_1(x))))
-  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(eff_fun, design_space, 10000),
+                   findmaxval(eff_fun, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("L-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
@@ -418,8 +430,8 @@ dsaugment_design <- function(init_design, alpha, model, parameters, par_values, 
   sens_1 <- dsens(grad, inf_mat_1)
   sens_22 <- dsens(grad22, inf_mat_22)
   dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1 / length(par_int))
-  delta_range <- c(findminval(dseff, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(dseff, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(dseff, design_space, 10000),
+                   findmaxval(dseff, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("Ds-Optimality", model, parameters, par_values, design_space, par_int = par_int, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
@@ -470,8 +482,8 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
   inf_mat_1 <- inf_mat(grad, init_design)
   sens_1 <- dsens(grad, inf_mat_1)
   eff_fun <- function(x) (1 - alpha) * (1 + alpha * sens_1(x) / (1 - alpha))^(1 / length(parameters))
-  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(eff_fun, design_space, 10000),
+                   findmaxval(eff_fun, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("D-Optimality", model, parameters, par_values, design_space, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
@@ -510,8 +522,8 @@ get_laugment_region <- function(init_design, alpha, model, parameters, par_value
   isens_1 <- isens(grad, inf_mat_1, matB)
   crit_1 <- icrit(inf_mat_1, matB)
   eff_fun <- function(x) (1 - alpha) * (crit_1 / (crit_1 - alpha * isens_1(x) / (1 - alpha + alpha * dsens_1(x))))
-  delta_range <- c(findminval(eff_fun, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(eff_fun, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(eff_fun, design_space, 10000),
+                   findmaxval(eff_fun, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("I-Optimality", model, parameters, par_values, design_space, matB = matB, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
@@ -550,8 +562,8 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
   sens_1 <- dsens(grad, inf_mat_1)
   sens_22 <- dsens(grad22, inf_mat_22)
   dseff <- function(x) (1 - alpha) * ((1 + alpha * sens_1(x) / (1 - alpha)) / (1 + alpha * sens_22(x) / (1 - alpha)))^(1 / length(par_int))
-  delta_range <- c(findminval(dseff, design_space[[1]], design_space[[2]], 10000),
-                   findmaxval(dseff, design_space[[1]], design_space[[2]], 10000))
+  delta_range <- c(findminval(dseff, design_space, 10000),
+                   findmaxval(dseff, design_space, 10000))
   if (calc_optimal_design) {
     optimal_design <- opt_des("Ds-Optimality", model, parameters, par_values, design_space, par_int = par_int, weight_fun = weight_fun)
     inf_mat_opt <- inf_mat(grad, optimal_design$optdes)
