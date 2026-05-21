@@ -161,3 +161,39 @@ isens <- function(grad, M, matB) {
     return(f_col %*% invMat %*% matB %*% invMat %*% t(f_col))
   }
 }
+
+
+# Compound sensitivity function: weighted sum of individual sensitivity functions.
+# compound_specs: list of per-criterion specs (see opt_des compound parameter).
+# Returns a closure that evaluates d_c(xval) = sum_i w_i * d_i(xval).
+csens <- function(compound_specs, grad, M) {
+  sens_fns <- lapply(compound_specs, function(spec) {
+    if (identical(spec$criterion, "D-Optimality"))
+      dsens(grad, M)
+    else if (identical(spec$criterion, "Ds-Optimality"))
+      dssens(grad, M, spec$par_int)
+    else
+      isens(grad, M, spec$matB)   # A, I, L
+  })
+  weights <- sapply(compound_specs, `[[`, "weight")
+  function(xval) {
+    sum(mapply(function(s, w) w * as.numeric(s(xval)), sens_fns, weights))
+  }
+}
+
+
+# Equivalence Theorem threshold for the compound criterion:
+# sum_i w_i * threshold_i, where threshold_i = k (D), s (Ds), tr(B M^{-1}) (A/I/L).
+compound_threshold <- function(compound_specs, M) {
+  total <- 0
+  for (spec in compound_specs) {
+    thr <- if (identical(spec$criterion, "D-Optimality"))
+             spec$k
+           else if (identical(spec$criterion, "Ds-Optimality"))
+             length(spec$par_int)
+           else
+             icrit(M, spec$matB)
+    total <- total + spec$weight * thr
+  }
+  total
+}

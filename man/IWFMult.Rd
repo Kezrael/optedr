@@ -52,6 +52,7 @@ Cocktail Algorithm implementation for L-, I- and A-Optimality
 }
 \seealso{
 Other cocktail algorithms: 
+\code{\link{CWFMult}()},
 \code{\link{DWFMult}()},
 \code{\link{DsWFMult}()},
 \code{\link{WFMult}()}

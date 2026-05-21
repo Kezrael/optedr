@@ -91,6 +91,23 @@ icrit <- function(M, matB) {
 }
 
 
+# Compound criterion value: weighted sum of individual criterion values.
+# compound_specs: preprocessed list (each element has criterion, weight, k/par_int/matB).
+ccrit <- function(compound_specs, M) {
+  total <- 0
+  for (spec in compound_specs) {
+    phi <- if (identical(spec$criterion, "D-Optimality"))
+             dcrit(M, spec$k)
+           else if (identical(spec$criterion, "Ds-Optimality"))
+             dscrit(M, spec$par_int)
+           else
+             icrit(M, spec$matB)
+    total <- total + spec$weight * phi
+  }
+  total
+}
+
+
 
 # Efficiency-------- -----------------------
 
@@ -203,6 +220,12 @@ design_efficiency <- function(design, opt_des_obj) {
   }
   else if (identical(opt_des_obj$criterion, "A-Optimality")  || identical(opt_des_obj$criterion, "I-Optimality")  || identical(opt_des_obj$criterion, "L-Optimality")) {
     eff <- tr(attr(opt_des_obj, "hidden_value") %*% inv_spd(mat2)) / tr(attr(opt_des_obj, "hidden_value") %*% inv_spd(mat1))
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
+    return(eff)
+  }
+  else if (identical(opt_des_obj$criterion, "Compound")) {
+    specs <- attr(opt_des_obj, "hidden_value")   # compound_specs
+    eff   <- ccrit(specs, mat2) / ccrit(specs, mat1)
     message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)
   }

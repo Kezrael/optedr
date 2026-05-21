@@ -1,3 +1,20 @@
+# optedr 2.5.0.9000
+
+## New features — compound optimality criteria
+- `opt_des()` now accepts `criterion = "Compound"` with a `compound` argument:
+  a list of two or more per-criterion specifications, each with `criterion`
+  and `weight` fields (plus criterion-specific parameters: `par_int` for
+  Ds, `reg_int` for I, `matB` for L). Weights are normalised automatically.
+- The compound sensitivity function `d_c(x) = sum_i w_i * d_i(x)` is
+  a valid convex combination; the cocktail algorithm converges via the same
+  multiplicative weight update used for I/A/L-Optimality.
+- `print.optdes` and `summary.optdes` show the compound composition
+  (weights and sub-criteria) when `criterion = "Compound"`.
+- `design_efficiency()` computes compound efficiency as
+  `phi_c(M*) / phi_c(M_xi)` where `phi_c = sum_i w_i * phi_i`.
+- Any combination of D, Ds, A, I and L sub-criteria is supported, including
+  three or more components.
+
 # optedr 2.4.0.9000
 
 ## Breaking changes

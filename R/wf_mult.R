@@ -24,7 +24,7 @@
 #' @family cocktail algorithms
 WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
                    design_space, grid.length, join_thresh, delete_thresh,
-                   k, delta_weights, tol, tol2, max_iter) {
+                   k, delta_weights, tol, tol2, max_iter, compound = NULL) {
   if (identical(criterion, "D-Optimality"))
     return(DWFMult(init_design, grad, design_space, grid.length,
                    join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter))
@@ -40,6 +40,9 @@ WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
   else if (identical(criterion, "L-Optimality"))
     return(IWFMult(init_design, grad, matB, design_space, grid.length,
                    join_thresh, delete_thresh, delta_weights, tol, tol2, "L-Optimality", max_iter))
+  else if (identical(criterion, "Compound"))
+    return(CWFMult(init_design, grad, compound, design_space, grid.length,
+                   join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter))
 }
 
 
@@ -268,6 +271,88 @@ IWFMult <- function(init_design, grad, matB, design_space, grid.length,
 }
 
 
+#' Cocktail Algorithm implementation for Compound Optimality
+#'
+#' @inherit WFMult return params
+#' @param compound_specs preprocessed list of per-criterion specifications.
+#' @family cocktail algorithms
+CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length,
+                    join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter) {
+  multi   <- is_multifactor(attr(grad, "design_vars"))
+  dc      <- coord_cols(init_design)
+  maxiter_weights <- 100L
+  crit_val <- numeric(max_iter * (maxiter_weights + 1L) + 1L)
+  index <- 1L
+  cli::cli_progress_bar("Calculating optimal design")
+
+  for (i in seq_len(max_iter)) {
+    cli::cli_progress_update()
+    M     <- inf_mat(grad, init_design)
+    crit_val[index] <- ccrit(compound_specs, M)
+    index <- index + 1L
+    sensC <- csens(compound_specs, grad, M)
+    thrC  <- compound_threshold(compound_specs, M)
+    xmax  <- findmax(sensC, design_space, grid.length)
+    if ((as.numeric(sensC(xmax)) - thrC) < tol2) {
+      message("\n", crayon::blue(cli::symbol$info),
+              " Stop condition reached: difference between sensitivity and criterion < ", tol2)
+      break
+    }
+    init_design <- update_design(init_design, xmax, join_thresh, 1/(index + 2))
+    iter <- 1L; stopw <- FALSE
+    while (!stopw) {
+      weightsInit <- init_design$Weight
+      M     <- inf_mat(grad, init_design)
+      crit_val[index] <- ccrit(compound_specs, M)
+      index <- index + 1L
+      sensC <- csens(compound_specs, grad, M)
+      thrC  <- compound_threshold(compound_specs, M)
+      init_design$Weight <- update_weightsI(init_design, sensC, thrC, delta_weights)
+      stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter_weights
+      iter  <- iter + 1L
+    }
+    init_design <- delete_points(init_design, delete_thresh)
+    if (i %% 5 == 0) init_design <- update_design_total(init_design, join_thresh)
+    if (i == max_iter)
+      message("\n", crayon::blue(cli::symbol$info),
+              " Stop condition not reached, max iterations performed")
+  }
+
+  cli::cli_progress_update(force = TRUE)
+  M     <- inf_mat(grad, init_design)
+  crit_val[index] <- ccrit(compound_specs, M)
+  crit_val <- crit_val[1L:(length(crit_val) - sum(crit_val == 0))]
+  conv_plot <- plot_convergence(data.frame("criteria" = crit_val,
+                                           "step"     = seq_along(crit_val)))
+
+  init_design <- init_design[order(init_design[[dc[1L]]]), ]
+  rownames(init_design) <- NULL
+
+  M     <- inf_mat(grad, init_design)
+  sensM <- csens(compound_specs, grad, M)
+  xmax  <- findmax(sensM, design_space, grid.length * 10L)
+  thrC  <- compound_threshold(compound_specs, M)
+  atwood <- thrC / as.numeric(sensM(xmax)) * 100
+  check_atwood(atwood)
+  message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
+
+  plot_opt <- .make_sens_plot(multi, design_space, sensM, dc, init_design, thrC)
+
+  l_return <- list("optdes"      = init_design,
+                   "convergence" = conv_plot,
+                   "sens"        = plot_opt,
+                   "criterion"   = "Compound",
+                   "crit_value"  = crit_val[length(crit_val)],
+                   "atwood"      = atwood)
+  attr(l_return, "hidden_value")  <- compound_specs
+  attr(l_return, "gradient")      <- grad
+  attr(l_return, "design_space")  <- design_space
+  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); ccrit(compound_specs, M) }
+  class(l_return) <- "optdes"
+  l_return
+}
+
+
 # Dispatch plot creation based on design dimensionality.
 # 1D: sensitivity curve; d=2: heatmap; d>2: NULL.
 .make_sens_plot <- function(multi, design_space, sens_fn, dc, design, criterion_value) {
@@ -310,6 +395,13 @@ IWFMult <- function(init_design, grad, matB, design_space, grid.length,
 #' @param max_iter optional integer maximum number of outer cocktail iterations.
 #' @param distribution character variable specifying the response distribution.
 #' @param weight_fun optional variance-structure weight function.
+#' @param compound optional list of criterion specifications for \code{criterion = "Compound"}.
+#'   Each element must be a named list with at least \code{criterion} (character) and
+#'   \code{weight} (positive numeric). Additional fields per sub-criterion:
+#'   \code{par_int} (Ds-Optimality), \code{reg_int} (I-Optimality), \code{matB} (L-Optimality).
+#'   Weights are normalised to sum to 1. Example:
+#'   \code{list(list(criterion="D-Optimality", weight=0.7),
+#'              list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.
 #'
 #' @return a list of class \code{optdes} with components \code{optdes}, \code{convergence},
 #'   \code{sens}, \code{criterion}, \code{crit_value}, and \code{atwood}.
@@ -325,6 +417,15 @@ IWFMult <- function(init_design, grad, matB, design_space, grid.length,
 #'         y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
 #'         c("Vmax", "K1", "K2"), c(1, 1, 1),
 #'         list(x1 = c(0.1, 10), x2 = c(0.1, 10)))
+#'
+#' # Compound D+I (70% D, 30% I) for Antoine equation
+#' opt_des("Compound",
+#'         y ~ 10^(a - b/(c + x)), c("a","b","c"),
+#'         c(8.07131, 1730.63, 233.426), c(1, 100),
+#'         compound = list(
+#'           list(criterion = "D-Optimality", weight = 0.7),
+#'           list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+#'         ))
 #' }
 opt_des <- function(criterion, model, parameters,
                     par_values   = c(1),
@@ -340,7 +441,8 @@ opt_des <- function(criterion, model, parameters,
                     reg_int      = NULL,
                     max_iter     = 21L,
                     distribution = NA,
-                    weight_fun   = function(x) 1) {
+                    weight_fun   = function(x) 1,
+                    compound     = NULL) {
 
   k <- length(parameters)
   if (identical(par_values, c(1))) par_values <- rep(1, k)
@@ -394,11 +496,41 @@ opt_des <- function(criterion, model, parameters,
   if (identical(criterion, "I-Optimality") && !is.null(reg_int))
     matB <- integrate_reg_int(grad, k, reg_int)
 
+  # ── Compound: preprocess specs (normalise weights, build matB per component) ─
+  compound_specs <- NULL
+  if (identical(criterion, "Compound")) {
+    if (is.null(compound) || length(compound) < 2L)
+      stop("criterion = 'Compound' requires compound list with at least 2 specifications.",
+           call. = FALSE)
+    ws <- sapply(compound, function(s) {
+      if (is.null(s$weight) || !is.numeric(s$weight) || s$weight <= 0)
+        stop("Each compound element must have a positive numeric 'weight'.", call. = FALSE)
+      s$weight
+    })
+    ws <- ws / sum(ws)  # normalise
+    compound_specs <- lapply(seq_along(compound), function(i) {
+      spec <- compound[[i]]
+      spec$weight <- ws[i]
+      spec$k      <- k
+      ci <- spec$criterion
+      if (!ci %in% c("D-Optimality","Ds-Optimality","A-Optimality","I-Optimality","L-Optimality"))
+        stop("Unknown sub-criterion '", ci, "' in compound list.", call. = FALSE)
+      if (identical(ci, "A-Optimality"))
+        spec$matB <- diag(k)
+      if (identical(ci, "I-Optimality") && !is.null(spec$reg_int))
+        spec$matB <- integrate_reg_int(grad, k, spec$reg_int)
+      if (identical(ci, "L-Optimality") && is.null(spec$matB))
+        stop("L-Optimality component requires 'matB'.", call. = FALSE)
+      spec
+    })
+  }
+
   # ── Run cocktail algorithm ────────────────────────────────────────────────
   output <- WFMult(init_design, grad, criterion,
                    par_int = par_int, matB,
                    design_space, 1000L,
-                   join_thresh, delete_thresh, k, delta, tol, tol2, max_iter)
+                   join_thresh, delete_thresh, k, delta, tol, tol2, max_iter,
+                   compound = compound_specs)
 
   attr(output, "model")      <- model
   attr(output, "weight_fun") <- weight_fun

@@ -49,6 +49,7 @@ Cocktail Algorithm implementation for D-Optimality
 }
 \seealso{
 Other cocktail algorithms: 
+\code{\link{CWFMult}()},
 \code{\link{DsWFMult}()},
 \code{\link{IWFMult}()},
 \code{\link{WFMult}()}

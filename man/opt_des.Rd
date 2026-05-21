@@ -21,7 +21,8 @@ opt_des(
   reg_int = NULL,
   max_iter = 21L,
   distribution = NA,
-  weight_fun = function(x) 1
+  weight_fun = function(x) 1,
+  compound = NULL
 )
 }
 \arguments{
@@ -63,6 +64,14 @@ Single-factor: \code{c(min, max)}.  Multi-factor: named list matching \code{desi
 \item{distribution}{character variable specifying the response distribution.}
 
 \item{weight_fun}{optional variance-structure weight function.}
+
+\item{compound}{optional list of criterion specifications for \code{criterion = "Compound"}.
+Each element must be a named list with at least \code{criterion} (character) and
+\code{weight} (positive numeric). Additional fields per sub-criterion:
+\code{par_int} (Ds-Optimality), \code{reg_int} (I-Optimality), \code{matB} (L-Optimality).
+Weights are normalised to sum to 1. Example:
+\code{list(list(criterion="D-Optimality", weight=0.7),
+             list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.}
 }
 \value{
 a list of class \code{optdes} with components \code{optdes}, \code{convergence},
@@ -83,5 +92,14 @@ opt_des("D-Optimality",
         y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
         c("Vmax", "K1", "K2"), c(1, 1, 1),
         list(x1 = c(0.1, 10), x2 = c(0.1, 10)))
+
+# Compound D+I (70\% D, 30\% I) for Antoine equation
+opt_des("Compound",
+        y ~ 10^(a - b/(c + x)), c("a","b","c"),
+        c(8.07131, 1730.63, 233.426), c(1, 100),
+        compound = list(
+          list(criterion = "D-Optimality", weight = 0.7),
+          list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+        ))
 }
 }

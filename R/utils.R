@@ -718,6 +718,13 @@ summary.optdes <- function(object, ...) {
       cat(sprintf("  %-5s [%.4g, %.4g]\n", paste0(v, ":"), ds[[v]][1L], ds[[v]][2L]))
   }
 
+  if (identical(object$criterion, "Compound")) {
+    specs <- attr(object, "hidden_value")
+    cat("\nCompound criterion:\n")
+    for (s in specs)
+      cat(sprintf("  %.2f * %s\n", s$weight, s$criterion))
+  }
+
   cat(sprintf("\nOptimal design for %s", object$criterion))
   if (multi) cat(sprintf(" (%d support points)", nrow(object$optdes)))
   cat(":\n")
@@ -741,7 +748,13 @@ summary.optdes <- function(object, ...) {
 #' print(rri)
 print.optdes <- function(x, ...) {
   dvars <- attr(attr(x, "gradient"), "design_vars")
-  if (is_multifactor(dvars)) {
+  if (identical(x$criterion, "Compound")) {
+    specs <- attr(x, "hidden_value")
+    label <- paste(sapply(specs, function(s)
+      sprintf("%.2f*%s", s$weight, sub("-Optimality", "", s$criterion))),
+      collapse = " + ")
+    cat(sprintf("Optimal design for Compound (%s):\n", label))
+  } else if (is_multifactor(dvars)) {
     cat(sprintf("Optimal design for %s (%d factors):\n", x$criterion, length(dvars)))
   } else {
     cat(sprintf("Optimal design for %s:\n", x$criterion))

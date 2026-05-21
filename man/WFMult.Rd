@@ -18,7 +18,8 @@ WFMult(
   delta_weights,
   tol,
   tol2,
-  max_iter
+  max_iter,
+  compound = NULL
 )
 }
 \arguments{
@@ -59,6 +60,7 @@ and the necessary parameters for the functions are given from the user input.
 }
 \seealso{
 Other cocktail algorithms: 
+\code{\link{CWFMult}()},
 \code{\link{DWFMult}()},
 \code{\link{DsWFMult}()},
 \code{\link{IWFMult}()}
