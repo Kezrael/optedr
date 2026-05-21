@@ -770,7 +770,8 @@ print.optdes <- function(x, ...) {
 #' For single-factor models, overlays the support points on the sensitivity function curve.
 #' For two-factor models, shows a heatmap of the sensitivity function with the support
 #' points overlaid and the Equivalence Theorem contour highlighted.
-#' For models with more than two factors, prints the design and returns it invisibly.
+#' For models with more than two factors, shows a pairwise scatter matrix with one
+#' panel per pair of design variables and point size proportional to weight.
 #'
 #' @param x An object of class \code{optdes}.
 #' @param ... Possible extra arguments (currently unused).
@@ -806,9 +807,48 @@ plot.optdes <- function(x, ...) {
     return(x$sens)
   }
 
-  # ── d > 2: just print ──────────────────────────────────────────────────
-  message("Visualisation for designs with more than 2 factors is not implemented. ",
-          "Use print() or summary() to inspect the design.")
-  invisible(x$optdes)
+  # ── d > 2: pairwise scatter matrix ────────────────────────────────────
+  return(.plot_pairs_optdes(x$optdes, x$criterion))
+}
+
+
+# Pairwise scatter matrix for designs with d > 2 factors.
+# Shows all C(d,2) unique pairs as facets; point size proportional to weight.
+.plot_pairs_optdes <- function(design, criterion_label) {
+  wlabel <- panel <- NULL  # avoid R CMD check NOTE on ggplot2 aes variables
+  dvars <- coord_cols(design)
+  d     <- length(dvars)
+
+  pairs_list <- utils::combn(dvars, 2L, simplify = FALSE)
+  long_df    <- do.call(rbind, lapply(pairs_list, function(p) {
+    data.frame(
+      panel  = paste(p[1], "vs", p[2]),
+      x      = design[[p[1]]],
+      y      = design[[p[2]]],
+      Weight = design$Weight,
+      wlabel = paste0(round(design$Weight, 2)),
+      stringsAsFactors = FALSE
+    )
+  }))
+  long_df$panel <- factor(long_df$panel, levels = unique(long_df$panel))
+
+  ncol_wrap <- min(3L, length(pairs_list))
+
+  ggplot2::ggplot(long_df, ggplot2::aes(x = x, y = y, size = Weight)) +
+    ggplot2::geom_point(colour = "darkgreen", alpha = 0.8) +
+    ggplot2::geom_text(ggplot2::aes(label = wlabel),
+                       vjust = -1, size = 3, show.legend = FALSE) +
+    ggplot2::facet_wrap(~panel, scales = "free", ncol = ncol_wrap) +
+    ggplot2::scale_size_continuous(range = c(3, 10)) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(
+      title   = paste(criterion_label, "optimal design"),
+      x       = NULL,
+      y       = NULL,
+      caption = sprintf("%d factors, %d support points. Point size proportional to weight.",
+                        d, nrow(design))
+    ) +
+    ggplot2::theme(strip.background = ggplot2::element_rect(fill = "grey95"),
+                   strip.text       = ggplot2::element_text(size = 9))
 }
 

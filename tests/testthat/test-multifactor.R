@@ -158,6 +158,53 @@ test_that("summary.optdes for 2D shows design_space and criterion", {
   expect_true(any(grepl("Atwood", out, fixed = TRUE)))
 })
 
+test_that("plot.optdes for 2D returns heatmap (ggplot)", {
+  expect_s3_class(plot(mm2d_res), "ggplot")
+})
+
+
+# ── plot for d > 2 (pairs scatter matrix) ────────────────────────────────────
+
+local({
+  mm3d_res <<- evaluate_promise(opt_des(
+    "D-Optimality",
+    model        = y ~ Vmax * x1 * x2 * x3 / ((K1+x1) * (K2+x2) * (K3+x3)),
+    parameters   = c("Vmax", "K1", "K2", "K3"),
+    par_values   = c(1, 1, 1, 1),
+    design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10), x3 = c(0.1, 10)),
+    max_iter     = 5L
+  ))$result
+})
+
+test_that("plot.optdes for 3D returns a ggplot", {
+  expect_s3_class(plot(mm3d_res), "ggplot")
+})
+
+test_that("plot.optdes for 3D has C(3,2)=3 facets", {
+  p <- plot(mm3d_res)
+  n_panels <- length(unique(p$data$panel))
+  expect_equal(n_panels, 3L)
+})
+
+test_that("plot.optdes for 3D panels are named 'xi vs xj'", {
+  p      <- plot(mm3d_res)
+  panels <- as.character(unique(p$data$panel))
+  expect_true(all(grepl("vs", panels, fixed = TRUE)))
+})
+
+test_that("plot.optdes for 4D has C(4,2)=6 facets", {
+  # 4-factor linear model: y ~ a*x1 + b*x2 + c*x3 + d*x4
+  r4d <- evaluate_promise(opt_des(
+    "D-Optimality",
+    y ~ a*x1 + b*x2 + c*x3 + d*x4,
+    c("a","b","c","d"), c(1,1,1,1),
+    list(x1=c(0,1), x2=c(0,1), x3=c(0,1), x4=c(0,1)),
+    max_iter = 5L
+  ))$result
+  p <- plot(r4d)
+  expect_equal(length(unique(p$data$panel)), 6L)
+})
+
 
 # ── design_efficiency for multi-factor ───────────────────────────────────────
 
