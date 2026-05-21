@@ -5,7 +5,8 @@
 #' an approximate design. It uses the multiplier (n - l/2) and evens the total
 #' number of observations afterwards.
 #'
-#' @param design a dataframe with columns "Point" and "Weight" that represents a design
+#' @param design a dataframe with a \code{Weight} column and one or more design-variable columns
+#'   (\code{Point} for single-factor designs, \code{x1}, \code{x2}, \ldots for multi-factor designs).
 #' @param n an integer that represents the desired number of observations of the exact design
 #' @param tol optional parameter for the consideration of an integer in the rounding process
 #' @param seed optional integer seed for reproducibility. When the rounded weights sum to less
@@ -13,8 +14,8 @@
 #'   deterministic by calling \code{set.seed(seed)} immediately before it. \code{NULL} (default)
 #'   leaves the global RNG state unchanged.
 #'
-#' @return a data.frame with columns "Point" and "Weight" representing an exact design
-#' with n observations
+#' @return a data.frame with the same columns as \code{design}, with \code{Weight} replaced by
+#'   integer observation counts summing to \code{n}.
 #' @export
 #'
 #' @examples
@@ -33,8 +34,8 @@ efficient_round <- function(design, n, tol = 0.00001, seed = NULL){
   if(n%%1!=0 | n <= 0){
     stop("n must be a possitive integer")
   }
-  else if(!identical(names(design), c("Point", "Weight"))){
-    stop("the design must be a data.frame with 'Point' and 'Weight' columns")
+  else if(!is.data.frame(design) || !"Weight" %in% names(design)){
+    stop("design must be a data.frame with at least a 'Weight' column")
   }
   else{
     l <- nrow(design)
@@ -114,10 +115,10 @@ estimate_combo_time <- function(k) {
 #' requests confirmation (interactive sessions) or stops with an informative error
 #' (non-interactive sessions), unless \code{ask = FALSE}.
 #'
-#' @param design either a dataframe with the design to round, or an object of class "optdes". If the former,
-#' the criterion, model and parameters must be specified. The dataframe should have two columns:
-#'   * \code{Point} contains the support points of the design.
-#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param design either a dataframe with the design to round, or an object of class \code{"optdes"}.
+#'   If a dataframe, the criterion, model and parameters must be specified. It must have a \code{Weight}
+#'   column and one or more design-variable columns (\code{Point} for single-factor,
+#'   \code{x1}, \code{x2}, \ldots for multi-factor).
 #' @param n integer with the desired number of points of the resulting design.
 #' @param criterion character variable with the chosen optimality criterion. Can be one of the following:
 #'   * 'D-Optimality'
@@ -243,21 +244,18 @@ combinatorial_round <- function(design, n,
   combinations_df        <- expand.grid(data = combinations_df)
   combinations_df$n      <- rowSums(combinations_df)
   combinations_df        <- combinations_df[combinations_df$n == n, ]
+  cc <- coord_cols(design_df)
   combinations_df$crit   <- purrr::map_dbl(
     seq_len(nrow(combinations_df)),
     function(x) {
-      temp <- data.frame(
-        "Point"  = design_df$Point,
-        "Weight" = unlist(combinations_df[x, seq_len(ncol(combinations_df) - 1L)]) / n
-      )
+      temp        <- design_df[, cc, drop = FALSE]
+      temp$Weight <- unlist(combinations_df[x, seq_len(ncol(combinations_df) - 1L)]) / n
       crit_funct(temp)
     }
   )
-  opt_comb <- combinations_df[which.min(combinations_df$crit), ]
-  output   <- data.frame(
-    "Point"  = design_df$Point,
-    "Weight" = unlist(opt_comb[1L, seq_len(ncol(combinations_df) - 2L)])
-  )
+  opt_comb        <- combinations_df[which.min(combinations_df$crit), ]
+  output          <- design_df[, cc, drop = FALSE]
+  output$Weight   <- unlist(opt_comb[1L, seq_len(ncol(combinations_df) - 2L)])
   rownames(output) <- NULL
   output
 }

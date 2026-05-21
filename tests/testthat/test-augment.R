@@ -67,31 +67,33 @@ test_that("get_augment_region errors when delta_val is above valid range", {
 
 # get_augment_region — output properties ------------------------------------
 
-test_that("get_augment_region D-Optimality returns a valid candidate region", {
+test_that("get_augment_region D-Optimality returns an augment_region with numeric region", {
   region <- suppressMessages(
     get_augment_region("D-Optimality", init_des_2p, alpha_val,
                        model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
                        delta_val = DELTA_D)
   )
-  expect_true(is.numeric(region))
-  expect_gte(length(region), 2L)
-  expect_equal(length(region) %% 2L, 0L)
-  expect_true(all(region >= dspace_2p[1] & region <= dspace_2p[2]))
-  # Each [lower, upper] pair is ordered
-  for (i in seq_len(length(region) / 2L)) {
-    expect_lt(region[2*i - 1], region[2*i])
-  }
+  expect_s3_class(region, "augment_region")
+  r <- region$region
+  expect_true(is.numeric(r))
+  expect_gte(length(r), 2L)
+  expect_equal(length(r) %% 2L, 0L)
+  expect_true(all(r >= dspace_2p[1] & r <= dspace_2p[2]))
+  for (i in seq_len(length(r) / 2L))
+    expect_lt(r[2*i - 1], r[2*i])
 })
 
-test_that("get_augment_region Ds-Optimality returns a valid candidate region", {
+test_that("get_augment_region Ds-Optimality returns an augment_region with numeric region", {
   region <- suppressMessages(
     get_augment_region("Ds-Optimality", init_des_ds, alpha_val,
                        model_ds, params_ds, par_vals_ds, dspace_ds, FALSE,
                        par_int = c(1L), delta_val = DELTA_DS)
   )
-  expect_true(is.numeric(region))
-  expect_equal(length(region) %% 2L, 0L)
-  expect_true(all(region >= dspace_ds[1] & region <= dspace_ds[2]))
+  expect_s3_class(region, "augment_region")
+  r <- region$region
+  expect_true(is.numeric(r))
+  expect_equal(length(r) %% 2L, 0L)
+  expect_true(all(r >= dspace_ds[1] & r <= dspace_ds[2]))
 })
 
 
@@ -195,11 +197,11 @@ test_that("new_points outside candidate region are rejected", {
                        delta_val = DELTA_D)
   )
   # Find a point inside the design space but outside the candidate region
-  n_regions <- length(region) / 2L
+  n_regions <- length(region$region) / 2L
   outside_pt <- NULL
   for (pt in seq(dspace_2p[1], dspace_2p[2], length.out = 100)) {
     in_reg <- any(vapply(seq_len(n_regions),
-                         function(i) pt >= region[2*i-1] & pt <= region[2*i],
+                         function(i) pt >= region$region[2*i-1] & pt <= region$region[2*i],
                          logical(1)))
     if (!in_reg) { outside_pt <- pt; break }
   }
@@ -223,7 +225,7 @@ test_that("augment_design D-Optimality: output has correct structure and sums to
                        model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
                        delta_val = DELTA_D)
   )
-  new_pt  <- (region[1] + region[2]) / 2
+  new_pt  <- (region$region[1] + region$region[2]) / 2
   new_pts <- data.frame(Point = new_pt, Weight = 1)
 
   result <- suppressMessages(
@@ -246,7 +248,7 @@ test_that("augment_design D-Optimality: existing weights scaled by (1 - alpha), 
                        model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
                        delta_val = DELTA_D)
   )
-  new_pt  <- (region[1] + region[2]) / 2
+  new_pt  <- (region$region[1] + region$region[2]) / 2
   new_pts <- data.frame(Point = new_pt, Weight = 1)
 
   result <- suppressMessages(
@@ -280,10 +282,11 @@ test_that("augment_design with multiple new_points adds them all", {
                        model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
                        delta_val = DELTA_D)
   )
-  n_regions <- length(region) / 2L
+  n_regions <- length(region$region) / 2L
   skip_if(n_regions < 2L, "Need at least 2 candidate regions for this test")
   new_pts <- data.frame(
-    Point  = c((region[1] + region[2]) / 2, (region[3] + region[4]) / 2),
+    Point  = c((region$region[1] + region$region[2]) / 2,
+               (region$region[3] + region$region[4]) / 2),
     Weight = c(0.5, 0.5)
   )
   result <- suppressMessages(
@@ -301,7 +304,7 @@ test_that("augment_design Ds-Optimality: output has correct structure and sums t
                        model_ds, params_ds, par_vals_ds, dspace_ds, FALSE,
                        par_int = c(1L), delta_val = DELTA_DS)
   )
-  new_pt  <- (region[1] + region[2]) / 2
+  new_pt  <- (region$region[1] + region$region[2]) / 2
   new_pts <- data.frame(Point = new_pt, Weight = 1)
 
   result <- suppressMessages(

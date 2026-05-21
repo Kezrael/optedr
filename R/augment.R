@@ -229,12 +229,7 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
             " (from LHS sample of 5000)")
-    result <- list(candidates  = cands,
-                   delta_val   = delta_val,
-                   eff_fun     = eff_fn,
-                   design_vars = design_vars,
-                   plot        = p)
-    return(invisible(result))
+    return(invisible(.make_augment_region(cands, delta_val, eff_fn, design_vars, p)))
   }
   if (!is.na(distribution)) {
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
@@ -591,8 +586,9 @@ get_daugment_region <- function(init_design, alpha, model, parameters, par_value
   cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
                                getStart(cross, design_space[[1]], design_space[[2]], val_to_add, sens_1),
                                getPar(cross))
-  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
-  cand_points_reg
+  p <- plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space)
+  plot(p)
+  .make_augment_region(cand_points_reg, delta_val, eff_fun, "x", p)
 }
 
 
@@ -630,8 +626,9 @@ get_laugment_region <- function(init_design, alpha, model, parameters, par_value
   cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
                                getStart(cross, design_space[[1]], design_space[[2]], delta_val, eff_fun),
                                getPar(cross))
-  plot(plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space))
-  cand_points_reg
+  p <- plot_augment_region(eff_fun, cross, delta_range, cand_points_reg, design_space)
+  plot(p)
+  .make_augment_region(cand_points_reg, delta_val, eff_fun, "x", p)
 }
 
 
@@ -674,8 +671,56 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
   cand_points_reg <- getCross2(cross, design_space[[1]], design_space[[2]],
                                getStart(cross, design_space[[1]], design_space[[2]], delta_val, dseff),
                                getPar(cross))
-  plot(plot_augment_region(dseff, cross, delta_range, cand_points_reg, design_space))
-  cand_points_reg
+  p <- plot_augment_region(dseff, cross, delta_range, cand_points_reg, design_space)
+  plot(p)
+  .make_augment_region(cand_points_reg, delta_val, dseff, "x", p)
+}
+
+
+# --- Unified augment_region object ------------------------------------------
+
+# Constructor for the "augment_region" S3 class.
+# region: numeric crosspoints vector (1D) or data.frame of candidates (multi-factor)
+# design_vars: "x" for 1D or c("x1","x2",...) for multi-factor
+.make_augment_region <- function(region, delta_val, eff_fun, design_vars, plot = NULL) {
+  structure(
+    list(region      = region,
+         delta_val   = delta_val,
+         eff_fun     = eff_fun,
+         design_vars = design_vars,
+         plot        = plot),
+    class = "augment_region"
+  )
+}
+
+#' Print method for augment_region objects
+#'
+#' @param x An object of class \code{augment_region} returned by \code{get_augment_region}.
+#' @param ... Unused.
+#' @export
+print.augment_region <- function(x, ...) {
+  cat(sprintf("Augment candidate region  (delta = %.4f)\n", x$delta_val))
+  if (is.numeric(x$region)) {
+    # 1D: format as intervals
+    n_int <- length(x$region) / 2L
+    if (n_int == 0L) {
+      cat("  No candidate intervals found.\n")
+    } else {
+      intervals <- vapply(seq_len(n_int), function(i)
+        sprintf("[%.4g, %.4g]", x$region[2L*i-1L], x$region[2L*i]), character(1L))
+      cat("  Intervals:", paste(intervals, collapse = ", "), "\n")
+    }
+  } else {
+    # Multi-factor: summarise candidate data frame
+    d <- length(x$design_vars)
+    cat(sprintf("  %d candidate points  (%d factor%s)\n",
+                nrow(x$region), d, if (d > 1L) "s" else ""))
+    if (nrow(x$region) > 0L) {
+      cat(sprintf("  Efficiency range: [%.4f, %.4f]\n",
+                  min(x$region$efficiency), max(x$region$efficiency)))
+    }
+  }
+  invisible(x)
 }
 
 

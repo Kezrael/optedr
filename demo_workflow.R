@@ -163,7 +163,7 @@ region <- get_augment_region(
 cat("Región candidata:", region, "\n")
 
 # Paso 2: elegir un punto del interior de la región y aumentar el diseño
-new_pt  <- mean(region[1:2])
+new_pt  <- mean(region$region[1:2])
 new_pts <- data.frame(Point = new_pt, Weight = 1)
 
 augmented <- augment_design(
@@ -200,7 +200,7 @@ region2 <- get_augment_region(
   delta_val            = 0.85
 )
 # new_pts2   <- data.frame(Point = 2, Weight = 1)
-new_pts2   <- data.frame(Point = mean(region2[1:2]), Weight = 1)
+new_pts2   <- data.frame(Point = mean(region2$region[1:2]), Weight = 1)
 augmented2 <- augment_design(
   criterion            = "D-Optimality",
   init_design          = init_des,

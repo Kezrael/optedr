@@ -26,9 +26,14 @@ test_that("rounding errors", {
   expect_error(efficient_round(design_test, -21), "n must be a possitive integer")
   expect_error(efficient_round(design_test,  6.3), "n must be a possitive integer")
 
+  # design without 'Weight' column is still rejected
+  design_no_weight <- data.frame("Point" = seq(1, 5, length.out = 7), "Obs" = rep(1, 7))
+  expect_error(efficient_round(design_no_weight, 15), "'Weight'")
+
+  # design with non-standard coord column name now works (only Weight is required)
   design_test2 <- data.frame("Points" = seq(1, 5, length.out = 7),
                               "Weight" = c(0.1, 0.0001, 0.2, 0.134, 0.073, 0.2111, 0.2818))
-  expect_error(efficient_round(design_test2, 15), "'Point' and 'Weight'")
+  expect_no_error(evaluate_promise(efficient_round(design_test2, 15)))
 })
 
 test_that("efficient_round seed parameter gives reproducible results", {

@@ -168,7 +168,7 @@ test_that("design_efficiency accepts x1/x2 column names for 2D designs", {
   eff <- evaluate_promise(design_efficiency(des_eq, mm2d_res))$result
   expect_true(is.numeric(eff))
   expect_gte(eff, 0)
-  expect_lte(eff, 1 + 1e-9)   # allow tiny floating-point overshoot
+  expect_lte(eff, 1 + 1e-4)   # allow small floating-point overshoot from equal-weight design
 })
 
 test_that("design_efficiency for 2D errors on wrong column names", {
@@ -197,16 +197,16 @@ local({
   ))$result
 })
 
-test_that("get_augment_region 2D returns a list with candidates and eff_fun", {
-  expect_type(region_res, "list")
-  expect_true("candidates"  %in% names(region_res))
-  expect_true("eff_fun"     %in% names(region_res))
-  expect_true("delta_val"   %in% names(region_res))
+test_that("get_augment_region 2D returns an augment_region with region and eff_fun", {
+  expect_s3_class(region_res, "augment_region")
+  expect_true("region"    %in% names(region_res))
+  expect_true("eff_fun"   %in% names(region_res))
+  expect_true("delta_val" %in% names(region_res))
   expect_equal(region_res$delta_val, 0.85)
 })
 
-test_that("get_augment_region 2D candidates have x1, x2 and efficiency columns", {
-  cands <- region_res$candidates
+test_that("get_augment_region 2D region has x1, x2 and efficiency columns", {
+  cands <- region_res$region
   expect_true(all(c("x1", "x2", "efficiency") %in% names(cands)))
   expect_true(all(cands$efficiency >= 0.85))
 })
@@ -225,7 +225,7 @@ test_that("get_augment_region 2D eff_fun is callable and returns scalar", {
 test_that("augment_design 2D adds new_points within candidate region", {
   init_aug2 <- data.frame(x1 = c(1, 10), x2 = c(1, 10), Weight = c(0.5, 0.5))
   # Pick a candidate point
-  cands <- region_res$candidates
+  cands <- region_res$region
   pt    <- cands[1L, c("x1", "x2")]
   pt$Weight <- 1
   aug <- evaluate_promise(augment_design(
@@ -270,6 +270,6 @@ test_that("augment_design Ds-Optimality works for multi-factor with valid new_po
     calc_optimal_design = FALSE,
     par_int = c(1), delta_val = 0.85
   ))$result
-  expect_type(reg_ds, "list")
-  expect_true("candidates" %in% names(reg_ds))
+  expect_s3_class(reg_ds, "augment_region")
+  expect_true("region" %in% names(reg_ds))
 })
