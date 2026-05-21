@@ -36,7 +36,8 @@ column and one or more design-variable columns (\code{Point} for single-factor,
 \item 'L-Optimality'
 }}
 
-\item{model}{formula describing the model. Must use x as the variable.}
+\item{model}{formula describing the model. Must use \code{x} (single-factor) or
+\code{x1}, \code{x2}, \ldots (multi-factor) as design variables.}
 
 \item{parameters}{character vector with the parameters of the models, as written in the \code{formula}.}
 

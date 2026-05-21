@@ -38,9 +38,10 @@ check_inputs <- function(criterion, model, parameters, par_values, design_space,
   if (!all(purrr::map_lgl(parameters, function(x) grepl(x, paste(format(model),collapse=""))))) {
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The model must contain all the parameters")
   }
-  # Check that x is in the formula
-  if (!grepl("x", paste(format(model),collapse=""))) {
-    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross), " The model must use x as the variable")
+  # Check that at least one design variable is present (x for 1D, x1/x2/... for multi-factor)
+  if (!grepl("x", paste(format(model), collapse = ""))) {
+    error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross),
+                        " The model must contain a design variable: 'x' for single-factor models or 'x1', 'x2', ... for multi-factor models")
   }
 
   # Check that par_values is a numeric vector

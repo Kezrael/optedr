@@ -126,7 +126,8 @@ estimate_combo_time <- function(k) {
 #'   * 'A-Optimality'
 #'   * 'I-Optimality'
 #'   * 'L-Optimality'
-#' @param model formula describing the model. Must use x as the variable.
+#' @param model formula describing the model. Must use \code{x} (single-factor) or
+#'   \code{x1}, \code{x2}, \ldots (multi-factor) as design variables.
 #' @param parameters character vector with the parameters of the models, as written in the \code{formula}.
 #' @param par_values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
 #' @param weight_fun optional one variable function that represents the square of the structure of variance, in case of heteroscedastic variance of the response.

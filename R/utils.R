@@ -4,7 +4,7 @@
 
 #' Weight function per distribution
 #'
-#' @param model formula describing the model to use. Must use x as the variable.
+#' @param model formula describing the model to use. Must use \code{x} as the design variable.
 #' @param char_vars character vector with the parameters of the models, as written in the \code{formula}
 #' @param values numeric vector with the parameters nominal values, in the same order as given in \code{parameters}.
 #' @param distribution character variable specifying the probability distribution of the response. Can be one of the following:

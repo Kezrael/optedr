@@ -7,7 +7,7 @@
 weight_function(model, char_vars, values, distribution = "Normal")
 }
 \arguments{
-\item{model}{formula describing the model to use. Must use x as the variable.}
+\item{model}{formula describing the model to use. Must use \code{x} as the design variable.}
 
 \item{char_vars}{character vector with the parameters of the models, as written in the \code{formula}}
 
