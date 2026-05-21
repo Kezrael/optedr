@@ -171,6 +171,62 @@ test_that("Compound errors when a sub-criterion is unknown", {
   )
 })
 
+test_that("Compound warns when weights don't sum to 1", {
+  expect_message(
+    opt_des("Compound", model, params, pvals, dspace,
+            compound = list(
+              list(criterion = "D-Optimality", weight = 7),
+              list(criterion = "A-Optimality", weight = 3)
+            )),
+    "normalising"
+  )
+})
+
+test_that("Compound normalises weights to sum 1 after warning", {
+  r <- suppressMessages(
+    opt_des("Compound", model, params, pvals, dspace,
+            compound = list(
+              list(criterion = "D-Optimality", weight = 7),
+              list(criterion = "A-Optimality", weight = 3)
+            ))
+  )
+  ws <- sapply(attr(r, "hidden_value"), `[[`, "weight")
+  expect_equal(sum(ws), 1, tolerance = 1e-10)
+  expect_equal(ws[1], 0.7, tolerance = 1e-10)
+})
+
+test_that("Compound warns on exact duplicate criterion", {
+  expect_warning(
+    suppressMessages(
+      opt_des("Compound", model, params, pvals, dspace,
+              compound = list(
+                list(criterion = "D-Optimality", weight = 0.6),
+                list(criterion = "D-Optimality", weight = 0.4)
+              ))
+    ),
+    "Duplicate"
+  )
+})
+
+test_that("Compound does NOT warn for Ds with different par_int", {
+  warns <- character(0)
+  withCallingHandlers(
+    suppressMessages(
+      opt_des("Compound", model, params, pvals, dspace,
+              compound = list(
+                list(criterion = "Ds-Optimality", weight = 0.5, par_int = c(1L)),
+                list(criterion = "Ds-Optimality", weight = 0.5, par_int = c(2L))
+              ))
+    ),
+    warning = function(w) {
+      warns <<- c(warns, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  dup_warns <- grep("Duplicate", warns, value = TRUE)
+  expect_length(dup_warns, 0L)
+})
+
 test_that("Compound errors when L-Optimality component has no matB", {
   expect_error(
     opt_des("Compound", model, params, pvals, dspace,

@@ -507,7 +507,31 @@ opt_des <- function(criterion, model, parameters,
         stop("Each compound element must have a positive numeric 'weight'.", call. = FALSE)
       s$weight
     })
-    ws <- ws / sum(ws)  # normalise
+    # Warn if weights don't already sum to 1 (before normalising)
+    if (abs(sum(ws) - 1) > 1e-8)
+      message(crayon::yellow(cli::symbol$warning),
+              " compound weights sum to ", round(sum(ws), 6),
+              " — normalising to 1.")
+    ws <- ws / sum(ws)
+
+    # Warn about duplicate components (same criterion + same auxiliary params)
+    .compound_key <- function(s) {
+      key <- s$criterion
+      if (identical(s$criterion, "Ds-Optimality") && !is.null(s$par_int))
+        key <- paste0(key, ":par_int=", paste(sort(s$par_int), collapse=","))
+      if (identical(s$criterion, "I-Optimality")  && !is.null(s$reg_int))
+        key <- paste0(key, ":reg_int=", paste(s$reg_int, collapse=","))
+      if (identical(s$criterion, "L-Optimality")  && !is.null(s$matB))
+        key <- paste0(key, ":matB=<custom>")
+      key
+    }
+    keys <- sapply(compound, .compound_key)
+    dups <- keys[duplicated(keys)]
+    if (length(dups) > 0L)
+      warning("Duplicate compound components detected (", paste(unique(dups), collapse=", "),
+              "). Their weights will be summed — consider merging them.",
+              call. = FALSE)
+
     compound_specs <- lapply(seq_along(compound), function(i) {
       spec <- compound[[i]]
       spec$weight <- ws[i]
