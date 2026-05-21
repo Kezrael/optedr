@@ -1,0 +1,675 @@
+---
+title: "optedr — Dossier de ejemplos"
+subtitle: "Diseño óptimo de experimentos para modelos no lineales"
+author: "Carlos de la Calle-Arroyo"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width  = 7,
+  fig.height = 4.5,
+  cache   = TRUE,
+  cache.lazy = FALSE
+)
+```
+
+```{r pkg}
+# devtools::install_github("Kezrael/optedr")   # primera vez
+library(optedr)
+```
+
+Este dossier cubre el flujo de trabajo completo del paquete **optedr**: cálculo
+de diseños óptimos locales para modelos de regresión no lineal mediante el
+algoritmo cocktail (Yu, 2011), evaluación de eficiencia, aumento controlado de
+diseños y criterios compuestos.  Los modelos unifactoriales usan `x` como
+variable de diseño; los multifactoriales usan `x1`, `x2`, …  El paquete detecta
+la dimensión automáticamente a partir de la fórmula.
+
+
+# Diseño óptimo unifactorial
+
+## Criterios de optimalidad
+
+El objeto devuelto por `opt_des()` es de clase `"optdes"` con componentes
+`$optdes` (tabla de puntos y pesos), `$criterion`, `$atwood` (cota Atwood,
+indicador de optimalidad), `$crit_value`, `$sens` y `$convergence`.
+
+### D-Optimality
+
+Minimiza $\det(M^{-1})$, equivalente a minimizar el volumen del elipsoide de
+confianza de los parámetros.
+
+```{r d-opt-1d}
+result_D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422)
+)
+result_D
+```
+
+La función de sensibilidad $d(x, \xi^*) = f(x)^\top M^{-1} f(x)$ debe ser
+$\leq k$ en todo el espacio de diseño, con igualdad en los puntos de soporte
+(Teorema de Equivalencia de Kiefer–Wolfowitz).  La cota de Atwood mide la
+proximidad a esta condición.
+
+```{r d-opt-1d-plot}
+plot(result_D)
+```
+
+```{r d-opt-convergence, fig.height=3}
+plot(result_D$convergence)
+```
+
+### Ds-Optimality
+
+Enfoca la estimación en un subconjunto de parámetros indicado por `par_int`.
+
+```{r ds-opt-1d}
+result_Ds <- opt_des(
+  criterion    = "Ds-Optimality",
+  model        = y ~ th0 * exp(x / th1),
+  parameters   = c("th0", "th1"),
+  par_values   = c(10.4963, -3.2940),
+  design_space = c(0.94, 30),
+  par_int      = c(1)
+)
+result_Ds
+```
+
+```{r ds-opt-plot}
+plot(result_Ds)
+```
+
+### I-Optimality
+
+Minimiza la varianza integrada de predicción sobre una región de interés
+`reg_int` $\subseteq$ `design_space`.
+
+```{r i-opt-1d}
+result_I <- opt_des(
+  criterion    = "I-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  reg_int      = c(380, 422)
+)
+result_I
+```
+
+### A-Optimality
+
+Minimiza $\text{tr}(M^{-1})$, el promedio de varianzas marginales.
+
+```{r a-opt-1d}
+result_A <- opt_des(
+  criterion    = "A-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422)
+)
+result_A
+```
+
+
+## Eficiencia de diseños alternativos
+
+La eficiencia compara un diseño propuesto $\xi$ con el óptimo $\xi^*$:
+$$\text{eff}_D(\xi) = \left(\frac{\det M(\xi)}{\det M(\xi^*)}\right)^{1/k}$$
+Un valor del 70% significa que $\xi$ necesita $1/0.7 \approx 1.43$ veces más
+observaciones para igualar la precisión de $\xi^*$.
+
+```{r efficiency-1d}
+design_ad_hoc <- data.frame(Point = c(220, 300, 400), Weight = rep(1/3, 3))
+design_efficiency(design_ad_hoc, result_D)
+```
+
+
+## Control de convergencia
+
+`max_iter` controla las iteraciones externas del algoritmo cocktail.
+
+```{r max-iter}
+r5  <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a","b"), c(1,1500),
+               c(212,422), max_iter = 5L)
+r50 <- opt_des("D-Optimality", y ~ a*exp(-b/x), c("a","b"), c(1,1500),
+               c(212,422), max_iter = 50L)
+cat("Atwood  5 iter:", r5$atwood,  "%\n")
+cat("Atwood 50 iter:", r50$atwood, "%\n")
+```
+
+
+## Redondeo a diseños exactos
+
+Los diseños aproximados asignan pesos continuos en $[0,1]$.  Para obtener un
+diseño exacto de $n$ observaciones:
+
+```{r rounding}
+# Método eficiente: multiplicador (n - l/2)
+exact20 <- efficient_round(result_D$optdes, n = 20)
+exact20
+
+# Método combinatorial: busca la asignación floor/ceil óptima (O(2^k))
+combo10 <- combinatorial_round(result_D, n = 10)
+combo10
+```
+
+
+## Augment: añadir puntos con pérdida controlada
+
+`get_augment_region()` calcula la región de puntos que garantizan que la
+eficiencia del diseño aumentado supere un umbral $\delta$.
+`augment_design()` añade el punto elegido y reescala los pesos según $\alpha$.
+
+```{r augment-region-1d}
+init_des <- data.frame(Point = c(30, 60, 90), Weight = rep(1/3, 3))
+
+region <- get_augment_region(
+  criterion           = "D-Optimality",
+  init_design         = init_des,
+  alpha               = 0.25,
+  model               = y ~ 10^(a - b/(c + x)),
+  parameters          = c("a", "b", "c"),
+  par_values          = c(8.07131, 1730.63, 233.426),
+  design_space        = c(1, 100),
+  calc_optimal_design = FALSE,
+  delta_val           = 0.85
+)
+region
+```
+
+```{r augment-1d}
+augmented <- augment_design(
+  criterion           = "D-Optimality",
+  init_design         = init_des,
+  alpha               = 0.25,
+  model               = y ~ 10^(a - b/(c + x)),
+  parameters          = c("a", "b", "c"),
+  par_values          = c(8.07131, 1730.63, 233.426),
+  design_space        = c(1, 100),
+  calc_optimal_design = TRUE,
+  delta_val           = 0.85,
+  new_points          = data.frame(Point = mean(region$region[1:2]), Weight = 1)
+)
+augmented
+```
+
+> **Uso interactivo:** omitir `delta_val` y `new_points`.  El paquete pregunta
+> el umbral, muestra la región candidata y solicita coordenadas en la consola.
+
+
+## Identificabilidad de parámetros
+
+Cuando los parámetros no son identificables, $M$ es (casi) singular.
+`inv_spd()` usa pseudoinversa y advierte sobre el número de parámetros no
+identificables.
+
+```{r identif}
+# Modelo BET: 3 parámetros, pero solo 2 son identificables conjuntamente
+res_bet <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ (w*c*k*x) / ((1-x) * (1 + (c-1)*k*x)),
+  parameters   = c("w", "c", "k"),
+  par_values   = c(1, 10, 0.5),
+  design_space = c(0.05, 0.8)
+)
+cat("Atwood BET:", res_bet$atwood, "%  — lejos de 100% indica no-identificabilidad\n")
+```
+
+
+# Diseño óptimo multifactorial — d = 2
+
+Para modelos con dos variables de diseño `x1`, `x2`, el espacio se especifica
+como `list(x1 = c(min, max), x2 = c(min, max))`.  `plot()` devuelve un
+**heatmap** viridis de la función de sensibilidad compuesta con el contorno del
+Teorema de Equivalencia (línea blanca) y los puntos de soporte etiquetados.
+
+
+## D-Optimality 2D — bisubstrato Michaelis-Menten
+
+$$y = \frac{V_{\max} \cdot x_1 \cdot x_2}{(K_1 + x_1)(K_2 + x_2)}$$
+
+```{r d-opt-2d, cache=TRUE}
+result_2D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10))
+)
+result_2D
+```
+
+```{r d-opt-2d-plot}
+plot(result_2D)
+```
+
+
+## A-Optimality 2D
+
+```{r a-opt-2d, cache=TRUE}
+result_2D_A <- opt_des(
+  criterion    = "A-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10))
+)
+result_2D_A
+```
+
+```{r a-opt-2d-plot}
+plot(result_2D_A)
+```
+
+
+## I-Optimality 2D con región de interés
+
+`reg_int` se pasa como lista nombrada.  La matriz $B$ se calcula por integración
+Monte Carlo (LHS, 10 000 puntos) sobre la región de interés.
+
+```{r i-opt-2d, cache=TRUE}
+result_2D_I <- opt_des(
+  criterion    = "I-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  reg_int      = list(x1 = c(1, 5),   x2 = c(1, 5))
+)
+result_2D_I
+```
+
+```{r i-opt-2d-plot}
+plot(result_2D_I)
+```
+
+
+## Eficiencia en 2D
+
+```{r eff-2d}
+corners_2d <- data.frame(
+  x1 = c(0.1,10,0.1,10), x2 = c(0.1,0.1,10,10), Weight = rep(0.25,4))
+eff_2d <- design_efficiency(corners_2d, result_2D)
+cat("Eficiencia 4 esquinas:", round(eff_2d*100, 2), "%\n")
+```
+
+
+## Augment 2D — heatmap de la región candidata
+
+```{r augment-region-2d, cache=TRUE}
+init_2d <- data.frame(x1=c(0.8,10,5), x2=c(10,0.8,5), Weight=rep(1/3,3))
+
+region_2d <- get_augment_region(
+  criterion           = "D-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = FALSE,
+  delta_val           = 0.85
+)
+region_2d
+```
+
+El heatmap (plasma) se muestra automáticamente.  La región por encima del
+contorno blanco ($\delta = 0.85$) contiene los candidatos.
+
+```{r augment-region-2d-plot}
+plot(region_2d$plot)
+```
+
+```{r augment-2d}
+best_2d <- region_2d$region[which.max(region_2d$region$efficiency), ]
+aug_2d  <- augment_design(
+  criterion           = "D-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = TRUE,
+  delta_val           = 0.85,
+  new_points          = data.frame(x1=best_2d$x1, x2=best_2d$x2, Weight=1)
+)
+aug_2d
+```
+
+
+# Diseño óptimo multifactorial — d ≥ 3
+
+Para $d > 2$ no existe heatmap de sensibilidad.  `plot()` devuelve un
+**scatter matrix** con $\binom{d}{2}$ paneles "xi vs xj", con tamaño de punto
+proporcional al peso en escala absoluta $[0,1]$.  `get_augment_region()` muestra
+un scatter análogo coloreando candidatos (azul), no-candidatos (gris) y diseño
+actual (triángulos rojos).
+
+
+## D-Optimality 3D — trisubstrato Michaelis-Menten
+
+$$y = \frac{V_{\max} \cdot x_1 x_2 x_3}{(K_1+x_1)(K_2+x_2)(K_3+x_3)}$$
+
+Con $k=4$ parámetros el diseño óptimo tiene al menos 4 puntos de soporte.
+$\binom{3}{2} = 3$ paneles: $x_1$ vs $x_2$, $x_1$ vs $x_3$, $x_2$ vs $x_3$.
+
+```{r d-opt-3d, cache=TRUE}
+result_3D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ Vmax*x1*x2*x3/((K1+x1)*(K2+x2)*(K3+x3)),
+  parameters   = c("Vmax","K1","K2","K3"),
+  par_values   = c(1,1,1,1),
+  design_space = list(x1=c(0.1,10), x2=c(0.1,10), x3=c(0.1,10))
+)
+result_3D
+```
+
+```{r d-opt-3d-plot, fig.width=8, fig.height=3.5}
+plot(result_3D)
+```
+
+```{r eff-3d}
+corners_3d        <- expand.grid(x1=c(0.1,10), x2=c(0.1,10), x3=c(0.1,10))
+corners_3d$Weight <- rep(1/8, 8)
+eff_3d <- design_efficiency(corners_3d, result_3D)
+cat("Eficiencia 8 esquinas:", round(eff_3d*100, 2),
+    "% — el óptimo concentra los puntos de forma muy específica\n")
+```
+
+
+## Augment 3D — scatter matrix de candidatos
+
+El diseño inicial necesita $\geq k+1 = 5$ puntos en esquinas para que $M$ sea
+no singular.
+
+```{r augment-3d, cache=TRUE, fig.width=8, fig.height=3.5}
+init_3d_aug <- data.frame(
+  x1 = c(0.8,10,10,0.8,10), x2 = c(10,0.8,10,10,0.8),
+  x3 = c(10,10,0.8,0.8,10), Weight = rep(0.2,5)
+)
+
+region_3d <- get_augment_region(
+  criterion           = "D-Optimality",
+  init_design         = init_3d_aug,
+  alpha               = 0.45,
+  model               = y ~ Vmax*x1*x2*x3/((K1+x1)*(K2+x2)*(K3+x3)),
+  parameters          = c("Vmax","K1","K2","K3"),
+  par_values          = c(1,1,1,1),
+  design_space        = list(x1=c(0.1,10), x2=c(0.1,10), x3=c(0.1,10)),
+  calc_optimal_design = FALSE,
+  delta_val           = 0.93
+)
+region_3d
+```
+
+```{r augment-3d-plot, fig.width=8, fig.height=3.5}
+plot(region_3d$plot)
+```
+
+
+## D-Optimality 4D — modelo lineal
+
+Para un modelo lineal en 4 factores el D-óptimo es el diseño factorial $2^4$
+(16 esquinas del hipercubo).  $\binom{4}{2} = 6$ paneles.
+
+```{r d-opt-4d, cache=TRUE, fig.width=9, fig.height=5}
+result_4D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ a*x1 + b*x2 + c*x3 + d*x4,
+  parameters   = c("a","b","c","d"),
+  par_values   = c(1,1,1,1),
+  design_space = list(x1=c(0,1), x2=c(0,1), x3=c(0,1), x4=c(0,1))
+)
+plot(result_4D)
+```
+
+
+# Criterios compuestos
+
+`criterion = "Compound"` combina criterios individuales como suma ponderada de
+sus funciones de sensibilidad:
+$$d_c(x) = \sum_i w_i \, d_i(x), \qquad \sum_i w_i = 1$$
+
+El Teorema de Equivalencia se preserva (la combinación convexa de funciones
+convexas es convexa) y el algoritmo cocktail converge de la misma forma que
+para criterios individuales.  Los pesos se normalizan automáticamente.
+
+```yaml
+compound = list(
+  list(criterion = "D-Optimality", weight = 0.7),
+  list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+)
+```
+
+
+## D + I (70/30) — Antoine 1D
+
+D asegura buena estimación global de los 3 parámetros; I concentra precisión
+en la región operativa $[60, 100]$.
+
+```{r compound-di, cache=TRUE}
+result_DI <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ 10^(a - b / (c + x)),
+  parameters   = c("a", "b", "c"),
+  par_values   = c(8.07131, 1730.63, 233.426),
+  design_space = c(1, 100),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.7),
+    list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+  )
+)
+result_DI
+```
+
+```{r compound-di-plot}
+plot(result_DI)
+```
+
+Comparación con el D-óptimo puro:
+
+```{r compound-di-compare, cache=TRUE}
+result_D_ant <- opt_des("D-Optimality", y~10^(a-b/(c+x)),
+                        c("a","b","c"), c(8.07131,1730.63,233.426), c(1,100))
+cat("D-óptimo puro:\n");        print(result_D_ant)
+cat("D+I compuesto (70/30):\n"); print(result_DI)
+```
+
+```{r compound-di-eff}
+cat("Eficiencia D del compuesto vs D-puro:\n")
+design_efficiency(result_DI,    result_D_ant)
+cat("Eficiencia compuesta del D-puro vs compuesto:\n")
+design_efficiency(result_D_ant, result_DI)
+```
+
+
+## D + A (50/50)
+
+`summary()` muestra la composición del criterio.
+
+```{r compound-da, cache=TRUE}
+result_DA <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.5),
+    list(criterion = "A-Optimality", weight = 0.5)
+  )
+)
+summary(result_DA)
+```
+
+```{r compound-da-plot}
+plot(result_DA)
+```
+
+
+## D + A + I tres componentes (bisubstrato 2D)
+
+El heatmap muestra la función de sensibilidad compuesta
+$d_c = 0.5\,d_D + 0.25\,d_A + 0.25\,d_I$.
+
+```{r compound-dai-2d, cache=TRUE}
+result_DAI <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ Vmax * x1 * x2 / ((K1+x1) * (K2+x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1,10), x2 = c(0.1,10)),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.50),
+    list(criterion = "A-Optimality", weight = 0.25),
+    list(criterion = "I-Optimality", weight = 0.25,
+         reg_int = list(x1=c(1,5), x2=c(1,5)))
+  )
+)
+result_DAI
+```
+
+```{r compound-dai-plot}
+plot(result_DAI)
+```
+
+
+# Caso de estudio — Ecuación de Tait para datos pVT
+
+> Martín-Martín, Rodríguez-Aragón & Torsney (2012). *Multiplicative algorithm
+> for computing D-optimum designs for pVT measurements.*
+> Chemometrics and Intelligent Laboratory Systems **111**, 20–27.
+
+La ecuación de Tait describe la densidad de líquidos en función de presión $p$
+y temperatura $T$:
+$$\rho(p,T) = \rho_0(T)\!\left[1 - C\ln\!\frac{B(T)+p}{B(T)+p_0}\right]$$
+
+Los tres ejemplos del paper se replican directamente con optedr.
+
+
+## Tait isoterma — clorodifluorometano (1D, $k=3$)
+
+$V(p) = V_0[1 - C\ln((B+p)/(B+p_0))]$, $p_0 = 10$ MPa.
+El paper obtiene 3 puntos en $\{10, 66.5, 500\}$ MPa con pesos $1/3$.
+
+```{r tait1, cache=TRUE}
+result_tait1 <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ V0 * (1 - C * log((B + x) / (B + 10))),
+  parameters   = c("V0", "B", "C"),
+  par_values   = c(0.815, 16.81, 0.0982),
+  design_space = c(10, 500)
+)
+result_tait1
+```
+
+```{r tait1-plot}
+plot(result_tait1)
+```
+
+```{r tait1-eff}
+eff_paper1 <- design_efficiency(
+  data.frame(Point=c(10,66.5,500), Weight=rep(1/3,3)), result_tait1)
+cat("Eficiencia diseño paper:", round(eff_paper1*100,2), "%\n")
+
+# Réplica de la Table 1 (columna k=1) del paper
+cat("\nEficiencias de diseños uniformes:\n")
+sapply(3:10, function(np) {
+  des <- data.frame(Point=seq(10,500,l=np), Weight=rep(1/np,np))
+  round(suppressMessages(design_efficiency(des,result_tait1))*100, 2)
+}) |> setNames(paste0(3:10,"pts")) |> print()
+```
+
+
+## Tait no-isoterma — 1-feniludecano (2D, $k=8$)
+
+$\rho_0(T) = A_0+A_1T+A_2T^2+A_3T^3$, $B(T)=B_0+B_1T+B_2T^2$, $C$ constante.
+Espacio $p \in [0.1, 65]$ MPa, $T \in [293.15, 353.15]$ K.
+Paper: 11 puntos; eficiencia del diseño experimental ($14\times7$): 62.37%.
+
+```{r tait2, cache=TRUE}
+result_tait2 <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ (A0+A1*x2+A2*x2^2+A3*x2^3) *
+                     (1-C*log((B0+B1*x2+B2*x2^2+x1)/(B0+B1*x2+B2*x2^2+0.1))),
+  parameters   = c("A0","A1","A2","A3","B0","B1","B2","C"),
+  par_values   = c(0.97877,-7.8964e-7,-1.9601e-6,1.8159e-9,
+                   480.83,-1.6932,1.6652e-3,0.087944),
+  design_space = list(x1=c(0.1,65), x2=c(293.15,353.15))
+)
+cat("Puntos:", nrow(result_tait2$optdes), "(paper: 11) | Atwood:",
+    result_tait2$atwood, "%\n")
+result_tait2$optdes
+```
+
+```{r tait2-plot}
+plot(result_tait2)
+```
+
+```{r tait2-eff}
+design_exp2 <- expand.grid(x1=seq(0.1,65,l=14), x2=seq(293.15,353.15,l=7))
+design_exp2$Weight <- rep(1/nrow(design_exp2), nrow(design_exp2))
+eff2 <- design_efficiency(design_exp2, result_tait2)
+cat("Eficiencia 14x7:", round(eff2*100,2), "% (paper: 62.37%)\n")
+```
+
+
+## Tait-Rackett — JP-10 (2D, $k=8$)
+
+$\rho_0(T) = A_R / B_R^{1+(1-T/C_R)^{D_R}}$ (ecuación de Rackett).
+Espacio $p \in [0.083, 30]$ MPa, $T \in [270, 470]$ K.
+Con rangos muy distintos (30 MPa vs 200 K) el `join_thresh` automático
+$\min(\text{rangos})/10 \approx 3$ es crítico para la convergencia.
+Paper: 10 puntos; eficiencia del diseño experimental ($12\times11$): 55.34%.
+
+```{r tait3, cache=TRUE}
+result_tait3 <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ (AR/BR^(1+(1-x2/CR)^DR)) *
+                     (1-C*log((B0+B1*x2+B2*x2^2+x1)/(B0+B1*x2+B2*x2^2+0.083))),
+  parameters   = c("AR","BR","CR","DR","B0","B1","B2","C"),
+  par_values   = c(293.822,0.504584,621.385,0.574121,
+                   417.1,-1.35603,1.15586e-3,79.1823e-3),
+  design_space = list(x1=c(0.083,30), x2=c(270,470))
+)
+cat("Puntos:", nrow(result_tait3$optdes), "(paper: 10) | Atwood:",
+    result_tait3$atwood, "%\n")
+result_tait3$optdes
+```
+
+```{r tait3-plot}
+plot(result_tait3)
+```
+
+```{r tait3-eff}
+design_exp3 <- expand.grid(x1=seq(0.083,30,l=12), x2=seq(270,470,l=11))
+design_exp3$Weight <- rep(1/nrow(design_exp3), nrow(design_exp3))
+eff3 <- design_efficiency(design_exp3, result_tait3)
+cat("Eficiencia 12x11:", round(eff3*100,2), "% (paper: 55.34%)\n")
+```
+
+
+---
+
+```{r session-info, echo=FALSE}
+sessionInfo()
+```
