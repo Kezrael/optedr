@@ -89,6 +89,8 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
     if (is.null(delta_val)) return(NULL)
     if (length(design_vars) == 2L)
       plot(.plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design))
+    else
+      plot(.plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design))
     cands <- .sample_aug_candidates(eff_fn, design_space, delta_val)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
@@ -222,9 +224,11 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
     }
     delta_val <- ask_delta(delta_range, delta_val)
     if (is.null(delta_val)) return(NULL)
-    p      <- if (length(design_vars) == 2L)
-                .plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design) else NULL
-    if (!is.null(p)) plot(p)
+    p <- if (length(design_vars) == 2L)
+           .plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design)
+         else
+           .plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design)
+    plot(p)
     cands  <- .sample_aug_candidates(eff_fn, design_space, delta_val)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
@@ -771,6 +775,66 @@ print.augment_region <- function(x, ...) {
                   caption = sprintf(
                     "White contour: candidate region boundary (delta = %.4f). Triangles: current design.",
                     delta_val))
+}
+
+
+# Pairwise scatter matrix of the augment candidate region for d > 2.
+# Samples n_lhs points, splits into candidate / non-candidate, overlays init_design.
+.plot_aug_pairs_candidates <- function(design_space, eff_fn, delta_val, init_design,
+                                       n_lhs = 2000L) {
+  type <- panel <- NULL  # avoid R CMD check NOTE
+  dvars   <- names(design_space)
+  pts     <- lhs_sample(n_lhs, design_space)
+  eff_vec <- apply(pts, 1L, function(x)
+    as.numeric(eff_fn(stats::setNames(x, dvars))))
+
+  sample_df       <- as.data.frame(pts)
+  sample_df$type  <- ifelse(eff_vec >= delta_val, "Candidate", "Non-candidate")
+
+  dc <- intersect(dvars, names(init_design))
+  init_df       <- init_design[, dc, drop = FALSE]
+  init_df$type  <- "Current design"
+
+  pairs_list <- utils::combn(dvars, 2L, simplify = FALSE)
+  long_df <- do.call(rbind, lapply(pairs_list, function(p) {
+    lbl <- paste(p[1], "vs", p[2])
+    rbind(
+      data.frame(panel = lbl, x = sample_df[[p[1]]], y = sample_df[[p[2]]],
+                 type  = sample_df$type,  stringsAsFactors = FALSE),
+      data.frame(panel = lbl, x = init_df[[p[1]]],   y = init_df[[p[2]]],
+                 type  = init_df$type,    stringsAsFactors = FALSE)
+    )
+  }))
+  long_df$panel <- factor(long_df$panel, levels = unique(long_df$panel))
+  long_df$type  <- factor(long_df$type,
+                           levels = c("Candidate", "Non-candidate", "Current design"))
+
+  ggplot2::ggplot(long_df,
+                  ggplot2::aes(x = x, y = y,
+                               colour = type, size = type,
+                               alpha  = type, shape = type)) +
+    ggplot2::geom_point() +
+    ggplot2::scale_colour_manual(
+      values = c("Candidate" = "steelblue3",
+                 "Non-candidate" = "grey75",
+                 "Current design" = "firebrick3")) +
+    ggplot2::scale_size_manual(
+      values = c("Candidate" = 1.5, "Non-candidate" = 0.4, "Current design" = 3)) +
+    ggplot2::scale_alpha_manual(
+      values = c("Candidate" = 0.7, "Non-candidate" = 0.25, "Current design" = 1)) +
+    ggplot2::scale_shape_manual(
+      values = c("Candidate" = 16, "Non-candidate" = 16, "Current design" = 17)) +
+    ggplot2::facet_wrap(~panel, scales = "free",
+                        ncol = min(3L, length(pairs_list))) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(
+      title   = sprintf("Augment candidate region (delta = %.4f)", delta_val),
+      x = NULL, y = NULL,
+      colour = NULL, size = NULL, alpha = NULL, shape = NULL,
+      caption = "Blue: candidates (efficiency >= delta). Triangles: current design."
+    ) +
+    ggplot2::theme(strip.background = ggplot2::element_rect(fill = "grey95"),
+                   legend.position  = "bottom")
 }
 
 

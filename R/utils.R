@@ -839,7 +839,7 @@ plot.optdes <- function(x, ...) {
     ggplot2::geom_text(ggplot2::aes(label = wlabel),
                        vjust = -1, size = 3, show.legend = FALSE) +
     ggplot2::facet_wrap(~panel, scales = "free", ncol = ncol_wrap) +
-    ggplot2::scale_size_continuous(range = c(3, 10)) +
+    ggplot2::scale_size_continuous(limits = c(0, 1), range = c(1, 10)) +
     ggplot2::theme_bw() +
     ggplot2::labs(
       title   = paste(criterion_label, "optimal design"),

@@ -394,8 +394,8 @@ cat("Eficiencia del diseño de 8 esquinas:", round(eff_3d * 100, 2), "%\n")
 # Partimos de un diseño inicial de 2 puntos y queremos añadir un tercer punto
 # manteniendo al menos el 85% de la eficiencia D del diseño aumentado.
 #
-# get_augment_region devuelve:
-#   $candidates  — data.frame con puntos candidatos (eficiencia >= delta)
+# get_augment_region devuelve un objeto "augment_region" con:
+#   $region      — data.frame con puntos candidatos (eficiencia >= delta)
 #   $eff_fun     — función evaluable en cualquier punto
 #   $plot        — heatmap de eficiencia (plasma) con contorno en delta y
 #                  triángulos cian marcando el diseño inicial
@@ -422,9 +422,9 @@ region_2d <- get_augment_region(
 )
 
 # Heatmap ya mostrado automáticamente. Inspeccionamos los candidatos:
-cat("Candidatos encontrados:", nrow(region_2d$candidates), "\n")
+cat("Candidatos encontrados:", nrow(region_2d$region), "\n")
 cat("Primeros candidatos:\n")
-print(head(region_2d$candidates, 8))
+print(head(region_2d$region, 8))
 
 # La función de eficiencia es evaluable en cualquier punto
 cat("Eficiencia en (10, 10):", round(as.numeric(region_2d$eff_fun(c(x1=10, x2=10))), 4), "\n")
@@ -438,7 +438,7 @@ cat("Eficiencia en (0.1, 0.1):", round(as.numeric(region_2d$eff_fun(c(x1=0.1, x2
 # new_points debe ser un data.frame con columnas x1, x2, Weight.
 cat("\n--- 14b. augment_design 2D (no interactivo) ---\n")
 
-best_candidate <- region_2d$candidates[which.max(region_2d$candidates$efficiency), ]
+best_candidate <- region_2d$region[which.max(region_2d$region$efficiency), ]
 new_pt_2d <- data.frame(
   x1     = best_candidate$x1,
   x2     = best_candidate$x2,
@@ -488,10 +488,10 @@ region_ds <- get_augment_region(
   delta_val           = 0.85
 )
 
-cat("Candidatos Ds:", nrow(region_ds$candidates), "\n")
+cat("Candidatos Ds:", nrow(region_ds$region), "\n")
 
 # Elegimos el candidato con mayor eficiencia Ds
-best_ds <- region_ds$candidates[which.max(region_ds$candidates$efficiency), ]
+best_ds <- region_ds$region[which.max(region_ds$region$efficiency), ]
 new_pt_ds <- data.frame(x1 = best_ds$x1, x2 = best_ds$x2, Weight = 1)
 
 aug_ds <- augment_design(
@@ -510,6 +510,47 @@ aug_ds <- augment_design(
 
 cat("Diseño Ds-aumentado:\n")
 print(aug_ds)
+
+
+# -----------------------------------------------------------------------------
+# 14d. Augment 3D — visualización de la región candidata para d > 2
+# -----------------------------------------------------------------------------
+# Para modelos con 3 o más factores, get_augment_region muestra un scatter
+# matrix con C(d,2) paneles, donde cada panel proyecta los puntos LHS sobre
+# un par de variables de diseño:
+#   - Azul: candidatos (eficiencia >= delta)
+#   - Gris: no candidatos
+#   - Triángulos rojos: diseño inicial
+# El resultado incluye $plot con este gráfico y $region con los candidatos.
+cat("\n--- 14d. Augment D-Optimality 3D (región candidata) ---\n")
+
+init_3d_aug <- data.frame(
+  x1     = c(0.8, 10,  5,   10),
+  x2     = c(10,  0.8, 5,   10),
+  x3     = c(5,   5,   0.8, 10),
+  Weight = rep(0.25, 4)
+)
+
+region_3d <- get_augment_region(
+  criterion           = "D-Optimality",
+  init_design         = init_3d_aug,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 * x3 / ((K1+x1) * (K2+x2) * (K3+x3)),
+  parameters          = c("Vmax", "K1", "K2", "K3"),
+  par_values          = c(1, 1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10), x3 = c(0.1, 10)),
+  calc_optimal_design = FALSE,
+  delta_val           = 0.85
+)
+
+# Scatter matrix de la región candidata (C(3,2) = 3 paneles)
+print(region_3d)   # usa print.augment_region
+
+cat("Candidatos 3D:", nrow(region_3d$region), "\n")
+
+# El plot ya se muestra automáticamente al llamar get_augment_region;
+# también está disponible en region_3d$plot para incluirlo en un informe.
+plot(region_3d$plot)
 
 
 # =============================================================================
