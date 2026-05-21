@@ -44,7 +44,7 @@
 #' region <- get_augment_region("D-Optimality", init_des, 0.25,
 #'   y ~ 10^(a - b/(c + x)), c("a", "b", "c"),
 #'   c(8.07131, 1730.63, 233.426), c(1, 100), FALSE, delta_val = 0.85)
-#' new_pts <- data.frame(Point = mean(region[1:2]), Weight = 1)
+#' new_pts <- data.frame(Point = mean(region$region[1:2]), Weight = 1)
 #' augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a - b/(c + x)),
 #'   c("a", "b", "c"), c(8.07131, 1730.63, 233.426), c(1, 100), FALSE,
 #'   delta_val = 0.85, new_points = new_pts)
@@ -748,6 +748,7 @@ print.augment_region <- function(x, ...) {
 # Heatmap of the augment efficiency function for d=2 design spaces.
 # Returns a ggplot; the candidate region (efficiency >= delta_val) is above the white contour.
 .plot_aug_heatmap_2d <- function(design_space, eff_fn, delta_val, init_design) {
+  efficiency <- NULL   # avoid R CMD check NOTE on ggplot2 aes variable
   dvars   <- names(design_space)
   n_grid  <- 40L
   grid_df <- do.call(expand.grid, lapply(design_space, function(ds)

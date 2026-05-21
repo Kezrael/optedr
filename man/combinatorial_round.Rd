@@ -20,12 +20,10 @@ combinatorial_round(
 )
 }
 \arguments{
-\item{design}{either a dataframe with the design to round, or an object of class "optdes". If the former,
-the criterion, model and parameters must be specified. The dataframe should have two columns:
-\itemize{
-\item \code{Point} contains the support points of the design.
-\item \code{Weight} contains the corresponding weights of the \code{Point}s.
-}}
+\item{design}{either a dataframe with the design to round, or an object of class \code{"optdes"}.
+If a dataframe, the criterion, model and parameters must be specified. It must have a \code{Weight}
+column and one or more design-variable columns (\code{Point} for single-factor,
+\code{x1}, \code{x2}, \ldots for multi-factor).}
 
 \item{n}{integer with the desired number of points of the resulting design.}
 

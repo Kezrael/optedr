@@ -273,3 +273,88 @@ test_that("augment_design Ds-Optimality works for multi-factor with valid new_po
   expect_s3_class(reg_ds, "augment_region")
   expect_true("region" %in% names(reg_ds))
 })
+
+
+# ── A / I / L augment 2D ─────────────────────────────────────────────────────
+
+local({
+  init_ail <<- data.frame(x1 = c(0.8, 10, 5), x2 = c(10, 0.8, 5), Weight = rep(1/3, 3))
+  model_ail <<- y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2))
+  pars_ail  <<- c("Vmax", "K1", "K2")
+  vals_ail  <<- c(1, 1, 1)
+  ds_ail    <<- list(x1 = c(0.1, 10), x2 = c(0.1, 10))
+})
+
+test_that("get_augment_region A-Optimality 2D returns augment_region", {
+  reg <- evaluate_promise(get_augment_region(
+    "A-Optimality", init_ail, 0.25, model_ail, pars_ail, vals_ail, ds_ail,
+    calc_optimal_design = FALSE, delta_val = 0.85
+  ))$result
+  expect_s3_class(reg, "augment_region")
+  expect_gte(nrow(reg$region), 1L)
+  expect_true(all(reg$region$efficiency >= 0.85))
+})
+
+test_that("augment_design A-Optimality 2D augments correctly", {
+  reg <- evaluate_promise(get_augment_region(
+    "A-Optimality", init_ail, 0.25, model_ail, pars_ail, vals_ail, ds_ail,
+    calc_optimal_design = FALSE, delta_val = 0.85
+  ))$result
+  best <- reg$region[which.max(reg$region$efficiency), ]
+  new_pt <- data.frame(x1 = best$x1, x2 = best$x2, Weight = 1)
+  aug <- evaluate_promise(augment_design(
+    "A-Optimality", init_ail, 0.25, model_ail, pars_ail, vals_ail, ds_ail,
+    calc_optimal_design = FALSE, delta_val = 0.85, new_points = new_pt
+  ))$result
+  expect_s3_class(aug, "data.frame")
+  expect_equal(sum(aug$Weight), 1, tolerance = 1e-6)
+  expect_equal(nrow(aug), 4L)
+})
+
+test_that("get_augment_region I-Optimality 2D returns augment_region", {
+  reg <- evaluate_promise(get_augment_region(
+    "I-Optimality", init_ail, 0.25, model_ail, pars_ail, vals_ail, ds_ail,
+    calc_optimal_design = FALSE, delta_val = 0.85
+  ))$result
+  expect_s3_class(reg, "augment_region")
+  expect_gte(nrow(reg$region), 1L)
+})
+
+test_that("get_augment_region L-Optimality 2D returns augment_region", {
+  matB_l <- diag(3)
+  reg <- evaluate_promise(get_augment_region(
+    "L-Optimality", init_ail, 0.25, model_ail, pars_ail, vals_ail, ds_ail,
+    calc_optimal_design = FALSE, matB = matB_l, delta_val = 0.85
+  ))$result
+  expect_s3_class(reg, "augment_region")
+  expect_gte(nrow(reg$region), 1L)
+})
+
+# ── efficient_round and combinatorial_round multi-factor ─────────────────────
+
+test_that("efficient_round works for multi-factor designs", {
+  des <- mm2d_res$optdes
+  exact <- evaluate_promise(efficient_round(des, 12L))$result
+  expect_equal(sum(exact$Weight), 12L)
+  expect_true(all(c("x1", "x2", "Weight") %in% names(exact)))
+})
+
+test_that("combinatorial_round works for multi-factor designs", {
+  rounded <- combinatorial_round(mm2d_res, 9L)
+  expect_equal(sum(rounded$Weight), 9L)
+  expect_true(all(c("x1", "x2", "Weight") %in% names(rounded)))
+})
+
+test_that("print.augment_region works for 1D and 2D", {
+  # 1D
+  init1d <- data.frame(Point = c(30, 60, 90), Weight = rep(1/3, 3))
+  reg1d  <- evaluate_promise(get_augment_region(
+    "D-Optimality", init1d, 0.25,
+    y ~ 10^(a - b/(c + x)), c("a","b","c"), c(8.07131, 1730.63, 233.426),
+    c(1, 100), FALSE, delta_val = 0.85
+  ))$result
+  expect_output(print(reg1d), "Intervals")
+
+  # 2D
+  expect_output(print(region_res), "candidate points")
+})

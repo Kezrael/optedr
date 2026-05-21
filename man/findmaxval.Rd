@@ -4,20 +4,20 @@
 \alias{findmaxval}
 \title{Find Maximum Value}
 \usage{
-findmaxval(sens, min, max, grid.length)
+findmaxval(sens, design_space, grid.length)
 }
 \arguments{
-\item{sens}{A single variable numeric function to evaluate.}
+\item{sens}{A numeric function to evaluate (scalar argument for 1D, named numeric
+vector for multi-factor).}
 
-\item{min}{Minimum value of the search interval.}
+\item{design_space}{Numeric vector \code{c(min, max)} for single-factor models, or a
+named list \code{list(x1 = c(min, max), ...)} for multi-factor models.}
 
-\item{max}{Maximum value of the search interval.}
-
-\item{grid.length}{Length of the search interval.}
+\item{grid.length}{Number of grid points (1D) or LHS samples (multi-factor).}
 }
 \value{
 The value of the maximum
 }
 \description{
-Searches the maximum of a function over a grid on a given interval.
+Searches the maximum of a function over a grid on a given interval or design space.
 }

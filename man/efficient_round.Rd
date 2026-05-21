@@ -7,7 +7,8 @@
 efficient_round(design, n, tol = 1e-05, seed = NULL)
 }
 \arguments{
-\item{design}{a dataframe with columns "Point" and "Weight" that represents a design}
+\item{design}{a dataframe with a \code{Weight} column and one or more design-variable columns
+(\code{Point} for single-factor designs, \code{x1}, \code{x2}, \ldots for multi-factor designs).}
 
 \item{n}{an integer that represents the desired number of observations of the exact design}
 
@@ -19,8 +20,8 @@ deterministic by calling \code{set.seed(seed)} immediately before it. \code{NULL
 leaves the global RNG state unchanged.}
 }
 \value{
-a data.frame with columns "Point" and "Weight" representing an exact design
-with n observations
+a data.frame with the same columns as \code{design}, with \code{Weight} replaced by
+integer observation counts summing to \code{n}.
 }
 \description{
 Takes an approximate design, and a number of points and converts the design to

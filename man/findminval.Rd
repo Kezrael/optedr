@@ -4,20 +4,19 @@
 \alias{findminval}
 \title{Find Minimum Value}
 \usage{
-findminval(sens, min, max, grid.length)
+findminval(sens, design_space, grid.length)
 }
 \arguments{
-\item{sens}{a single variable numeric function to evaluate.}
+\item{sens}{A numeric function to evaluate (scalar for 1D, named numeric vector for multi-factor).}
 
-\item{min}{minimum value of the search grid.}
+\item{design_space}{Numeric vector \code{c(min, max)} for single-factor models, or a
+named list \code{list(x1 = c(min, max), ...)} for multi-factor models.}
 
-\item{max}{maximum value of the search grid.}
-
-\item{grid.length}{length of the search grid.}
+\item{grid.length}{Number of grid points (1D) or LHS samples (multi-factor).}
 }
 \value{
 The value of the minimum
 }
 \description{
-Searches the maximum of a function over a grid on a given grid.
+Searches the minimum of a function over a grid on the design space.
 }

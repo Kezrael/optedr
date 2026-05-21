@@ -9,10 +9,13 @@
 \arguments{
 \item{x}{An object of class \code{optdes}.}
 
-\item{...}{Possible extra arguments for plotting dataframes}
+\item{...}{Possible extra arguments (currently unused).}
 }
 \description{
-Plot function for optdes
+For single-factor models, overlays the support points on the sensitivity function curve.
+For two-factor models, shows a heatmap of the sensitivity function with the support
+points overlaid and the Equivalence Theorem contour highlighted.
+For models with more than two factors, prints the design and returns it invisibly.
 }
 \examples{
 rri <- opt_des(criterion = "I-Optimality", model = y ~ a * exp(-b / x),

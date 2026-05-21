@@ -31,7 +31,7 @@ detect_design_vars <- function(model, parameters) {
   if (has_x && length(x_multi) > 0L)
     stop(
       "The model formula mixes the single-factor variable 'x' with multi-factor ",
-      "variables 'x1', 'x2', ... — use one convention or the other.",
+      "variables 'x1', 'x2', ... - use one convention or the other.",
       call. = FALSE
     )
 

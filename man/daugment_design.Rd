@@ -56,7 +56,7 @@ init_des <- data.frame("Point" = c(30, 60, 90), "Weight" = c(1/3, 1/3, 1/3))
 region <- get_augment_region("D-Optimality", init_des, 0.25,
   y ~ 10^(a - b/(c + x)), c("a", "b", "c"),
   c(8.07131, 1730.63, 233.426), c(1, 100), FALSE, delta_val = 0.85)
-new_pts <- data.frame(Point = mean(region[1:2]), Weight = 1)
+new_pts <- data.frame(Point = mean(region$region[1:2]), Weight = 1)
 augment_design("D-Optimality", init_des, 0.25, y ~ 10^(a - b/(c + x)),
   c("a", "b", "c"), c(8.07131, 1730.63, 233.426), c(1, 100), FALSE,
   delta_val = 0.85, new_points = new_pts)

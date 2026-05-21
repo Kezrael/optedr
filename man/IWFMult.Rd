@@ -2,14 +2,13 @@
 % Please edit documentation in R/wf_mult.R
 \name{IWFMult}
 \alias{IWFMult}
-\title{Cocktail Algorithm implementation for L-, I- and A-Optimality (with matB = diag(k))}
+\title{Cocktail Algorithm implementation for L-, I- and A-Optimality}
 \usage{
 IWFMult(
   init_design,
   grad,
   matB,
-  min,
-  max,
+  design_space,
   grid.length,
   join_thresh,
   delete_thresh,
@@ -21,58 +20,35 @@ IWFMult(
 )
 }
 \arguments{
-\item{init_design}{optional dataframe with the initial design for the algorithm. A dataframe with two columns:
-\itemize{
-\item \code{Point} contains the support points of the design.
-\item \code{Weight} contains the corresponding weights of the \code{Point}s.
-}}
+\item{init_design}{optional dataframe with the initial design for the algorithm.}
 
 \item{grad}{function of partial derivatives of the model.}
 
-\item{matB}{optional matrix of dimensions k x k, for L-optimality.}
+\item{matB}{optional matrix for L-optimality.}
 
-\item{min}{numeric value with the inferior bound of the space of the design.}
+\item{design_space}{named list with bounds for each design variable.}
 
-\item{max}{numeric value with the upper bound of the space of the design.}
+\item{grid.length}{numeric value for the sensitivity search grid / LHS size.}
 
-\item{grid.length}{numeric value that gives the grid to evaluate the sensitivity function when looking for a
-maximum.}
+\item{join_thresh}{numeric value for the merge heuristic.}
 
-\item{join_thresh}{numeric value that states how close, in real units, two points must be in order to
-be joined together by the join heuristic.}
-
-\item{delete_thresh}{numeric value with the minimum weight, over 1 total, that a point needs to have
-in order to not be deleted from the design.}
+\item{delete_thresh}{numeric value for the weight deletion threshold.}
 
 \item{delta_weights}{numeric value in (0, 1), parameter of the algorithm.}
 
-\item{tol}{numeric value for the convergence of the weight optimizing algorithm.}
+\item{tol}{numeric value for convergence of the weight loop.}
 
-\item{tol2}{numeric value for the stop condition of the algorithm.}
+\item{tol2}{numeric value for the outer stop condition.}
 
-\item{criterion}{character variable with the chosen optimality criterion. Can be one of the following:
-\itemize{
-\item 'D-Optimality'
-\item 'Ds-Optimality'
-\item 'A-Optimality'
-\item 'I-Optimality'
-\item 'L-Optimality'
-}}
+\item{criterion}{character variable with the chosen optimality criterion.}
 
-\item{max_iter}{maximum number of outer iterations of the cocktail algorithm.}
+\item{max_iter}{maximum number of outer iterations.}
 }
 \value{
-list correspondent to the output of the correspondent algorithm called, dependent on the criterion.
-A list of two objects:
-\itemize{
-\item optdes: a dataframe with the optimal design in two columns, \code{Point} and \code{Weight}.
-\item sens: a plot with the sensitivity function to check for optimality of the design.
-}
+An object of class \code{optdes}.
 }
 \description{
-Function that calculates the I-Optimal designs given the matrix B (should be integral of the information matrix
-over the interest region), or A-Optimal if given diag(k). The rest of the parameters can help the convergence
-of the algorithm.
+Cocktail Algorithm implementation for L-, I- and A-Optimality
 }
 \seealso{
 Other cocktail algorithms: 

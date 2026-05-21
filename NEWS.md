@@ -1,6 +1,44 @@
-# optedr 2.3.0.9000
+# optedr 2.4.0.9000
+
+## Breaking changes
+- `get_augment_region()` now returns an `"augment_region"` S3 object instead
+  of a plain numeric vector. The crosspoints vector is accessible via
+  `region$region`; multi-factor calls return a candidate data frame there.
+  A `print` method summarises intervals (1D) or candidate count and efficiency
+  range (multi-factor).
+
+## New features — multi-factor support
+- `opt_des()` now accepts multi-factor models using the naming convention
+  `x1`, `x2`, … for design variables and `design_space` as a named list,
+  e.g. `list(x1 = c(0, 10), x2 = c(0, 5))`. Single-factor models using `x`
+  are fully backward compatible.
+- The cocktail algorithm dispatches to 1D or multi-factor paths transparently;
+  for `d = 2` the sensitivity plot is a viridis heatmap with the Equivalence
+  Theorem contour and support-point labels overlaid.
+- `design_efficiency()` accepts designs with `x1`, `x2`, … column names in
+  addition to the legacy `Point` / `Weight` format.
+- `augment_design()` and `get_augment_region()` support multi-factor models
+  for all five criteria (D, Ds, A, I, L). For `d = 2` the candidate region is
+  shown as a plasma heatmap with a white contour at `delta_val`; for any `d`
+  a sample of candidate points is printed. Interactive coordinate-by-coordinate
+  prompting works analogously to the 1D readline workflow.
+- `efficient_round()` and `combinatorial_round()` accept any data frame with
+  a `Weight` column, including multi-factor designs with `x1`, `x2`, … columns.
+- I-Optimality in `opt_des()` and `get_augment_region()` / `augment_design()`
+  accepts `reg_int` as a named list for multi-factor models.
 
 ## Bug fixes
+- Fixed `DsWFMult` and `IWFMult`: the sensitivity plot was built from the
+  stale closure `sensDs`/`sensI` (last inner-loop iteration) instead of the
+  final recomputed `sensM`. Caused `Inf`/`NaN` values in A/I/L-optimality
+  heatmaps.
+- Fixed `geom_contour` inheriting `fill` aesthetic from the global `aes`,
+  producing a spurious warning in 2D sensitivity plots.
+- Fixed `gradient22()`: hardcoded `"x"` replaced by `detect_design_vars()`,
+  enabling Ds-Optimality augment for multi-factor models.
+- Fixed `join_thresh` heuristic: changed from `mean(ranges)/10` to
+  `min(ranges)/10` so designs with heterogeneous factor scales (e.g. MPa vs K)
+  converge correctly.
 - Fixed bug in `DWFMult` where the inner weight loop stopped after a single
   iteration due to a misplaced `<` operator inside `max()`.
 - Fixed undefined `error_msg` variable in `design_efficiency()`.

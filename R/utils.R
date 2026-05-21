@@ -63,12 +63,12 @@ weight_function <- function(model, char_vars, values, distribution = "Normal") {
 #' Find Minimum Value
 #'
 #' @description
-#' Searches the maximum of a function over a grid on a given grid.
+#' Searches the minimum of a function over a grid on the design space.
 #'
-#' @param sens a single variable numeric function to evaluate.
-#' @param min minimum value of the search grid.
-#' @param max maximum value of the search grid.
-#' @param grid.length length of the search grid.
+#' @param sens A numeric function to evaluate (scalar for 1D, named numeric vector for multi-factor).
+#' @param design_space Numeric vector \code{c(min, max)} for single-factor models, or a
+#'   named list \code{list(x1 = c(min, max), ...)} for multi-factor models.
+#' @param grid.length Number of grid points (1D) or LHS samples (multi-factor).
 #'
 #' @return The value of the minimum
 findminval <- function(sens, design_space, grid.length) {
@@ -85,7 +85,7 @@ findminval <- function(sens, design_space, grid.length) {
   }
   # Multi-factor: LHS grid
   pts <- lhs_sample(grid.length, design_space)
-  min(apply(pts, 1L, function(x) as.numeric(sens(setNames(x, names(design_space))))))
+  min(apply(pts, 1L, function(x) as.numeric(sens(stats::setNames(x, names(design_space))))))
 }
 
 #' Find Maximum Value
@@ -111,7 +111,7 @@ findmaxval <- function(sens, design_space, grid.length) {
     return(max(purrr::map_dbl(seq(lo, hi, length.out = grid.length), sens)))
   }
   pts <- lhs_sample(grid.length, design_space)
-  max(apply(pts, 1L, function(x) as.numeric(sens(setNames(x, names(design_space))))))
+  max(apply(pts, 1L, function(x) as.numeric(sens(stats::setNames(x, names(design_space))))))
 }
 
 
@@ -149,7 +149,7 @@ findmax <- function(sens, design_space, grid.length, n_starts = 5L) {
   pts      <- lhs_sample(n_lhs, design_space)
   nms      <- names(design_space)
   sens_vec <- apply(pts, 1L,
-                    function(x) as.numeric(sens(setNames(x, nms))))
+                    function(x) as.numeric(sens(stats::setNames(x, nms))))
 
   # Refine the best n_starts candidates with L-BFGS-B
   n_starts  <- min(n_starts, n_lhs)
@@ -163,7 +163,7 @@ findmax <- function(sens, design_space, grid.length, n_starts = 5L) {
     opt <- tryCatch(
       stats::optim(
         par    = pts[idx, ],
-        fn     = function(x) -as.numeric(sens(setNames(x, nms))),
+        fn     = function(x) -as.numeric(sens(stats::setNames(x, nms))),
         method = "L-BFGS-B",
         lower  = lower,
         upper  = upper
@@ -172,7 +172,7 @@ findmax <- function(sens, design_space, grid.length, n_starts = 5L) {
     )
     if (-opt$value > best_val) { best_val <- -opt$value; best_x <- opt$par }
   }
-  setNames(best_x, nms)
+  stats::setNames(best_x, nms)
 }
 
 #' Deletes duplicates points
@@ -554,12 +554,13 @@ inv_spd <- function(M) {
 # Heatmap of the sensitivity function for two-factor designs.
 # Intended for d=2; returns a ggplot object with support points and ET contour overlaid.
 plot_sens_2d <- function(design_space, sens_fn, design_points, criterion_value) {
+  sens <- wlabel <- NULL   # avoid R CMD check NOTE on ggplot2 aes variables
   dvars   <- names(design_space)
   n_grid  <- 40L
   grid_df <- do.call(expand.grid, lapply(design_space, function(ds)
     seq(ds[1L], ds[2L], length.out = n_grid)))
   grid_df$sens <- apply(grid_df, 1L, function(x)
-    as.numeric(sens_fn(setNames(x, dvars))))
+    as.numeric(sens_fn(stats::setNames(x, dvars))))
 
   label_df         <- design_points
   label_df$wlabel  <- paste0(round(label_df$Weight, 2))
@@ -675,7 +676,7 @@ integrate_reg_int <- function(grad, k, reg_int) {
   vol    <- prod(sapply(reg_int, diff))
   # Accumulate outer products: B = vol * E[g(x) g(x)^T]
   matrix_int <- Reduce("+", lapply(seq_len(n_mc), function(i) {
-    g <- as.vector(grad(setNames(pts[i, ], dvars)))
+    g <- as.vector(grad(stats::setNames(pts[i, ], dvars)))
     outer(g, g)
   })) * (vol / n_mc)
   matrix_int

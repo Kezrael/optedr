@@ -4,20 +4,23 @@
 \alias{findmax}
 \title{Find Maximum}
 \usage{
-findmax(sens, min, max, grid.length)
+findmax(sens, design_space, grid.length, n_starts = 5L)
 }
 \arguments{
-\item{sens}{A single variable numeric function to evaluate.}
+\item{sens}{Sensitivity function (scalar for 1D, named numeric vector for multi-factor).}
 
-\item{min}{Minimum value of the search interval.}
+\item{design_space}{Numeric vector \code{c(min, max)} or named list.}
 
-\item{max}{Maximum value of the search interval.}
+\item{grid.length}{Number of grid / LHS points for the initial sweep.}
 
-\item{grid.length}{Length of the search interval.}
+\item{n_starts}{Number of local-optimisation restarts (multi-factor only).}
 }
 \value{
-The value at which the maximum is obtained
+The design point (scalar or named numeric vector) at which \code{sens} is maximised.
 }
 \description{
-Searches the maximum of a function over a grid on a given interval.
+Searches the location of the maximum of a sensitivity function over the design space.
+For single-factor models the search uses a regular grid followed by direct selection.
+For multi-factor models a Latin Hypercube Sample is evaluated and then refined with
+L-BFGS-B local optimisation from the \code{n_starts} best candidate points.
 }
