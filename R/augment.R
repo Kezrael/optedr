@@ -782,34 +782,35 @@ print.augment_region <- function(x, ...) {
 # Samples n_lhs points, splits into candidate / non-candidate, overlays init_design.
 .plot_aug_pairs_candidates <- function(design_space, eff_fn, delta_val, init_design,
                                        n_lhs = 2000L) {
-  type <- panel <- NULL  # avoid R CMD check NOTE
+  type <- xvar <- yvar <- NULL  # avoid R CMD check NOTE
   dvars   <- names(design_space)
   pts     <- lhs_sample(n_lhs, design_space)
   eff_vec <- apply(pts, 1L, function(x)
     as.numeric(eff_fn(stats::setNames(x, dvars))))
-  # Treat non-finite efficiency values (NaN/Inf from near-singular M) as non-candidates
   eff_finite <- ifelse(is.finite(eff_vec), eff_vec, -Inf)
 
-  sample_df       <- as.data.frame(pts)
-  sample_df$type  <- ifelse(eff_finite >= delta_val, "Candidate", "Non-candidate")
+  sample_df      <- as.data.frame(pts)
+  sample_df$type <- ifelse(eff_finite >= delta_val, "Candidate", "Non-candidate")
 
   dc <- intersect(dvars, names(init_design))
-  init_df       <- init_design[, dc, drop = FALSE]
-  init_df$type  <- "Current design"
+  init_df      <- init_design[, dc, drop = FALSE]
+  init_df$type <- "Current design"
 
   pairs_list <- utils::combn(dvars, 2L, simplify = FALSE)
   long_df <- do.call(rbind, lapply(pairs_list, function(p) {
-    lbl <- paste(p[1], "vs", p[2])
     rbind(
-      data.frame(panel = lbl, x = sample_df[[p[1]]], y = sample_df[[p[2]]],
-                 type  = sample_df$type,  stringsAsFactors = FALSE),
-      data.frame(panel = lbl, x = init_df[[p[1]]],   y = init_df[[p[2]]],
-                 type  = init_df$type,    stringsAsFactors = FALSE)
+      data.frame(xvar = p[1], yvar = p[2],
+                 x = sample_df[[p[1]]], y = sample_df[[p[2]]],
+                 type = sample_df$type,  stringsAsFactors = FALSE),
+      data.frame(xvar = p[1], yvar = p[2],
+                 x = init_df[[p[1]]],   y = init_df[[p[2]]],
+                 type = init_df$type,    stringsAsFactors = FALSE)
     )
   }))
-  long_df$panel <- factor(long_df$panel, levels = unique(long_df$panel))
-  long_df$type  <- factor(long_df$type,
-                           levels = c("Candidate", "Non-candidate", "Current design"))
+  long_df$xvar <- factor(long_df$xvar, levels = dvars)
+  long_df$yvar <- factor(long_df$yvar, levels = dvars)
+  long_df$type <- factor(long_df$type,
+                          levels = c("Candidate", "Non-candidate", "Current design"))
 
   ggplot2::ggplot(long_df,
                   ggplot2::aes(x = x, y = y,
@@ -826,8 +827,7 @@ print.augment_region <- function(x, ...) {
       values = c("Candidate" = 0.7, "Non-candidate" = 0.25, "Current design" = 1)) +
     ggplot2::scale_shape_manual(
       values = c("Candidate" = 16, "Non-candidate" = 16, "Current design" = 17)) +
-    ggplot2::facet_wrap(~panel, scales = "free",
-                        ncol = min(3L, length(pairs_list))) +
+    ggplot2::facet_grid(yvar ~ xvar, scales = "free") +
     ggplot2::theme_bw() +
     ggplot2::labs(
       title   = sprintf("Augment candidate region (delta = %.4f)", delta_val),

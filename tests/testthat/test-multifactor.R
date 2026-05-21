@@ -180,20 +180,21 @@ test_that("plot.optdes for 3D returns a ggplot", {
   expect_s3_class(plot(mm3d_res), "ggplot")
 })
 
-test_that("plot.optdes for 3D has C(3,2)=3 facets", {
+test_that("plot.optdes for 3D uses facet_grid with C(3,2)=3 xvar/yvar combos", {
   p <- plot(mm3d_res)
-  n_panels <- length(unique(p$data$panel))
-  expect_equal(n_panels, 3L)
+  expect_s3_class(p$facet, "FacetGrid")
+  # 3 unique (xvar, yvar) pairs
+  combos <- nrow(unique(p$data[, c("xvar","yvar")]))
+  expect_equal(combos, 3L)
 })
 
-test_that("plot.optdes for 3D panels are named 'xi vs xj'", {
-  p      <- plot(mm3d_res)
-  panels <- as.character(unique(p$data$panel))
-  expect_true(all(grepl("vs", panels, fixed = TRUE)))
+test_that("plot.optdes for 3D xvar/yvar are design variable names", {
+  p <- plot(mm3d_res)
+  expect_true(all(levels(p$data$xvar) %in% c("x1","x2","x3")))
+  expect_true(all(levels(p$data$yvar) %in% c("x1","x2","x3")))
 })
 
-test_that("plot.optdes for 4D has C(4,2)=6 facets", {
-  # 4-factor linear model: y ~ a*x1 + b*x2 + c*x3 + d*x4
+test_that("plot.optdes for 4D has C(4,2)=6 xvar/yvar combos", {
   r4d <- evaluate_promise(opt_des(
     "D-Optimality",
     y ~ a*x1 + b*x2 + c*x3 + d*x4,
@@ -202,7 +203,8 @@ test_that("plot.optdes for 4D has C(4,2)=6 facets", {
     max_iter = 5L
   ))$result
   p <- plot(r4d)
-  expect_equal(length(unique(p$data$panel)), 6L)
+  combos <- nrow(unique(p$data[, c("xvar","yvar")]))
+  expect_equal(combos, 6L)
 })
 
 

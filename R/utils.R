@@ -815,14 +815,15 @@ plot.optdes <- function(x, ...) {
 # Pairwise scatter matrix for designs with d > 2 factors.
 # Shows all C(d,2) unique pairs as facets; point size proportional to weight.
 .plot_pairs_optdes <- function(design, criterion_label) {
-  wlabel <- panel <- NULL  # avoid R CMD check NOTE on ggplot2 aes variables
+  wlabel <- xvar <- yvar <- NULL  # avoid R CMD check NOTE on ggplot2 aes variables
   dvars <- coord_cols(design)
   d     <- length(dvars)
 
   pairs_list <- utils::combn(dvars, 2L, simplify = FALSE)
   long_df    <- do.call(rbind, lapply(pairs_list, function(p) {
     data.frame(
-      panel  = paste(p[1], "vs", p[2]),
+      xvar   = p[1],
+      yvar   = p[2],
       x      = design[[p[1]]],
       y      = design[[p[2]]],
       Weight = design$Weight,
@@ -830,25 +831,26 @@ plot.optdes <- function(x, ...) {
       stringsAsFactors = FALSE
     )
   }))
-  long_df$panel <- factor(long_df$panel, levels = unique(long_df$panel))
-
-  ncol_wrap <- min(3L, length(pairs_list))
+  # Preserve variable ordering so strips read x1, x2, x3, ...
+  long_df$xvar <- factor(long_df$xvar, levels = dvars)
+  long_df$yvar <- factor(long_df$yvar, levels = dvars)
 
   ggplot2::ggplot(long_df, ggplot2::aes(x = x, y = y, size = Weight)) +
     ggplot2::geom_point(colour = "darkgreen", alpha = 0.8) +
     ggplot2::geom_text(ggplot2::aes(label = wlabel),
                        vjust = -1, size = 3, show.legend = FALSE) +
-    ggplot2::facet_wrap(~panel, scales = "free", ncol = ncol_wrap) +
+    ggplot2::facet_grid(yvar ~ xvar, scales = "free") +
     ggplot2::scale_size_continuous(limits = c(0, 1), range = c(1, 10)) +
     ggplot2::theme_bw() +
     ggplot2::labs(
       title   = paste(criterion_label, "optimal design"),
       x       = NULL,
       y       = NULL,
-      caption = sprintf("%d factors, %d support points. Point size proportional to weight.",
-                        d, nrow(design))
+      caption = sprintf(
+        "%d factors, %d support points. Column strip = x-axis variable, row strip = y-axis variable.",
+        d, nrow(design))
     ) +
     ggplot2::theme(strip.background = ggplot2::element_rect(fill = "grey95"),
-                   strip.text       = ggplot2::element_text(size = 9))
+                   strip.text       = ggplot2::element_text(size = 9, face = "bold"))
 }
 
