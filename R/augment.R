@@ -54,12 +54,64 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
                            par_int = NA, matB = NULL, distribution = NA,
                            weight_fun = function(x) 1,
                            delta_val = NULL, new_points = NULL) {
-  if (is_multifactor(detect_design_vars(model, parameters)))
-    stop("augment_design() is not yet implemented for multi-factor models.\n",
-         "The candidate region in d > 1 dimensions cannot be represented as a union of intervals.\n",
-         "Future options include: (A) an indicator function evaluable at any proposed point,\n",
-         "  (B) a sampled set of candidates, or (C) a heatmap of the efficiency function for d = 2.",
-         call. = FALSE)
+  design_vars <- detect_design_vars(model, parameters)
+  if (is_multifactor(design_vars)) {
+    design_space <- canonicalise_design_space(design_space, design_vars)
+    if (!is.na(distribution))
+      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+    grad <- gradient(model, parameters, par_values, weight_fun)
+    k    <- length(parameters)
+    if (criterion == "A-Optimality") matB <- diag(k)
+    if (criterion == "I-Optimality") matB <- integrate_reg_int(grad, k, design_space)
+    if (criterion == "Ds-Optimality") {
+      grad22     <- gradient22(model, parameters, par_values, par_int, weight_fun)
+      inf_mat_1  <- inf_mat(grad,   init_design)
+      inf_mat_22 <- inf_mat(grad22, init_design)
+      sens_1     <- dsens(grad,   inf_mat_1)
+      sens_22    <- dsens(grad22, inf_mat_22)
+      eff_fn     <- function(x) (1 - alpha) *
+        ((1 + alpha * as.numeric(sens_1(x))   / (1 - alpha)) /
+         (1 + alpha * as.numeric(sens_22(x))  / (1 - alpha)))^(1 / length(par_int))
+    } else {
+      eff_fn <- .aug_eff_fun(criterion, grad, init_design, alpha, k, matB)
+    }
+    delta_range <- c(findminval(eff_fn, design_space, 2000L),
+                     findmaxval(eff_fn, design_space, 2000L))
+    if (calc_optimal_design) {
+      opt  <- opt_des(criterion, model, parameters, par_values, design_space,
+                      matB = matB, weight_fun = weight_fun)
+      eff1 <- eff(criterion, inf_mat(grad, init_design), inf_mat(grad, opt$optdes),
+                  k = k, intPars = par_int, matB = matB) * 100
+      message(crayon::blue(cli::symbol$info),
+              " Efficiency of initial design: ", round(eff1, 2), "%")
+    }
+    delta_val <- ask_delta(delta_range, delta_val)
+    if (is.null(delta_val)) return(NULL)
+    if (length(design_vars) == 2L)
+      plot(.plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design))
+    cands <- .sample_aug_candidates(eff_fn, design_space, delta_val)
+    message(crayon::blue(cli::symbol$info), " ", nrow(cands),
+            " candidate points with efficiency >= ", round(delta_val, 4),
+            " (from LHS sample of 5000)")
+    if (nrow(cands) > 0L) {
+      cat("Sample of candidate points:\n")
+      print(utils::head(cands[, c(design_vars, "efficiency"), drop = FALSE], 15L))
+    }
+    pts <- if (!is.null(new_points)) {
+      .validate_new_points_mf(new_points, design_vars, design_space, eff_fn, delta_val)
+    } else {
+      .select_new_points_mf_interactive(design_vars, design_space, eff_fn, delta_val)
+    }
+    init_norm <- normalize_design_cols(init_design, design_vars)
+    aug       <- add_design(init_norm, pts, alpha)
+    if (calc_optimal_design) {
+      eff2 <- eff(criterion, inf_mat(grad, aug), inf_mat(grad, opt$optdes),
+                  k = k, matB = matB) * 100
+      message(crayon::blue(cli::symbol$info),
+              " Efficiency of augmented design: ", round(eff2, 2), "%")
+    }
+    return(aug)
+  }
   if (!is.na(distribution)) {
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
@@ -136,12 +188,54 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
                                par_int = NA, matB = NA, distribution = NA,
                                weight_fun = function(x) 1,
                                delta_val = NULL) {
-  if (is_multifactor(detect_design_vars(model, parameters)))
-    stop("get_augment_region() is not yet implemented for multi-factor models.\n",
-         "The candidate region in d > 1 dimensions cannot be represented as a union of intervals.\n",
-         "Future options include: (A) an indicator function evaluable at any proposed point,\n",
-         "  (B) a sampled set of candidates, or (C) a heatmap of the efficiency function for d = 2.",
-         call. = FALSE)
+  design_vars <- detect_design_vars(model, parameters)
+  if (is_multifactor(design_vars)) {
+    design_space <- canonicalise_design_space(design_space, design_vars)
+    if (!is.na(distribution))
+      weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
+    grad <- gradient(model, parameters, par_values, weight_fun)
+    k    <- length(parameters)
+    if (criterion == "A-Optimality") matB <- diag(k)
+    if (criterion == "I-Optimality") matB <- integrate_reg_int(grad, k, design_space)
+    if (criterion == "Ds-Optimality") {
+      grad22     <- gradient22(model, parameters, par_values, par_int, weight_fun)
+      inf_mat_1  <- inf_mat(grad,   init_design)
+      inf_mat_22 <- inf_mat(grad22, init_design)
+      sens_1     <- dsens(grad,   inf_mat_1)
+      sens_22    <- dsens(grad22, inf_mat_22)
+      eff_fn     <- function(x) (1 - alpha) *
+        ((1 + alpha * as.numeric(sens_1(x))  / (1 - alpha)) /
+         (1 + alpha * as.numeric(sens_22(x)) / (1 - alpha)))^(1 / length(par_int))
+    } else {
+      eff_fn <- .aug_eff_fun(criterion, grad, init_design, alpha, k, matB)
+    }
+    delta_range <- c(findminval(eff_fn, design_space, 2000L),
+                     findmaxval(eff_fn, design_space, 2000L))
+    if (calc_optimal_design) {
+      opt  <- opt_des(criterion, model, parameters, par_values, design_space,
+                      matB = if (criterion == "L-Optimality") matB else NULL,
+                      weight_fun = weight_fun)
+      eff1 <- eff(criterion, inf_mat(grad, init_design), inf_mat(grad, opt$optdes),
+                  k = k, intPars = par_int, matB = matB) * 100
+      message(crayon::blue(cli::symbol$info),
+              " Efficiency of initial design: ", round(eff1, 2), "%")
+    }
+    delta_val <- ask_delta(delta_range, delta_val)
+    if (is.null(delta_val)) return(NULL)
+    p      <- if (length(design_vars) == 2L)
+                .plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design) else NULL
+    if (!is.null(p)) plot(p)
+    cands  <- .sample_aug_candidates(eff_fn, design_space, delta_val)
+    message(crayon::blue(cli::symbol$info), " ", nrow(cands),
+            " candidate points with efficiency >= ", round(delta_val, 4),
+            " (from LHS sample of 5000)")
+    result <- list(candidates  = cands,
+                   delta_val   = delta_val,
+                   eff_fun     = eff_fn,
+                   design_vars = design_vars,
+                   plot        = p)
+    return(invisible(result))
+  }
   if (!is.na(distribution)) {
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   }
@@ -585,6 +679,147 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
 }
 
 
+# --- Multi-factor augment helpers -------------------------------------------
+
+# Build the augment efficiency function for D / A / I / L criteria.
+# Returns a scalar function eff(x) where x is a scalar (1D) or named vector (multi-factor).
+.aug_eff_fun <- function(criterion, grad, init_design, alpha, k, matB = NULL) {
+  M1 <- inf_mat(grad, init_design)
+  if (identical(criterion, "D-Optimality")) {
+    s1 <- dsens(grad, M1)
+    function(x) (1 - alpha) * (1 + alpha * as.numeric(s1(x)) / (1 - alpha))^(1/k)
+  } else {
+    ds1   <- dsens(grad, M1)
+    is1   <- isens(grad, M1, matB)
+    crit1 <- icrit(M1, matB)
+    function(x) {
+      dv <- as.numeric(ds1(x)); iv <- as.numeric(is1(x))
+      (1 - alpha) * crit1 / (crit1 - alpha * iv / (1 - alpha + alpha * dv))
+    }
+  }
+}
+
+
+# Heatmap of the augment efficiency function for d=2 design spaces.
+# Returns a ggplot; the candidate region (efficiency >= delta_val) is above the white contour.
+.plot_aug_heatmap_2d <- function(design_space, eff_fn, delta_val, init_design) {
+  dvars   <- names(design_space)
+  n_grid  <- 40L
+  grid_df <- do.call(expand.grid, lapply(design_space, function(ds)
+    seq(ds[1L], ds[2L], length.out = n_grid)))
+  grid_df$efficiency <- apply(grid_df, 1L, function(x)
+    as.numeric(eff_fn(stats::setNames(x, dvars))))
+
+  dc  <- intersect(dvars, names(init_design))
+  x1s <- rlang::sym(dvars[1L]); x2s <- rlang::sym(dvars[2L])
+  ggplot2::ggplot(grid_df, ggplot2::aes(x = !!x1s, y = !!x2s, fill = efficiency)) +
+    ggplot2::geom_tile() +
+    ggplot2::scale_fill_viridis_c(name = "Efficiency", option = "plasma") +
+    ggplot2::geom_contour(ggplot2::aes(z = efficiency, fill = NULL),
+                          breaks = delta_val, colour = "white", linewidth = 0.7) +
+    ggplot2::geom_point(data = init_design[, dc, drop = FALSE],
+                        ggplot2::aes(x = !!x1s, y = !!x2s, fill = NULL),
+                        colour = "cyan", size = 3.5, shape = 17) +
+    ggplot2::theme_bw() +
+    ggplot2::labs(x = dvars[1L], y = dvars[2L],
+                  caption = sprintf(
+                    "White contour: candidate region boundary (delta = %.4f). Triangles: current design.",
+                    delta_val))
+}
+
+
+# Sample candidate points from the design space via LHS and return those
+# with efficiency >= delta_val.  Includes an 'efficiency' column.
+.sample_aug_candidates <- function(eff_fn, design_space, delta_val, n_lhs = 5000L) {
+  dvars   <- names(design_space)
+  pts     <- lhs_sample(n_lhs, design_space)
+  eff_vec <- apply(pts, 1L, function(x) as.numeric(eff_fn(stats::setNames(x, dvars))))
+  keep    <- eff_vec >= delta_val
+  cands   <- as.data.frame(pts[keep, , drop = FALSE])
+  cands$efficiency <- eff_vec[keep]
+  cands
+}
+
+
+# Interactive point selection for multi-factor augment.
+# Shows the candidate list, then prompts for each coordinate and weight in a loop.
+.select_new_points_mf_interactive <- function(design_vars, design_space, eff_fn, delta_val) {
+  if (!interactive())
+    stop("Supply new_points for non-interactive use.", call. = FALSE)
+  result <- data.frame(matrix(ncol = length(design_vars) + 1L, nrow = 0L))
+  names(result) <- c(design_vars, "Weight")
+  repeat {
+    cat(crayon::blue(cli::symbol$info),
+        " Enter coordinates for a new point, or press Enter with no value to finish.\n")
+    coords <- numeric(length(design_vars))
+    valid  <- TRUE
+    for (v in design_vars) {
+      raw <- readline(prompt = paste0("  ", v, " [", design_space[[v]][1L],
+                                      ", ", design_space[[v]][2L], "]: "))
+      if (nchar(trimws(raw)) == 0L) { valid <- FALSE; break }
+      val <- suppressWarnings(as.numeric(raw))
+      if (is.na(val) || val < design_space[[v]][1L] || val > design_space[[v]][2L]) {
+        cat(crayon::red(cli::symbol$cross), " Value out of range or not numeric. Point skipped.\n")
+        valid <- FALSE; break
+      }
+      coords[match(v, design_vars)] <- val
+    }
+    if (!valid) break
+    names(coords) <- design_vars
+    e <- as.numeric(eff_fn(coords))
+    if (e < delta_val) {
+      cat(crayon::red(cli::symbol$cross),
+          sprintf(" Efficiency %.4f < delta_val (%.4f). Point outside candidate region.\n",
+                  e, delta_val))
+      next
+    }
+    cat(crayon::green(cli::symbol$tick),
+        sprintf(" Efficiency: %.4f >= %.4f\n", e, delta_val))
+    w_raw <- readline(prompt = "  Weight (positive number): ")
+    w     <- suppressWarnings(as.numeric(w_raw))
+    if (is.na(w) || w <= 0) {
+      cat(crayon::red(cli::symbol$cross), " Weight must be a positive number. Point skipped.\n")
+      next
+    }
+    new_row            <- as.data.frame(as.list(c(coords, Weight = w)))
+    names(new_row)     <- c(design_vars, "Weight")
+    result             <- rbind(result, new_row)
+  }
+  result
+}
+
+
+# Validate a multi-factor new_points data.frame:
+# - must have all design variable columns + Weight
+# - all weights positive
+# - all points within design_space
+# - efficiency of each point >= delta_val
+# Returns new_points (possibly with Weight normalised to sum = 1).
+.validate_new_points_mf <- function(new_points, design_vars, design_space, eff_fn, delta_val) {
+  expected <- c(design_vars, "Weight")
+  missing  <- setdiff(expected, names(new_points))
+  if (length(missing) > 0L)
+    stop("new_points must have columns: ", paste(expected, collapse = ", "),
+         " (missing: ", paste(missing, collapse = ", "), ")", call. = FALSE)
+  if (any(new_points$Weight <= 0))
+    stop("All weights in new_points must be positive.", call. = FALSE)
+  for (i in seq_len(nrow(new_points))) {
+    pt <- unlist(new_points[i, design_vars])
+    for (v in design_vars) {
+      if (pt[[v]] < design_space[[v]][1L] || pt[[v]] > design_space[[v]][2L])
+        stop("Row ", i, ": coordinate ", v, " = ", round(pt[[v]], 4),
+             " is outside design space [", design_space[[v]][1L], ", ",
+             design_space[[v]][2L], "].", call. = FALSE)
+    }
+    e <- as.numeric(eff_fn(pt))
+    if (e < delta_val)
+      stop("Row ", i, ": efficiency ", round(e, 4), " < delta_val (", round(delta_val, 4),
+           "). Point is outside the candidate region.", call. = FALSE)
+  }
+  new_points
+}
+
+
 # --- Other private functions ------------------------------------------------
 
 #' Gradient function for a subset of variables
@@ -603,17 +838,17 @@ get_dsaugment_region <- function(init_design, alpha, model, parameters, par_valu
 #'
 #' @return A function depending on \code{x} that's the gradient of the \code{model} with respect to \code{char_vars}
 gradient22 <- function(model, char_vars, values, par_int, weight_fun = function(x) 1) {
-  ext_char_vars <- c(char_vars, "x")
+  design_vars   <- detect_design_vars(model, char_vars)
+  ext_char_vars <- c(char_vars, design_vars)
   arglist <- lapply(ext_char_vars, function(x) NULL)
-  f <- as.function(append(stats::setNames(arglist, ext_char_vars), quote({})))
+  f  <- as.function(append(stats::setNames(arglist, ext_char_vars), quote({})))
   f1 <- stats::deriv(model, char_vars[-par_int], f)
   f2 <- function(x_val) {
     attr(do.call(f1, as.list(c(values, x_val))), "gradient")
   }
-  f3 <- function(x){
-    return(f2(x)*weight_fun(x))
-  }
-  return(f3)
+  f3 <- function(x) f2(x) * weight_fun(x)
+  attr(f3, "design_vars") <- design_vars
+  f3
 }
 
 

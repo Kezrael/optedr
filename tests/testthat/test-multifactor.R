@@ -182,34 +182,94 @@ test_that("design_efficiency efficiency of optimal design is 1 for 2D", {
 })
 
 
-# ── augment stops gracefully for multi-factor ─────────────────────────────────
+# ── augment multi-factor ──────────────────────────────────────────────────────
 
-test_that("augment_design stops with informative message for multi-factor designs", {
-  init <- mm2d_res$optdes
+local({
+  init_aug <<- data.frame(x1 = c(1, 10), x2 = c(1, 10), Weight = c(0.5, 0.5))
+
+  region_res <<- evaluate_promise(get_augment_region(
+    "D-Optimality", init_aug, 0.25,
+    y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+    c("Vmax", "K1", "K2"), c(1, 1, 1),
+    list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+    calc_optimal_design = FALSE,
+    delta_val = 0.85
+  ))$result
+})
+
+test_that("get_augment_region 2D returns a list with candidates and eff_fun", {
+  expect_type(region_res, "list")
+  expect_true("candidates"  %in% names(region_res))
+  expect_true("eff_fun"     %in% names(region_res))
+  expect_true("delta_val"   %in% names(region_res))
+  expect_equal(region_res$delta_val, 0.85)
+})
+
+test_that("get_augment_region 2D candidates have x1, x2 and efficiency columns", {
+  cands <- region_res$candidates
+  expect_true(all(c("x1", "x2", "efficiency") %in% names(cands)))
+  expect_true(all(cands$efficiency >= 0.85))
+})
+
+test_that("get_augment_region 2D returns a ggplot for d=2", {
+  expect_s3_class(region_res$plot, "ggplot")
+})
+
+test_that("get_augment_region 2D eff_fun is callable and returns scalar", {
+  f <- region_res$eff_fun
+  v <- f(c(x1 = 5, x2 = 5))
+  expect_length(as.numeric(v), 1L)
+  expect_true(is.finite(as.numeric(v)))
+})
+
+test_that("augment_design 2D adds new_points within candidate region", {
+  init_aug2 <- data.frame(x1 = c(1, 10), x2 = c(1, 10), Weight = c(0.5, 0.5))
+  # Pick a candidate point
+  cands <- region_res$candidates
+  pt    <- cands[1L, c("x1", "x2")]
+  pt$Weight <- 1
+  aug <- evaluate_promise(augment_design(
+    "D-Optimality", init_aug2, 0.25,
+    y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+    c("Vmax", "K1", "K2"), c(1, 1, 1),
+    list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+    calc_optimal_design = FALSE,
+    delta_val = 0.85,
+    new_points = pt
+  ))$result
+  expect_s3_class(aug, "data.frame")
+  expect_true(all(c("x1", "x2", "Weight") %in% names(aug)))
+  expect_equal(sum(aug$Weight), 1, tolerance = 1e-6)
+  expect_equal(nrow(aug), 3L)
+})
+
+test_that("augment_design 2D errors when new_point is outside candidate region", {
+  init_bad <- data.frame(x1 = c(1, 10), x2 = c(1, 10), Weight = c(0.5, 0.5))
+  bad_pt   <- data.frame(x1 = 0.11, x2 = 0.11, Weight = 1)  # very low efficiency
   expect_error(
     augment_design(
-      "D-Optimality", init, 0.25,
+      "D-Optimality", init_bad, 0.25,
       y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
       c("Vmax", "K1", "K2"), c(1, 1, 1),
       list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
       calc_optimal_design = FALSE,
-      delta_val = 0.9
+      delta_val = 0.85,
+      new_points = bad_pt
     ),
-    "multi-factor"
+    "outside the candidate region"
   )
 })
 
-test_that("get_augment_region stops with informative message for multi-factor designs", {
-  init <- mm2d_res$optdes
-  expect_error(
-    get_augment_region(
-      "D-Optimality", init, 0.25,
-      y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
-      c("Vmax", "K1", "K2"), c(1, 1, 1),
-      list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
-      calc_optimal_design = FALSE,
-      delta_val = 0.9
-    ),
-    "multi-factor"
-  )
+test_that("augment_design Ds-Optimality works for multi-factor with valid new_points", {
+  init_ds <- data.frame(x1 = c(0.8, 10, 5), x2 = c(10, 0.8, 5), Weight = rep(1/3, 3))
+  reg_ds  <- evaluate_promise(get_augment_region(
+    "Ds-Optimality", init_ds, 0.25,
+    y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+    c("Vmax", "K1", "K2"), c(1, 1, 1),
+    list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+    calc_optimal_design = FALSE,
+    par_int = c(1), delta_val = 0.85
+  ))$result
+  expect_type(reg_ds, "list")
+  expect_true("candidates" %in% names(reg_ds))
 })

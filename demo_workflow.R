@@ -388,6 +388,130 @@ eff_3d <- design_efficiency(corners_3D, result_3D)
 cat("Eficiencia del diseño de 8 esquinas:", round(eff_3d * 100, 2), "%\n")
 
 
+# -----------------------------------------------------------------------------
+# 14. Augment 2D — get_augment_region (modo no interactivo)
+# -----------------------------------------------------------------------------
+# Partimos de un diseño inicial de 2 puntos y queremos añadir un tercer punto
+# manteniendo al menos el 85% de la eficiencia D del diseño aumentado.
+#
+# get_augment_region devuelve:
+#   $candidates  — data.frame con puntos candidatos (eficiencia >= delta)
+#   $eff_fun     — función evaluable en cualquier punto
+#   $plot        — heatmap de eficiencia (plasma) con contorno en delta y
+#                  triángulos cian marcando el diseño inicial
+cat("\n--- 14. get_augment_region 2D (no interactivo) ---\n")
+
+# El diseño inicial debe tener al menos k=3 puntos para que M sea no singular.
+# Usamos 3 puntos que cubren el espacio pero no son el óptimo:
+init_2d <- data.frame(
+  x1     = c(0.8, 10,  5),
+  x2     = c(10,  0.8, 5),
+  Weight = c(1/3, 1/3, 1/3)
+)
+
+region_2d <- get_augment_region(
+  criterion           = "D-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = FALSE,
+  delta_val           = 0.85
+)
+
+# Heatmap ya mostrado automáticamente. Inspeccionamos los candidatos:
+cat("Candidatos encontrados:", nrow(region_2d$candidates), "\n")
+cat("Primeros candidatos:\n")
+print(head(region_2d$candidates, 8))
+
+# La función de eficiencia es evaluable en cualquier punto
+cat("Eficiencia en (10, 10):", round(as.numeric(region_2d$eff_fun(c(x1=10, x2=10))), 4), "\n")
+cat("Eficiencia en (0.1, 0.1):", round(as.numeric(region_2d$eff_fun(c(x1=0.1, x2=0.1))), 4), "\n")
+
+
+# -----------------------------------------------------------------------------
+# 14b. augment_design 2D (modo no interactivo con new_points)
+# -----------------------------------------------------------------------------
+# Elegimos el punto de mayor eficiencia entre los candidatos y lo añadimos.
+# new_points debe ser un data.frame con columnas x1, x2, Weight.
+cat("\n--- 14b. augment_design 2D (no interactivo) ---\n")
+
+best_candidate <- region_2d$candidates[which.max(region_2d$candidates$efficiency), ]
+new_pt_2d <- data.frame(
+  x1     = best_candidate$x1,
+  x2     = best_candidate$x2,
+  Weight = 1
+)
+cat("Punto elegido: x1 =", round(new_pt_2d$x1, 3),
+    " x2 =", round(new_pt_2d$x2, 3),
+    " (eficiencia:", round(best_candidate$efficiency, 4), ")\n")
+
+aug_2d <- augment_design(
+  criterion           = "D-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = TRUE,   # calcula y muestra eficiencias inicial y aumentada
+  delta_val           = 0.85,
+  new_points          = new_pt_2d
+)
+
+cat("Diseño aumentado:\n")
+print(aug_2d)
+cat("Suma de pesos:", sum(aug_2d$Weight), "\n")
+
+
+# -----------------------------------------------------------------------------
+# 14c. Ds-Optimality augment 2D
+# -----------------------------------------------------------------------------
+# Misma configuración pero optimizando para el parámetro Vmax (par_int = 1).
+# La región candidata y la función de eficiencia cambian respecto a D-Optimality
+# porque el criterio penaliza de forma diferente la varianza de los parámetros
+# no de interés.
+cat("\n--- 14c. Ds-Optimality augment 2D (parámetro de interés: Vmax) ---\n")
+
+region_ds <- get_augment_region(
+  criterion           = "Ds-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = FALSE,
+  par_int             = c(1),       # interés en Vmax
+  delta_val           = 0.85
+)
+
+cat("Candidatos Ds:", nrow(region_ds$candidates), "\n")
+
+# Elegimos el candidato con mayor eficiencia Ds
+best_ds <- region_ds$candidates[which.max(region_ds$candidates$efficiency), ]
+new_pt_ds <- data.frame(x1 = best_ds$x1, x2 = best_ds$x2, Weight = 1)
+
+aug_ds <- augment_design(
+  criterion           = "Ds-Optimality",
+  init_design         = init_2d,
+  alpha               = 0.25,
+  model               = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters          = c("Vmax", "K1", "K2"),
+  par_values          = c(1, 1, 1),
+  design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  calc_optimal_design = FALSE,
+  par_int             = c(1),
+  delta_val           = 0.85,
+  new_points          = new_pt_ds
+)
+
+cat("Diseño Ds-aumentado:\n")
+print(aug_ds)
+
+
 # =============================================================================
 # EJEMPLOS DEL PAPER:
 #   Martín-Martín, Rodríguez-Aragón & Torsney (2012)
