@@ -652,7 +652,7 @@ cat("Eficiencia cuadrícula 12×11:", round(eff_exp3 * 100, 2),
 
 
 
-opt_des(
+result_Imf <- opt_des(
   criterion    = "I-Optimality",
   model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
   parameters   = c("Vmax", "K1", "K2"),
@@ -660,3 +660,161 @@ opt_des(
   design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
   reg_int      = list(x1 = c(1, 5),   x2 = c(1, 5))
 )
+
+
+# =============================================================================
+# CRITERIOS COMPUESTOS
+# =============================================================================
+# criterion = "Compound" combina varios criterios individuales mediante una
+# suma ponderada de sus funciones de sensibilidad.  Los pesos se normalizan
+# automáticamente a 1.  Se admite cualquier combinación de D, Ds, A, I y L
+# con dos o más componentes.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 15. D + I (70 / 30) — modelo de Antoine, espacio [1, 100]
+# -----------------------------------------------------------------------------
+# Equilibra la estimación global de los 3 parámetros (D) con la precisión
+# de predicción en la región de interés [60, 100] (I).
+cat("\n--- 15. Compound D+I (70/30) — Antoine ---\n")
+
+result_DI <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ 10^(a - b / (c + x)),
+  parameters   = c("a", "b", "c"),
+  par_values   = c(8.07131, 1730.63, 233.426),
+  design_space = c(1, 100),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.7),
+    list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+  )
+)
+
+print(result_DI)
+cat("Atwood:", result_DI$atwood, "%\n")
+plot(result_DI)       # curva de sensibilidad compuesta
+plot(result_DI$convergence)
+
+# Comparar con el D-óptimo puro
+result_D_antoine <- opt_des("D-Optimality",
+  y ~ 10^(a - b / (c + x)), c("a","b","c"),
+  c(8.07131, 1730.63, 233.426), c(1, 100))
+
+cat("\nD-óptimo puro:\n");        print(result_D_antoine)
+cat("\nD+I compuesto (70/30):\n"); print(result_DI)
+# El compuesto desplaza algún punto hacia la región [60,100]
+# respecto al D puro, sacrificando algo de eficiencia D a cambio
+# de mayor precisión predictiva en esa zona.
+
+# Eficiencia del compuesto medida con cada criterio individual
+cat("\nEficiencia D del diseño compuesto vs D-óptimo:\n")
+design_efficiency(result_DI, result_D_antoine)
+
+cat("\nEficiencia compuesta del D-óptimo puro vs diseño compuesto:\n")
+design_efficiency(result_D_antoine, result_DI)
+
+
+# -----------------------------------------------------------------------------
+# 16. D + A (50 / 50) — modelo biparamétrico clásico
+# -----------------------------------------------------------------------------
+# D minimiza el volumen del elipsoide de confianza de los parámetros;
+# A minimiza la traza de la inversa (promedio de varianzas individuales).
+# Al combinarlos al 50% el diseño pondera tanto el volumen como el promedio.
+cat("\n--- 16. Compound D+A (50/50) ---\n")
+
+result_DA <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.5),
+    list(criterion = "A-Optimality", weight = 0.5)
+  )
+)
+
+print(result_DA)
+cat("Atwood:", result_DA$atwood, "%\n")
+plot(result_DA)
+summary(result_DA)   # muestra la composición del criterio
+
+
+# -----------------------------------------------------------------------------
+# 17. Tres criterios: D + A + I (50 / 25 / 25) — Antoine 2D
+# -----------------------------------------------------------------------------
+# Ejemplo con tres componentes y modelo multifactor para mostrar que el
+# criterio compuesto funciona también en d > 1.
+cat("\n--- 17. Compound D+A+I (50/25/25) 2D ---\n")
+
+result_DAI_2d <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.50),
+    list(criterion = "A-Optimality", weight = 0.25),
+    list(criterion = "I-Optimality", weight = 0.25,
+         reg_int = list(x1 = c(1, 5), x2 = c(1, 5)))
+  )
+)
+
+print(result_DAI_2d)
+cat("Atwood:", result_DAI_2d$atwood, "%\n")
+plot(result_DAI_2d)   # heatmap de sensibilidad compuesta (d=2)
+
+
+# =============================================================================
+# VISUALIZACIÓN PARA d > 2
+# =============================================================================
+# Para modelos con 3 o más factores, plot() devuelve un scatter matrix:
+# un panel por cada par de variables de diseño (C(d,2) paneles en total),
+# con tamaño de punto proporcional al peso y facetas "xi vs xj".
+# No hay heatmap de sensibilidad disponible para d > 2.
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 18. Scatter matrix — diseño 3D (trisubstrato, 4 parámetros)
+# -----------------------------------------------------------------------------
+cat("\n--- 18. Scatter matrix plot — diseño 3D ---\n")
+
+result_3D_vis <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ Vmax * x1 * x2 * x3 / ((K1 + x1) * (K2 + x2) * (K3 + x3)),
+  parameters   = c("Vmax", "K1", "K2", "K3"),
+  par_values   = c(1, 1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10), x3 = c(0.1, 10))
+)
+
+# C(3,2) = 3 paneles: x1 vs x2 | x1 vs x3 | x2 vs x3
+plot(result_3D_vis)
+
+# Convergencia del algoritmo
+plot(result_3D_vis$convergence)
+
+cat("Puntos de soporte:", nrow(result_3D_vis$optdes), "\n")
+print(result_3D_vis)
+
+
+# -----------------------------------------------------------------------------
+# 19. Scatter matrix — diseño 4D (modelo lineal, 4 factores)
+# -----------------------------------------------------------------------------
+# C(4,2) = 6 paneles. Los 4 factores en [0,1] dan un D-óptimo
+# en las 2^4 = 16 esquinas del hipercubo (diseño factorial completo).
+cat("\n--- 19. Scatter matrix plot — diseño 4D ---\n")
+
+result_4D_vis <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ a*x1 + b*x2 + c*x3 + d*x4,
+  parameters   = c("a", "b", "c", "d"),
+  par_values   = c(1, 1, 1, 1),
+  design_space = list(x1 = c(0, 1), x2 = c(0, 1), x3 = c(0, 1), x4 = c(0, 1))
+)
+
+# 6 paneles: x1 vs x2 | x1 vs x3 | x1 vs x4 | x2 vs x3 | x2 vs x4 | x3 vs x4
+plot(result_4D_vis)
+print(result_4D_vis)
