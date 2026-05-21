@@ -787,9 +787,11 @@ print.augment_region <- function(x, ...) {
   pts     <- lhs_sample(n_lhs, design_space)
   eff_vec <- apply(pts, 1L, function(x)
     as.numeric(eff_fn(stats::setNames(x, dvars))))
+  # Treat non-finite efficiency values (NaN/Inf from near-singular M) as non-candidates
+  eff_finite <- ifelse(is.finite(eff_vec), eff_vec, -Inf)
 
   sample_df       <- as.data.frame(pts)
-  sample_df$type  <- ifelse(eff_vec >= delta_val, "Candidate", "Non-candidate")
+  sample_df$type  <- ifelse(eff_finite >= delta_val, "Candidate", "Non-candidate")
 
   dc <- intersect(dvars, names(init_design))
   init_df       <- init_design[, dc, drop = FALSE]

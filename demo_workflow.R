@@ -524,11 +524,13 @@ print(aug_ds)
 # El resultado incluye $plot con este gráfico y $region con los candidatos.
 cat("\n--- 14d. Augment D-Optimality 3D (región candidata) ---\n")
 
+# Diseño inicial con 5 puntos en las esquinas del espacio para garantizar
+# que la matriz de información sea no singular (k=4 parámetros, >= k+1 puntos)
 init_3d_aug <- data.frame(
-  x1     = c(0.8, 10,  5,   10),
-  x2     = c(10,  0.8, 5,   10),
-  x3     = c(5,   5,   0.8, 10),
-  Weight = rep(0.25, 4)
+  x1     = c(0.8, 10,  10, 0.8, 10),
+  x2     = c(10,  0.8, 10, 10,  0.8),
+  x3     = c(10,  10,  0.8, 0.8, 10),
+  Weight = rep(0.2, 5)
 )
 
 region_3d <- get_augment_region(
