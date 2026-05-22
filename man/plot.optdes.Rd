@@ -15,7 +15,8 @@
 For single-factor models, overlays the support points on the sensitivity function curve.
 For two-factor models, shows a heatmap of the sensitivity function with the support
 points overlaid and the Equivalence Theorem contour highlighted.
-For models with more than two factors, prints the design and returns it invisibly.
+For models with more than two factors, shows a pairwise scatter matrix with one
+panel per pair of design variables and point size proportional to weight.
 }
 \examples{
 rri <- opt_des(criterion = "I-Optimality", model = y ~ a * exp(-b / x),

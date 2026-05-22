@@ -50,6 +50,8 @@ WFMult(
 \item{tol2}{numeric value for the outer stop condition.}
 
 \item{max_iter}{maximum number of outer iterations.}
+
+\item{compound}{preprocessed list of compound criterion specifications (internal use).}
 }
 \value{
 An object of class \code{optdes}.

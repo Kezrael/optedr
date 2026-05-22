@@ -825,7 +825,7 @@ plot.optdes <- function(x, ...) {
 # Pairwise scatter matrix for designs with d > 2 factors.
 # Shows all C(d,2) unique pairs as facets; point size proportional to weight.
 .plot_pairs_optdes <- function(design, criterion_label) {
-  wlabel <- xvar <- yvar <- NULL  # avoid R CMD check NOTE on ggplot2 aes variables
+  wlabel <- xvar <- yvar <- x <- y <- Weight <- NULL  # avoid R CMD check NOTE on ggplot2 aes variables
   dvars <- coord_cols(design)
   d     <- length(dvars)
 

@@ -18,7 +18,8 @@ augment_design(
   distribution = NA,
   weight_fun = function(x) 1,
   delta_val = NULL,
-  new_points = NULL
+  new_points = NULL,
+  n_lhs = 2000L
 )
 }
 \arguments{
@@ -66,6 +67,9 @@ the user is prompted interactively. Providing this value enables non-interactive
 \item{new_points}{optional dataframe with \code{Point} and \code{Weight} columns specifying the points
 to add. All points must lie within the candidate region determined by \code{delta_val}. If \code{NULL}
 (default), the user is prompted interactively.}
+
+\item{n_lhs}{integer number of LHS points used to visualise the candidate region for multi-factor
+models with \code{d > 2} (default 2000). Increase for smoother scatter plots.}
 }
 \value{
 A dataframe that represents the augmented design

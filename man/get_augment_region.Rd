@@ -17,7 +17,8 @@ get_augment_region(
   matB = NA,
   distribution = NA,
   weight_fun = function(x) 1,
-  delta_val = NULL
+  delta_val = NULL,
+  n_lhs = 2000L
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ get_augment_region(
 
 \item{delta_val}{optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
 the user is prompted interactively. Providing this value enables non-interactive use.}
+
+\item{n_lhs}{integer number of LHS points used to visualise and sample the candidate region for
+multi-factor models with \code{d > 2} (default 2000). Increase for smoother scatter plots.}
 }
 \value{
 A vector of the points limiting the candidate points region

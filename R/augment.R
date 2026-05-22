@@ -34,6 +34,8 @@
 #' @param new_points optional dataframe with \code{Point} and \code{Weight} columns specifying the points
 #'   to add. All points must lie within the candidate region determined by \code{delta_val}. If \code{NULL}
 #'   (default), the user is prompted interactively.
+#' @param n_lhs integer number of LHS points used to visualise the candidate region for multi-factor
+#'   models with \code{d > 2} (default 2000). Increase for smoother scatter plots.
 #'
 #' @return A dataframe that represents the augmented design
 #' @export
@@ -175,6 +177,8 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
 #'   * 'Log-Normal' (work in progress)
 #' @param delta_val optional numeric value for the minimum relative efficiency. If \code{NULL} (default),
 #'   the user is prompted interactively. Providing this value enables non-interactive use.
+#' @param n_lhs integer number of LHS points used to visualise and sample the candidate region for
+#'   multi-factor models with \code{d > 2} (default 2000). Increase for smoother scatter plots.
 #'
 #' @return A vector of the points limiting the candidate points region
 #' @export
@@ -787,7 +791,7 @@ print.augment_region <- function(x, ...) {
 # Samples n_lhs points, splits into candidate / non-candidate, overlays init_design.
 .plot_aug_pairs_candidates <- function(design_space, eff_fn, delta_val, init_design,
                                        n_lhs = 2000L) {
-  type <- xvar <- yvar <- NULL  # avoid R CMD check NOTE
+  type <- xvar <- yvar <- x <- y <- NULL  # avoid R CMD check NOTE
   dvars   <- names(design_space)
   pts     <- lhs_sample(n_lhs, design_space)
   eff_vec <- apply(pts, 1L, function(x)

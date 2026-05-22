@@ -1,4 +1,4 @@
-#' Master function for the cocktail algorithm, that calls the appropriate one given the criterion.
+﻿#' Master function for the cocktail algorithm, that calls the appropriate one given the criterion.
 #'
 #' @description
 #' Depending on the \code{criterion} the cocktail algorithm for the chosen criterion is called,
@@ -18,6 +18,7 @@
 #' @param tol numeric value for convergence of the weight loop.
 #' @param tol2 numeric value for the outer stop condition.
 #' @param max_iter maximum number of outer iterations.
+#' @param compound preprocessed list of compound criterion specifications (internal use).
 #'
 #' @return An object of class \code{optdes}.
 #'
@@ -447,7 +448,7 @@ opt_des <- function(criterion, model, parameters,
   k <- length(parameters)
   if (identical(par_values, c(1))) par_values <- rep(1, k)
 
-  # ── Auto-detect design variables and normalise design_space ──────────────
+  # -- Auto-detect design variables and normalise design_space --------------
   design_vars  <- detect_design_vars(model, parameters)
   multi        <- is_multifactor(design_vars)
   design_space <- canonicalise_design_space(design_space, design_vars)
@@ -458,7 +459,7 @@ opt_des <- function(criterion, model, parameters,
     if (bnds[1L] > bnds[2L]) design_space[[1L]] <- rev(bnds)
   }
 
-  # ── Initial design ────────────────────────────────────────────────────────
+  # -- Initial design --------------------------------------------------------
   n0 <- k * (k + 1L) / 2L + 1L
   if (is.null(init_design)) {
     if (!multi) {
@@ -477,26 +478,26 @@ opt_des <- function(criterion, model, parameters,
     init_design <- normalize_design_cols(init_design, design_vars)
   }
 
-  # ── Input validation ──────────────────────────────────────────────────────
+  # -- Input validation ------------------------------------------------------
   check_inputs(
     criterion, model, parameters, par_values, design_space, init_design,
     join_thresh, delete_thresh, delta, tol, tol2, par_int, matB, reg_int, weight_fun
   )
 
-  # ── Weight function and gradient ──────────────────────────────────────────
+  # -- Weight function and gradient ------------------------------------------
   if (!is.na(distribution))
     weight_fun <- weight_function(model, parameters, par_values, distribution = distribution)
   grad <- gradient(model, parameters, par_values, weight_fun)
 
-  # ── join_thresh default ───────────────────────────────────────────────────
+  # -- join_thresh default ---------------------------------------------------
   if (join_thresh == -1)
     join_thresh <- min(sapply(design_space, diff)) / 10
 
-  # ── I-Optimality: build matB ──────────────────────────────────────────────
+  # -- I-Optimality: build matB ----------------------------------------------
   if (identical(criterion, "I-Optimality") && !is.null(reg_int))
     matB <- integrate_reg_int(grad, k, reg_int)
 
-  # ── Compound: preprocess specs (normalise weights, build matB per component) ─
+  # -- Compound: preprocess specs (normalise weights, build matB per component) -
   compound_specs <- NULL
   if (identical(criterion, "Compound")) {
     if (is.null(compound) || length(compound) < 2L)
@@ -511,7 +512,7 @@ opt_des <- function(criterion, model, parameters,
     if (abs(sum(ws) - 1) > 1e-8)
       message(crayon::yellow(cli::symbol$warning),
               " compound weights sum to ", round(sum(ws), 6),
-              " — normalising to 1.")
+              " - normalising to 1.")
     ws <- ws / sum(ws)
 
     # Warn about duplicate components (same criterion + same auxiliary params)
@@ -529,7 +530,7 @@ opt_des <- function(criterion, model, parameters,
     dups <- keys[duplicated(keys)]
     if (length(dups) > 0L)
       warning("Duplicate compound components detected (", paste(unique(dups), collapse=", "),
-              "). Their weights will be summed — consider merging them.",
+              "). Their weights will be summed - consider merging them.",
               call. = FALSE)
 
     compound_specs <- lapply(seq_along(compound), function(i) {
@@ -549,7 +550,7 @@ opt_des <- function(criterion, model, parameters,
     })
   }
 
-  # ── Run cocktail algorithm ────────────────────────────────────────────────
+  # -- Run cocktail algorithm ------------------------------------------------
   output <- WFMult(init_design, grad, criterion,
                    par_int = par_int, matB,
                    design_space, 1000L,
