@@ -332,6 +332,38 @@ plot(result_2D_I)
 
 
 # -----------------------------------------------------------------------------
+# 2.3b  L-Optimality 2D — combinación lineal de varianzas
+# -----------------------------------------------------------------------------
+# matB es una matriz k×k semidefinida positiva que pondera qué varianzas
+# minimizar.  Aquí minimizamos solo la varianza de K1 (segundo parámetro),
+# indiferentes a la de Vmax o K2.
+#   matB = diag(c(0, 1, 0))  →  phi_L = Var(K1^)
+#
+# Comparación con D-óptimo: el L-óptimo puede concentrar puntos en zonas
+# distintas para reducir específicamente la varianza de K1.
+
+result_2D_L <- opt_des(
+  criterion    = "L-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  matB         = diag(c(0, 1, 0))   # solo varianza de K1
+)
+print(result_2D_L)
+cat("Atwood:", result_2D_L$atwood, "%\n")
+plot(result_2D_L)   # heatmap: la función de sensibilidad refleja solo K1
+
+# Comparación entre criterios sobre el mismo modelo
+cat("\n--- Comparación de diseños bajo distintos criterios ---\n")
+cat("D-óptimo:\n");   print(result_2D)
+cat("L-óptimo (K1):\n"); print(result_2D_L)
+# La eficiencia L del D-óptimo frente al L-óptimo (¿cuánto pierde?)
+eff_D_en_L <- design_efficiency(result_2D, result_2D_L)
+cat("Eficiencia L del D-óptimo vs L-óptimo:", round(eff_D_en_L * 100, 2), "%\n")
+
+
+# -----------------------------------------------------------------------------
 # 2.4  Eficiencia de diseños ad hoc en 2D
 # -----------------------------------------------------------------------------
 # Diseño de las 4 esquinas del espacio con pesos iguales (uniforme en vertices)
@@ -426,7 +458,8 @@ aug_ds  <- augment_design(
   calc_optimal_design = FALSE,
   par_int             = c(1),
   delta_val           = 0.85,
-  new_points          = data.frame(x1 = best_ds$x1, x2 = best_ds$x2, Weight = 1)
+  new_points          = data.frame(x1 = best_ds$x1, x2 = best_ds$x2, Weight = 1),
+  n_lhs               = 10000
 )
 print(aug_ds)
 

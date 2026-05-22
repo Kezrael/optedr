@@ -94,10 +94,10 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
       plot(.plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design))
     else
       plot(.plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design, n_lhs))
-    cands <- .sample_aug_candidates(eff_fn, design_space, delta_val)
+    cands <- .sample_aug_candidates(eff_fn, design_space, delta_val, n_lhs)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
-            " (from LHS sample of 5000)")
+            " (from LHS sample of ", n_lhs, ")")
     if (nrow(cands) > 0L) {
       cat("Sample of candidate points:\n")
       print(utils::head(cands[, c(design_vars, "efficiency"), drop = FALSE], 15L))
@@ -234,10 +234,10 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
          else
            .plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design, n_lhs)
     plot(p)
-    cands  <- .sample_aug_candidates(eff_fn, design_space, delta_val)
+    cands  <- .sample_aug_candidates(eff_fn, design_space, delta_val, n_lhs)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
-            " (from LHS sample of 5000)")
+            " (from LHS sample of ", n_lhs, ")")
     return(invisible(.make_augment_region(cands, delta_val, eff_fn, design_vars, p)))
   }
   if (!is.na(distribution)) {
