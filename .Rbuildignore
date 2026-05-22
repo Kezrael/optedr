@@ -12,4 +12,6 @@
 ^CLAUDE\.md$
 ^tait\.pdf$
 ^optedr_dossier\.Rmd$
+^optedr_dossier_cache$
+^optedr_dossier_files$
 ^identificabilidad\.tex$
