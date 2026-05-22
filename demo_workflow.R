@@ -241,6 +241,32 @@ result_repar <- opt_des(
 print(result_repar)
 
 
+# -----------------------------------------------------------------------------
+# 1.7  L-Optimality — minimización de una combinación lineal de varianzas
+# -----------------------------------------------------------------------------
+# matB es una matriz k×k simétrica semidefinida positiva que pondera los
+# parámetros.  matB = diag(c(1,0)) focaliza en la varianza de 'a' únicamente.
+# Casos especiales: matB = diag(k) → A-Optimality; matB proporcional a
+# la inversa del óptimo D → aproxima la D-Optimality.
+
+result_L <- opt_des(
+  criterion    = "L-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  matB         = diag(c(1, 0))   # solo varianza del parámetro 'a'
+)
+print(result_L)
+cat("Atwood:", result_L$atwood, "%\n")
+plot(result_L)
+
+# Comparación: el L-óptimo concentra puntos donde la precisión de 'a' es mayor,
+# a diferencia del D-óptimo que equilibra la información de ambos parámetros.
+cat("\nD-óptimo (ambos parámetros):\n");    print(result_D)
+cat("L-óptimo (solo parámetro 'a'):\n");   print(result_L)
+
+
 # =============================================================================
 # SECCIÓN 2  DISEÑO ÓPTIMO MULTIFACTORIAL — d = 2
 # =============================================================================
@@ -347,7 +373,13 @@ region_2d <- get_augment_region(
 print(region_2d)
 cat("Eficiencia en (10,10):", round(as.numeric(region_2d$eff_fun(c(x1=10,x2=10))), 4), "\n")
 
-# Elegimos el candidato más eficiente y aumentamos
+# Uso de design_efficiency para decidir si merece la pena aumentar:
+# 1) calculamos la eficiencia del diseño inicial frente al óptimo
+# 2) aumentamos y calculamos la eficiencia del diseño resultante
+# 3) comparamos la mejora obtenida
+eff_antes <- suppressMessages(design_efficiency(init_2d, result_2D))
+cat("Eficiencia ANTES de aumentar:", round(eff_antes * 100, 2), "%\n")
+
 best_2d <- region_2d$region[which.max(region_2d$region$efficiency), ]
 aug_2d  <- augment_design(
   criterion           = "D-Optimality",
@@ -357,11 +389,17 @@ aug_2d  <- augment_design(
   parameters          = c("Vmax", "K1", "K2"),
   par_values          = c(1, 1, 1),
   design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
-  calc_optimal_design = TRUE,
+  calc_optimal_design = FALSE,
   delta_val           = 0.85,
   new_points          = data.frame(x1 = best_2d$x1, x2 = best_2d$x2, Weight = 1)
 )
 print(aug_2d)
+
+eff_despues <- suppressMessages(design_efficiency(aug_2d, result_2D))
+cat("Eficiencia DESPUÉS de aumentar:", round(eff_despues * 100, 2), "%\n")
+cat("Mejora:", round((eff_despues - eff_antes) * 100, 2), "puntos porcentuales\n")
+# La eficiencia nunca supera la del diseño óptimo (1.0), pero sí debe ser
+# mayor que la del diseño inicial para confirmar que el augment fue útil.
 
 # Augment con criterio Ds (interés solo en Vmax)
 region_ds <- get_augment_region(

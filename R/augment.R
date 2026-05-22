@@ -53,7 +53,8 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
                            design_space, calc_optimal_design,
                            par_int = NA, matB = NULL, distribution = NA,
                            weight_fun = function(x) 1,
-                           delta_val = NULL, new_points = NULL) {
+                           delta_val = NULL, new_points = NULL,
+                           n_lhs = 2000L) {
   design_vars <- detect_design_vars(model, parameters)
   if (is_multifactor(design_vars)) {
     design_space <- canonicalise_design_space(design_space, design_vars)
@@ -90,7 +91,7 @@ augment_design <- function(criterion, init_design, alpha, model, parameters, par
     if (length(design_vars) == 2L)
       plot(.plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design))
     else
-      plot(.plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design))
+      plot(.plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design, n_lhs))
     cands <- .sample_aug_candidates(eff_fn, design_space, delta_val)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
             " candidate points with efficiency >= ", round(delta_val, 4),
@@ -189,7 +190,7 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
                                design_space, calc_optimal_design,
                                par_int = NA, matB = NA, distribution = NA,
                                weight_fun = function(x) 1,
-                               delta_val = NULL) {
+                               delta_val = NULL, n_lhs = 2000L) {
   design_vars <- detect_design_vars(model, parameters)
   if (is_multifactor(design_vars)) {
     design_space <- canonicalise_design_space(design_space, design_vars)
@@ -227,7 +228,7 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
     p <- if (length(design_vars) == 2L)
            .plot_aug_heatmap_2d(design_space, eff_fn, delta_val, init_design)
          else
-           .plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design)
+           .plot_aug_pairs_candidates(design_space, eff_fn, delta_val, init_design, n_lhs)
     plot(p)
     cands  <- .sample_aug_candidates(eff_fn, design_space, delta_val)
     message(crayon::blue(cli::symbol$info), " ", nrow(cands),
@@ -270,9 +271,13 @@ get_augment_region <- function(criterion, init_design, alpha, model, parameters,
 # Returns the chosen value, or NULL after 1000 failed interactive attempts.
 ask_delta <- function(delta_range, delta_val = NULL) {
   if (!is.null(delta_val)) {
-    if (delta_val < delta_range[[1]] || delta_val > delta_range[[2]])
-      stop("delta_val (", round(delta_val, 4), ") is outside the valid range [",
-           round(delta_range[[1]], 4), ", ", round(delta_range[[2]], 4), "].", call. = FALSE)
+    if (delta_val > delta_range[[2]])
+      stop("delta_val (", round(delta_val, 4), ") exceeds the maximum achievable efficiency (",
+           round(delta_range[[2]], 4), "). No augmentation can reach this target.", call. = FALSE)
+    if (delta_val < delta_range[[1]])
+      warning("delta_val (", round(delta_val, 4), ") is below the minimum efficiency (",
+              round(delta_range[[1]], 4), "). The entire design space is a candidate region.",
+              call. = FALSE)
     return(delta_val)
   }
   if (!interactive())

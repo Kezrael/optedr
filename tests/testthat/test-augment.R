@@ -46,12 +46,17 @@ test_that("get_augment_region errors on invalid criterion", {
   )
 })
 
-test_that("get_augment_region errors when delta_val is below valid range", {
-  expect_error(
-    get_augment_region("D-Optimality", init_des_2p, alpha_val,
-                       model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
-                       delta_val = 0),
-    "outside the valid range"
+test_that("get_augment_region warns when delta_val is below valid range", {
+  expect_warning(
+    tryCatch(
+      suppressMessages(
+        get_augment_region("D-Optimality", init_des_2p, alpha_val,
+                           model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
+                           delta_val = 0)
+      ),
+      error = function(e) NULL  # subsequent computation may fail; only check warning
+    ),
+    "below the minimum"
   )
 })
 
@@ -60,7 +65,7 @@ test_that("get_augment_region errors when delta_val is above valid range", {
     get_augment_region("D-Optimality", init_des_2p, alpha_val,
                        model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
                        delta_val = 100),
-    "outside the valid range"
+    "maximum achievable"
   )
 })
 
@@ -126,13 +131,18 @@ test_that("augment_design errors on invalid criterion", {
   )
 })
 
-test_that("augment_design errors when delta_val out of range", {
+test_that("augment_design warns when delta_val is below valid range", {
   new_pts <- data.frame(Point = 300, Weight = 1)
-  expect_error(
-    augment_design("D-Optimality", init_des_2p, alpha_val,
-                   model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
-                   delta_val = 0, new_points = new_pts),
-    "outside the valid range"
+  expect_warning(
+    tryCatch(
+      suppressMessages(
+        augment_design("D-Optimality", init_des_2p, alpha_val,
+                       model_2p, params_2p, par_vals_2p, dspace_2p, FALSE,
+                       delta_val = 0, new_points = new_pts)
+      ),
+      error = function(e) NULL
+    ),
+    "below the minimum"
   )
 })
 

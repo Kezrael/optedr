@@ -28,7 +28,8 @@ knitr::opts_chunk$set(
 
 ```{r pkg}
 # devtools::install_github("Kezrael/optedr")   # primera vez
-library(optedr)
+devtools::load_all()
+# library(optedr)
 ```
 
 Este dossier cubre el flujo de trabajo completo del paquete **optedr**: cálculo
@@ -222,15 +223,30 @@ Cuando los parámetros no son identificables, $M$ es (casi) singular.
 identificables.
 
 ```{r identif}
-# Modelo BET: 3 parámetros, pero solo 2 son identificables conjuntamente
-res_bet <- opt_des(
+# Modelo BET: 3 parámetros, pero solo 2 son identificables conjuntamente.
+# inv_spd() usa pseudoinversa con advertencia; update_weights() detiene
+# el algoritmo cuando los pesos se vuelven no finitos.
+tryCatch(
+  opt_des(
+    criterion    = "D-Optimality",
+    model        = y ~ (w*c*k*x) / ((1-x) * (1 + (c-1)*k*x)),
+    parameters   = c("w", "c", "k"),
+    par_values   = c(1, 10, 0.5),
+    design_space = c(0.05, 0.8)
+  ),
+  error = function(e)
+    cat("Error esperado (no-identificabilidad):\n  ", conditionMessage(e), "\n")
+)
+
+# Modelo reparametrizado con 2 parámetros identificables: converge correctamente
+result_repar <- opt_des(
   criterion    = "D-Optimality",
-  model        = y ~ (w*c*k*x) / ((1-x) * (1 + (c-1)*k*x)),
-  parameters   = c("w", "c", "k"),
-  par_values   = c(1, 10, 0.5),
+  model        = y ~ (a * x) / ((1 - x) * (1 + b * x)),
+  parameters   = c("a", "b"),
+  par_values   = c(5, 4.5),
   design_space = c(0.05, 0.8)
 )
-cat("Atwood BET:", res_bet$atwood, "%  — lejos de 100% indica no-identificabilidad\n")
+result_repar
 ```
 
 

@@ -566,11 +566,18 @@ plot_sens_2d <- function(design_space, sens_fn, design_points, criterion_value) 
   label_df$wlabel  <- paste0(round(label_df$Weight, 2))
 
   x1s <- rlang::sym(dvars[1L]); x2s <- rlang::sym(dvars[2L])
-  ggplot2::ggplot(grid_df, ggplot2::aes(x = !!x1s, y = !!x2s, fill = sens)) +
+  p <- ggplot2::ggplot(grid_df, ggplot2::aes(x = !!x1s, y = !!x2s, fill = sens)) +
     ggplot2::geom_tile() +
-    ggplot2::scale_fill_viridis_c(name = "Sensitivity") +
-    ggplot2::geom_contour(ggplot2::aes(z = sens, fill = NULL),
-                          breaks = criterion_value, colour = "white", linewidth = 0.7) +
+    ggplot2::scale_fill_viridis_c(name = "Sensitivity")
+  # Only draw the ET contour when criterion_value falls within the grid's
+  # sensitivity range (can fall outside due to Monte Carlo noise in I-Optimality).
+  sens_finite <- grid_df$sens[is.finite(grid_df$sens)]
+  if (length(sens_finite) > 0L &&
+      criterion_value >= min(sens_finite) && criterion_value <= max(sens_finite)) {
+    p <- p + ggplot2::geom_contour(ggplot2::aes(z = sens, fill = NULL),
+                                   breaks = criterion_value, colour = "white", linewidth = 0.7)
+  }
+  p +
     ggplot2::geom_point(data = label_df,
                         ggplot2::aes(x = !!x1s, y = !!x2s, fill = NULL),
                         colour = "red", size = 3.5, shape = 16) +
@@ -789,13 +796,16 @@ plot.optdes <- function(x, ...) {
   if (identical(dcols, "Point")) {
     # ── Single-factor: sensitivity curve + support points ──────────────────
     Point <- Value <- Weight <- NULL
-    x$optdes[["Value"]]  <- rep(0, nrow(x$optdes))
+    # Place support points at the minimum of the sensitivity curve so they
+    # appear inside the plot area (y=0 is often outside the visible range).
+    sens_min <- min(x$sens$data$y, na.rm = TRUE)
+    x$optdes[["Value"]]  <- rep(sens_min, nrow(x$optdes))
     x$optdes[["Weight"]] <- round(x$optdes[["Weight"]], 2)
     p <- x$sens +
       ggplot2::geom_point(data = x$optdes, ggplot2::aes(x = Point, y = Value),
                           size = 4, shape = 16, color = "darkgreen") +
       ggplot2::geom_text(data = x$optdes, ggplot2::aes(x = Point, y = Value, label = Weight),
-                         hjust = 1.5, vjust = 1.5) +
+                         hjust = 0.5, vjust = -0.6, size = 3.5) +
       ggplot2::labs(x = "Design Space", y = "Sensitivity Function")
     return(p)
   }
