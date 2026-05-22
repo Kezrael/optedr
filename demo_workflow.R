@@ -444,7 +444,8 @@ region_ds <- get_augment_region(
   design_space        = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
   calc_optimal_design = FALSE,
   par_int             = c(1),
-  delta_val           = 0.85
+  delta_val           = 0.85,
+  n_lhs               = 10000
 )
 best_ds <- region_ds$region[which.max(region_ds$region$efficiency), ]
 aug_ds  <- augment_design(
