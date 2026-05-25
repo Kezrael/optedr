@@ -22,7 +22,15 @@ opt_des(
   max_iter = 21L,
   distribution = NA,
   weight_fun = function(x) 1,
-  compound = NULL
+  compound = NULL,
+  rival_model = NULL,
+  rival_params = NULL,
+  rival_pars = NULL,
+  family = "Normal",
+  phi = 1,
+  rival_lower = NULL,
+  rival_upper = NULL,
+  kl_fun = NULL
 )
 }
 \arguments{
@@ -72,6 +80,27 @@ Each element must be a named list with at least \code{criterion} (character) and
 Weights are normalised to sum to 1. Example:
 \code{list(list(criterion="D-Optimality", weight=0.7),
              list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.}
+
+\item{rival_model}{optional formula for the rival model used with
+\code{criterion = "KL-Optimality"}. Defaults to \code{model} (same structure, rival
+parameters explored by inner optimisation).}
+
+\item{rival_params}{optional character vector of rival model parameter names. Defaults to
+\code{parameters}.}
+
+\item{rival_pars}{optional numeric vector of initial rival parameter values for the inner
+optimisation. Defaults to \code{par_values}.}
+
+\item{family}{character; GLM family for \code{criterion = "KL-Optimality"}. One of
+\code{"Normal"}, \code{"Poisson"}, \code{"Binomial"}, \code{"Gamma"}. Default \code{"Normal"}.}
+
+\item{phi}{positive numeric dispersion parameter for KL-Optimality. Default \code{1}.}
+
+\item{rival_lower}{optional numeric vector of lower bounds for rival parameters in the
+inner optimisation. Defaults to \code{-Inf} for each parameter.}
+
+\item{rival_upper}{optional numeric vector of upper bounds for rival parameters in the
+inner optimisation. Defaults to \code{Inf} for each parameter.}
 }
 \value{
 a list of class \code{optdes} with components \code{optdes}, \code{convergence},
@@ -101,5 +130,17 @@ opt_des("Compound",
           list(criterion = "D-Optimality", weight = 0.7),
           list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
         ))
+
+# KL-Optimality: discriminate quadratic from linear mean model (Normal)
+opt_des("KL-Optimality",
+        model        = y ~ a * x^2,
+        parameters   = c("a"),
+        par_values   = c(1),
+        design_space = c(1, 5),
+        rival_model  = y ~ b * x,
+        rival_params = c("b"),
+        rival_pars   = c(3),
+        family       = "Normal",
+        phi          = 1)
 }
 }

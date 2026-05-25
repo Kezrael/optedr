@@ -21,9 +21,9 @@ check_inputs <- function(criterion, model, parameters, par_values, design_space,
   error_msg <- ""
   # Check for valid criterion
   if (!criterion %in% c("D-Optimality", "Ds-Optimality", "A-Optimality",
-                        "I-Optimality", "L-Optimality", "Compound")) {
+                        "I-Optimality", "L-Optimality", "Compound", "KL-Optimality")) {
     error_msg <- paste0(error_msg, "\n", crayon::red(cli::symbol$cross),
-                        " Choose a valid criterion: D-Optimality, Ds-Optimality, A-Optimality, I-Optimality, L-Optimality or Compound")
+                        " Choose a valid criterion: D-Optimality, Ds-Optimality, A-Optimality, I-Optimality, L-Optimality, Compound or KL-Optimality")
   }
 
   # Check that the model is a formula

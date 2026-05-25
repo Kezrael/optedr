@@ -19,7 +19,8 @@ WFMult(
   tol,
   tol2,
   max_iter,
-  compound = NULL
+  compound = NULL,
+  kl_spec = NULL
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ WFMult(
 \item{max_iter}{maximum number of outer iterations.}
 
 \item{compound}{preprocessed list of compound criterion specifications (internal use).}
+
+\item{kl_spec}{preprocessed list of KL-Optimality specifications (internal use).}
 }
 \value{
 An object of class \code{optdes}.
@@ -65,6 +68,7 @@ Other cocktail algorithms:
 \code{\link{CWFMult}()},
 \code{\link{DWFMult}()},
 \code{\link{DsWFMult}()},
-\code{\link{IWFMult}()}
+\code{\link{IWFMult}()},
+\code{\link{KLWFMult}()}
 }
 \concept{cocktail algorithms}

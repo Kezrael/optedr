@@ -52,6 +52,7 @@ Other cocktail algorithms:
 \code{\link{CWFMult}()},
 \code{\link{DsWFMult}()},
 \code{\link{IWFMult}()},
+\code{\link{KLWFMult}()},
 \code{\link{WFMult}()}
 }
 \concept{cocktail algorithms}

@@ -755,3 +755,277 @@ design_exp3        <- expand.grid(x1 = seq(0.083,30,l=12), x2 = seq(270,470,l=11
 design_exp3$Weight <- rep(1/nrow(design_exp3), nrow(design_exp3))
 eff_exp3 <- design_efficiency(design_exp3, result_tait3)
 cat("Eficiencia 12x11:", round(eff_exp3*100,2), "% (paper: 55.34%)\n")
+
+
+# =============================================================================
+# SECCIÓN 6  KL-OPTIMALITY — DISCRIMINACIÓN ENTRE MODELOS
+# =============================================================================
+# El criterio KL-Optimality maximiza la divergencia de Kullback-Leibler
+# integrada entre el modelo de referencia (parámetros nominales) y el rival
+# más adversario (encontrado por optimización interna).
+#
+# Referencia: López-Fidalgo, Tommasi & Trandafir (2007).
+#   "An optimal experimental design criterion for discriminating between
+#    non-normal models." J.R.Stat.Soc. B 69(2), 231-242.
+#
+# Argumentos específicos de KL-Optimality en opt_des():
+#   rival_model  : fórmula del modelo rival (por defecto, igual que model)
+#   rival_params : parámetros del rival (por defecto, igual que parameters)
+#   rival_pars   : valores iniciales del rival para la optimización interna
+#   family       : familia GLM ("Normal", "Poisson", "Binomial", "Gamma")
+#   phi          : parámetro de dispersión
+#   rival_lower  : cotas inferiores para los parámetros rivales
+#   rival_upper  : cotas superiores para los parámetros rivales
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 6.1  Michaelis-Menten vs lineal (Normal, 1D)
+# -----------------------------------------------------------------------------
+# Contexto: cinética enzimática con un sustrato.  Se asume que la respuesta
+# media sigue MM con Vmax=2, Km=1 (modelo de referencia).  El rival es un
+# modelo lineal mu(x) = a*x, válido solo cuando x << Km.
+# Queremos el diseño que maximice la información para distinguir entre saturación
+# MM y crecimiento lineal.  A valores altos de x, la MM satura en Vmax=2
+# mientras el lineal sigue creciendo: ahí la divergencia es máxima.
+# Acotamos el rival a a ∈ [0.2, 2.5] para evitar que colapse a KL ≈ 0.
+
+result_kl_mm <- opt_des(
+  "KL-Optimality",
+  model        = y ~ Vmax * x / (Km + x),
+  parameters   = c("Vmax", "Km"),
+  par_values   = c(2, 1),
+  design_space = c(0.1, 5),
+  rival_model  = y ~ a * x,
+  rival_params = c("a"),
+  rival_pars   = c(1),
+  rival_lower  = c(0.2),
+  rival_upper  = c(2.5),
+  family       = "Normal",
+  phi          = 1
+)
+print(result_kl_mm)
+summary(result_kl_mm)   # muestra familia GLM y parámetros rivales óptimos
+plot(result_kl_mm)       # curva de sensibilidad KL + puntos de soporte
+cat("Atwood:", result_kl_mm$atwood, "%  | KL criterio:", result_kl_mm$crit_value, "\n")
+
+# El diseño óptimo debería concentrarse en valores altos de x (región de
+# saturación), donde la diferencia entre MM y el rival lineal es mayor.
+
+
+# -----------------------------------------------------------------------------
+# 6.2  Eficiencia de un diseño uniforme respecto al KL-óptimo
+# -----------------------------------------------------------------------------
+design_kl_unif <- data.frame(
+  Point  = c(0.1, 1.3, 2.5, 3.8, 5.0),
+  Weight = rep(1/5, 5)
+)
+eff_kl <- design_efficiency(design_kl_unif, result_kl_mm)
+cat("Eficiencia diseño uniforme (5 pts) vs KL-óptimo:", round(eff_kl * 100, 2), "%\n")
+
+
+# -----------------------------------------------------------------------------
+# 6.3  Mismo modelo, rival con tasa acotada fuera del rango nominal (Poisson)
+# -----------------------------------------------------------------------------
+# Contexto: proceso de conteo (e.g. clearance de un farmaco) cuya tasa nominal
+# de decaimiento es b=0.5.  El rival hipotetico tiene una tasa mayor, b in [0.8,1.5],
+# que no puede igualarse al valor nominal.  Esto modela el escenario donde
+# queremos verificar si el sistema sigue el regimen lento (b~0.5) o ha pasado
+# a un regimen de eliminacion rapida (b>=0.8), como ocurre con interacciones
+# farmacologicas que aceleran el metabolismo.
+#
+# Para familia Poisson, KL(x) = mu2 - mu1 - log(mu2/mu1)*mu1.
+# Como el rival decae mas rapido, la diferencia es mayor a tiempos largos:
+# el diseno optimo concentra las observaciones al final del periodo de seguimiento.
+
+result_kl_pois <- opt_des(
+  "KL-Optimality",
+  model        = y ~ exp(a - b * x),
+  parameters   = c("a", "b"),
+  par_values   = c(2, 0.5),
+  design_space = c(0, 4),
+  rival_pars   = c(2, 1.0),
+  rival_lower  = c(1.5, 0.8),
+  rival_upper  = c(2.5, 1.5),
+  family       = "Poisson",
+  phi          = 1
+)
+print(result_kl_pois)
+summary(result_kl_pois)    # rival optimo: tasa mas cercana posible a 0.5 dentro de [0.8, 1.5]
+plot(result_kl_pois)
+cat("Atwood:", result_kl_pois$atwood, "%  | KL:", result_kl_pois$crit_value, "\n")
+
+# La mayor parte del peso va a x=4 (final del periodo): a tiempos largos,
+# exp(-0.5*4)~0.135 (referencia) vs exp(-0.8*4)~0.041 (rival), diferencia clara.
+hv <- attr(result_kl_pois, "hidden_value")
+cat("Rival optimo: a=", round(hv$beta2_star[1], 3),
+    " b=", round(hv$beta2_star[2], 3), "\n")
+
+
+# =============================================================================
+# SECCION 6 (cont.)  make_kl_fun — formula KL generada automaticamente
+# =============================================================================
+# make_kl_fun() construye la funcion kl_fun(x, beta2) a partir de dos modelos
+# y familias, sin necesidad de derivar la formula a mano.
+# La funcion resultante se pasa a opt_des() via el argumento kl_fun.
+#
+# Pares soportados:
+#   - Misma familia, mismo phi : formula cumulante estandar (equivalente al
+#                                 path clasico de opt_des)
+#   - Normal vs Normal, phi1 != phi2 : KL = 0.5*(log(phi2/phi1) +
+#                                       phi1/phi2 + (mu1-mu2)^2/phi2 - 1)
+#   - Gamma vs Gamma, shape distinto (k_i = 1/phi_i) : formula cerrada con
+#                                       digamma/lgamma
+# Para otros pares, proporcionar kl_fun directamente.
+
+
+# -----------------------------------------------------------------------------
+# 6.4  Normal(phi1=1) vs Normal(phi2=4) — discriminar media Y varianza (1D)
+# -----------------------------------------------------------------------------
+# Contexto: mismo modelo funcional (decaimiento exponencial), pero el rival
+# tiene varianza cuatro veces mayor.  El KL incluye un termino constante
+# proporcional a log(phi2/phi1) (diferencia de varianza) mas un termino
+# cuadratico en (mu1-mu2) (diferencia de media).
+# El rival esta restringido a tasas de decaimiento mas rapidas (d >= 0.8 > b=0.5)
+# para evitar degeneracion.
+
+kl_fn_var <- make_kl_fun(
+  "Normal",
+  model1 = y ~ a * exp(-b * x), params1 = c("a", "b"),
+  par_values1 = c(1, 0.5), phi1 = 1,
+  family2 = "Normal",
+  model2 = y ~ c * exp(-d * x), params2 = c("c", "d"), phi2 = 4
+)
+
+result_kl_var <- opt_des(
+  "KL-Optimality",
+  model        = y ~ a * exp(-b * x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 0.5),
+  design_space = c(0, 4),
+  kl_fun       = kl_fn_var,
+  rival_pars   = c(1, 1.0),
+  rival_lower  = c(0.5, 0.8),
+  rival_upper  = c(2.0, 1.5)
+)
+print(result_kl_var)
+summary(result_kl_var)   # muestra "KL function: user-supplied"
+plot(result_kl_var)
+cat("Atwood:", result_kl_var$atwood, "%  | KL:", result_kl_var$crit_value, "\n")
+
+# El KL incluye 0.5*(log(4) + 1/4 - 1) ~ 0.32 incluso cuando las medias
+# coinciden: el diseno se estructura para maximizar ademas la contribucion
+# cuadratica (mu1-mu2)^2 / (2*phi2).
+
+
+# -----------------------------------------------------------------------------
+# 6.5  make_kl_fun con espacio de diseno 2D — MM bisubstrato vs lineal en x1
+# -----------------------------------------------------------------------------
+# Contexto: modelo de referencia es la cinetica de Michaelis-Menten con dos
+# sustratos.  El rival solo depende de x1 (ignora x2), modelando el caso en
+# que un investigador aplica erroneamente un modelo de un solo sustrato.
+# make_kl_fun admite que referencia y rival usen distintos subconjuntos de
+# las variables de diseno: aqui la referencia usa (x1, x2) y el rival solo x1.
+
+kl_fn_2d <- make_kl_fun(
+  "Normal",
+  model1   = y ~ Vmax * x1 * x2 / ((Km1 + x1) * (Km2 + x2)),
+  params1  = c("Vmax", "Km1", "Km2"),
+  par_values1 = c(1, 1, 1),
+  model2   = y ~ alpha * x1,
+  params2  = "alpha"
+)
+
+result_kl_2d <- opt_des(
+  "KL-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((Km1 + x1) * (Km2 + x2)),
+  parameters   = c("Vmax", "Km1", "Km2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 5), x2 = c(0.1, 5)),
+  kl_fun       = kl_fn_2d,
+  rival_pars   = c(0.5),
+  rival_lower  = c(0.05),
+  rival_upper  = c(2.0)
+)
+print(result_kl_2d)
+summary(result_kl_2d)    # rival optimo alpha*: pendiente lineal que mejor aproxima MM
+plot(result_kl_2d)        # heatmap de sensibilidad KL en el espacio (x1, x2)
+cat("Atwood:", result_kl_2d$atwood, "%  | KL:", result_kl_2d$crit_value, "\n")
+
+# Interpretacion geometrica: el diseno concentra puntos donde la diferencia
+# entre la hiperbola 2D y el plano lineal es maxima, es decir, en la zona de
+# saturacion del MM (x1 grande, x2 grande) frente a la zona de respuesta
+# lineal del rival (x1 grande, x2 pequeno o viceversa).
+
+
+# =============================================================================
+# SECCION 6 (cont.)  Discriminacion error absoluto vs relativo — modelo Hill
+# =============================================================================
+# De la Calle-Arroyo, Leorato, Rodriguez-Aragon, Tommasi (2025).
+# "Augmented designs to choose between constant absolute and relative errors
+#  and to estimate model parameters."
+#  Chemometrics and Intelligent Laboratory Systems, pii S0169743925000474.
+#
+# Contexto: farmacocinetica/dosis-respuesta.  Se usa el modelo Hill de 4
+# parametros (modelo de Emax con forma sigmoidal):
+#
+#   eta(x, beta) = (Econ - b) * (x/IC50)^s / (1 + (x/IC50)^s) + b
+#
+# Parametros nominales: Econ=1.70, b=0.137, IC50=111, s=-1.03
+# Espacio de diseno: x in [0.01, 1500]  (concentracion en nM)
+#
+# Se quiere discriminar entre dos estructuras de error:
+#   f1: eps ~ N(0, cv^2 * eta^2(x,beta))   -- error relativo constante (CV)
+#   f2: eps ~ N(0, sigma_abs^2)             -- error absoluto constante (rival)
+#
+# KL(f1 || f2) se minimiza internamente sobre sigma_abs^2:
+#   kl_fun(x, sigma_sq) = 0.5*(eta^2/sigma_sq - 1 + log(sigma_sq/eta^2))
+# El minimo integrado es J_min = 0.5*(log(E_xi[eta^2]) - 2*E_xi[log(eta)])
+# y corresponde a sigma_sq* = E_xi[eta^2] (promedio ponderado de eta^2).
+#
+# Diseno KL-optimo reportado en la presentacion de Tommasi (MASCOT-NUM 2024):
+#   xi_KL = {0.01 -> 0.23, 1500 -> 0.77}
+# Solo 2 puntos de soporte: insuficiente para estimar los 4 parametros.
+# El paper propone el diseno KL-aumentado que anade puntos del D-optimo
+# garantizando una eficiencia KL minima.
+
+# Definir kl_fun: KL(N(eta, eta^2) || N(eta, sigma_sq))
+# El parametro rival beta2 = c(sigma_sq) es la varianza del modelo absoluto
+kl_fun_hill <- function(x, beta2) {
+  sigma_sq <- beta2[1]
+  eta <- (1.70 - 0.137) * (x / 111)^(-1.03) / (1 + (x / 111)^(-1.03)) + 0.137
+  0.5 * (eta^2 / sigma_sq - 1 + log(sigma_sq / eta^2))
+}
+
+result_kl_hill <- opt_des(
+  "KL-Optimality",
+  model        = y ~ (Econ - b) * (x / IC50)^s / (1 + (x / IC50)^s) + b,
+  parameters   = c("Econ", "b", "IC50", "s"),
+  par_values   = c(1.70, 0.137, 111, -1.03),
+  design_space = c(0.01, 1500),
+  kl_fun       = kl_fun_hill,
+  rival_pars   = c(1.0),
+  rival_lower  = c(1e-4),
+  rival_upper  = c(1e6)
+)
+print(result_kl_hill)
+summary(result_kl_hill)
+plot(result_kl_hill)
+cat("Atwood:", result_kl_hill$atwood, "%  | KL:", round(result_kl_hill$crit_value, 4), "\n")
+hv_hill <- attr(result_kl_hill, "hidden_value")
+cat("Rival optimo sigma_abs^2 =", round(hv_hill$beta2_star, 4), "\n")
+cat("Paper: {0.01 -> 0.23, 1500 -> 0.77}\n")
+
+# El diseno KL-optimo concentra las dos observaciones en los extremos:
+#   x=0.01 (eta~1.70, varianza relativa alta) y x=1500 (eta~0.24, varianza baja).
+# La funcion de sensibilidad es plana entre los dos puntos: ambos extremos
+# son los que maximizan la divergencia entre el modelo relativo y el absoluto.
+# Atwood=100% confirma que el diseno es exactamente optimo.
+
+# Eficiencia KL de un diseno uniforme de 5 puntos
+design_hill_unif <- data.frame(
+  Point  = c(0.01, 375, 750, 1125, 1500),
+  Weight = rep(1/5, 5)
+)
+eff_hill <- design_efficiency(design_hill_unif, result_kl_hill)
+cat("Eficiencia KL diseno uniforme 5 pts:", round(eff_hill * 100, 2), "%\n")

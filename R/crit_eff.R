@@ -176,6 +176,26 @@ design_efficiency <- function(design, opt_des_obj) {
          " The second argument must be an optdes object returned by opt_des()",
          call. = FALSE)
   }
+
+  # KL-Optimality: no information matrix; efficiency = KL(new) / KL(opt)
+  if (identical(opt_des_obj$criterion, "KL-Optimality")) {
+    kl_params <- attr(opt_des_obj, "hidden_value")
+    if ("optdes" %in% class(design)) {
+      des_df <- design$optdes
+    } else if ("data.frame" %in% class(design)) {
+      des_df <- design
+    } else {
+      stop(crayon::red(cli::symbol$cross),
+           " The first argument must be a data.frame or an optdes object returned by opt_des()",
+           call. = FALSE)
+    }
+    inner_new <- .kl_minopt(des_df, kl_params$kl_fun,
+                             kl_params$beta2_star, kl_params$lower, kl_params$upper)
+    eff <- inner_new$kl_val / opt_des_obj$crit_value
+    message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
+    return(eff)
+  }
+
   grad       <- attr(opt_des_obj, "gradient")
   dvars      <- attr(grad, "design_vars")
   if (is.null(dvars)) dvars <- "x"

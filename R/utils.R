@@ -732,6 +732,16 @@ summary.optdes <- function(object, ...) {
       cat(sprintf("  %.2f * %s\n", s$weight, s$criterion))
   }
 
+  if (identical(object$criterion, "KL-Optimality")) {
+    kl <- attr(object, "hidden_value")
+    if (identical(kl$type, "family"))
+      cat(sprintf("\nGLM family: %s  (phi = %g)\n", kl$family$name, kl$phi))
+    else
+      cat("\nKL function: user-supplied\n")
+    cat(sprintf("Optimal rival parameters: %s\n",
+                paste(round(kl$beta2_star, 4), collapse = ", ")))
+  }
+
   cat(sprintf("\nOptimal design for %s", object$criterion))
   if (multi) cat(sprintf(" (%d support points)", nrow(object$optdes)))
   cat(":\n")

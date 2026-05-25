@@ -19,13 +19,15 @@
 #' @param tol2 numeric value for the outer stop condition.
 #' @param max_iter maximum number of outer iterations.
 #' @param compound preprocessed list of compound criterion specifications (internal use).
+#' @param kl_spec preprocessed list of KL-Optimality specifications (internal use).
 #'
 #' @return An object of class \code{optdes}.
 #'
 #' @family cocktail algorithms
 WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
                    design_space, grid.length, join_thresh, delete_thresh,
-                   k, delta_weights, tol, tol2, max_iter, compound = NULL) {
+                   k, delta_weights, tol, tol2, max_iter, compound = NULL,
+                   kl_spec = NULL) {
   if (identical(criterion, "D-Optimality"))
     return(DWFMult(init_design, grad, design_space, grid.length,
                    join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter))
@@ -44,6 +46,14 @@ WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
   else if (identical(criterion, "Compound"))
     return(CWFMult(init_design, grad, compound, design_space, grid.length,
                    join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter))
+  else if (identical(criterion, "KL-Optimality"))
+    return(KLWFMult(init_design,
+                    kl_spec$kl_fun, kl_spec$beta2_init,
+                    kl_spec$lower, kl_spec$upper,
+                    design_space, grid.length,
+                    join_thresh, delete_thresh,
+                    delta_weights, tol, tol2, max_iter,
+                    kl_meta = kl_spec$kl_meta))
 }
 
 
@@ -403,6 +413,20 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
 #'   Weights are normalised to sum to 1. Example:
 #'   \code{list(list(criterion="D-Optimality", weight=0.7),
 #'              list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.
+#' @param rival_model optional formula for the rival model used with
+#'   \code{criterion = "KL-Optimality"}. Defaults to \code{model} (same structure, rival
+#'   parameters explored by inner optimisation).
+#' @param rival_params optional character vector of rival model parameter names. Defaults to
+#'   \code{parameters}.
+#' @param rival_pars optional numeric vector of initial rival parameter values for the inner
+#'   optimisation. Defaults to \code{par_values}.
+#' @param family character; GLM family for \code{criterion = "KL-Optimality"}. One of
+#'   \code{"Normal"}, \code{"Poisson"}, \code{"Binomial"}, \code{"Gamma"}. Default \code{"Normal"}.
+#' @param phi positive numeric dispersion parameter for KL-Optimality. Default \code{1}.
+#' @param rival_lower optional numeric vector of lower bounds for rival parameters in the
+#'   inner optimisation. Defaults to \code{-Inf} for each parameter.
+#' @param rival_upper optional numeric vector of upper bounds for rival parameters in the
+#'   inner optimisation. Defaults to \code{Inf} for each parameter.
 #'
 #' @return a list of class \code{optdes} with components \code{optdes}, \code{convergence},
 #'   \code{sens}, \code{criterion}, \code{crit_value}, and \code{atwood}.
@@ -427,6 +451,18 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
 #'           list(criterion = "D-Optimality", weight = 0.7),
 #'           list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
 #'         ))
+#'
+#' # KL-Optimality: discriminate quadratic from linear mean model (Normal)
+#' opt_des("KL-Optimality",
+#'         model        = y ~ a * x^2,
+#'         parameters   = c("a"),
+#'         par_values   = c(1),
+#'         design_space = c(1, 5),
+#'         rival_model  = y ~ b * x,
+#'         rival_params = c("b"),
+#'         rival_pars   = c(3),
+#'         family       = "Normal",
+#'         phi          = 1)
 #' }
 opt_des <- function(criterion, model, parameters,
                     par_values   = c(1),
@@ -443,7 +479,15 @@ opt_des <- function(criterion, model, parameters,
                     max_iter     = 21L,
                     distribution = NA,
                     weight_fun   = function(x) 1,
-                    compound     = NULL) {
+                    compound     = NULL,
+                    rival_model  = NULL,
+                    rival_params = NULL,
+                    rival_pars   = NULL,
+                    family       = "Normal",
+                    phi          = 1,
+                    rival_lower  = NULL,
+                    rival_upper  = NULL,
+                    kl_fun       = NULL) {
 
   k <- length(parameters)
   if (identical(par_values, c(1))) par_values <- rep(1, k)
@@ -550,12 +594,62 @@ opt_des <- function(criterion, model, parameters,
     })
   }
 
+  # -- KL-Optimality: build kl_fun and inner-opt spec -----------------------
+  kl_spec <- NULL
+  if (identical(criterion, "KL-Optimality")) {
+    if (!is.null(kl_fun)) {
+      # User-supplied kl_fun path
+      if (!is.function(kl_fun))
+        stop("'kl_fun' must be a function(x, beta2).", call. = FALSE)
+      if (is.null(rival_pars))
+        stop("'rival_pars' must provide initial rival parameters when 'kl_fun' is used.",
+             call. = FALSE)
+      lower_eff <- if (is.null(rival_lower)) rep(-Inf, length(rival_pars)) else rival_lower
+      upper_eff <- if (is.null(rival_upper)) rep( Inf, length(rival_pars)) else rival_upper
+      kl_spec <- list(
+        kl_fun     = kl_fun,
+        beta2_init = rival_pars,
+        lower      = lower_eff,
+        upper      = upper_eff,
+        kl_meta    = list(type = "kl_fun")
+      )
+    } else {
+      # Standard family-based path: build kl_fun from model evaluators
+      if (!is.character(family) || length(family) != 1L)
+        stop("'family' must be a single character string for KL-Optimality.", call. = FALSE)
+      if (!is.numeric(phi) || phi <= 0)
+        stop("'phi' must be a positive number for KL-Optimality.", call. = FALSE)
+      rival_model_eff  <- if (is.null(rival_model))  model      else rival_model
+      rival_params_eff <- if (is.null(rival_params)) parameters else rival_params
+      rival_pars_eff   <- if (is.null(rival_pars))   par_values else rival_pars
+      lower_eff <- if (is.null(rival_lower)) rep(-Inf, length(rival_params_eff)) else rival_lower
+      upper_eff <- if (is.null(rival_upper)) rep( Inf, length(rival_params_eff)) else rival_upper
+      fam           <- make_glm_family(family)
+      mu1_fn        <- .make_mu_eval(model, parameters, par_values)
+      rival_eval_fn <- .make_rival_eval(rival_model_eff, rival_params_eff)
+      kl_fun_built  <- local({
+        mu1_ <- mu1_fn; riv_ <- rival_eval_fn; fam_ <- fam; phi_ <- phi
+        function(x, beta2) .kl_at_point(x, mu1_, riv_, beta2, fam_, phi_)
+      })
+      kl_spec <- list(
+        kl_fun     = kl_fun_built,
+        beta2_init = rival_pars_eff,
+        lower      = lower_eff,
+        upper      = upper_eff,
+        kl_meta    = list(type   = "family",
+                          family = fam,
+                          phi    = phi)
+      )
+    }
+  }
+
   # -- Run cocktail algorithm ------------------------------------------------
   output <- WFMult(init_design, grad, criterion,
                    par_int = par_int, matB,
                    design_space, 1000L,
                    join_thresh, delete_thresh, k, delta, tol, tol2, max_iter,
-                   compound = compound_specs)
+                   compound = compound_specs,
+                   kl_spec  = kl_spec)
 
   attr(output, "model")      <- model
   attr(output, "weight_fun") <- weight_fun
