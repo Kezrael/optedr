@@ -569,6 +569,164 @@ plot(result_DAI)
 ```
 
 
+# KL-Optimality — discriminación entre modelos
+
+El criterio **KL-Optimality** (López-Fidalgo, Tommasi & Trandafir, 2007) maximiza
+la divergencia de Kullback-Leibler integrada entre el modelo de referencia $f_1$
+(parámetros nominales $\boldsymbol\beta_1$ conocidos) y el rival más adversario
+$f_2$ (parámetros $\boldsymbol\beta_2$ libres):
+$$I_{2,1}(\xi) = \min_{\boldsymbol\beta_2} \int_\mathcal{X}
+  \mathrm{KL}\bigl(f_1(\cdot\mid x,\boldsymbol\beta_1) \,\|\,
+                   f_2(\cdot\mid x,\boldsymbol\beta_2)\bigr)\,\xi(dx)$$
+
+Para familias exponenciales con función cumulante $b(\cdot)$ y dispersión $\phi$:
+$$\mathrm{KL}(x,\boldsymbol\mu_1,\boldsymbol\mu_2)
+  = \frac{1}{\phi}\bigl[b(\theta_2)-b(\theta_1)-(\theta_2-\theta_1)\,b'(\theta_1)\bigr]$$
+
+El algoritmo cocktail **maximiza** $I_{2,1}$ con un paso externo de vertex-direction
+y resuelve la minimización interna con `stats::optim` (BFGS / L-BFGS-B).
+
+
+## Vía estándar — rival con estructura de media distinta (Normal, 1D)
+
+El camino clásico pasa los argumentos `rival_model`, `rival_params`, `family` y
+`phi` directamente a `opt_des()`.  El paquete construye automáticamente la función
+KL usando la fórmula cumulante.
+
+```{r kl-std, cache=TRUE}
+# Michaelis-Menten vs lineal: acotamos a ∈ [0.2, 2.5] para evitar KL ≈ 0
+result_kl_mm <- opt_des(
+  "KL-Optimality",
+  model        = y ~ Vmax * x / (Km + x),
+  parameters   = c("Vmax", "Km"),
+  par_values   = c(2, 1),
+  design_space = c(0.1, 5),
+  rival_model  = y ~ a * x,
+  rival_params = c("a"),
+  rival_pars   = c(1),
+  rival_lower  = c(0.2),
+  rival_upper  = c(2.5),
+  family       = "Normal",
+  phi          = 1
+)
+result_kl_mm
+```
+
+```{r kl-std-plot}
+plot(result_kl_mm)
+```
+
+```{r kl-std-eff}
+# Eficiencia de un diseño uniforme de 5 puntos
+des_unif5 <- data.frame(Point = seq(0.1, 5, length.out = 5), Weight = rep(1/5, 5))
+design_efficiency(des_unif5, result_kl_mm)
+```
+
+
+## `make_kl_fun` — función KL generada automáticamente
+
+`make_kl_fun()` construye la clausura `kl_fun(x, beta2)` para los pares de
+familias soportados, incluyendo Normal con distinta dispersión y Gamma con distinta
+forma.  El resultado se pasa a `opt_des()` via el argumento `kl_fun`.
+
+**Normal($\phi_1=1$) vs Normal($\phi_2=4$) — discriminar media y varianza**
+
+$$\mathrm{KL} = \tfrac{1}{2}\!\left[\log\!\frac{\phi_2}{\phi_1}+\frac{\phi_1}{\phi_2}+\frac{(\mu_1-\mu_2)^2}{\phi_2}-1\right]$$
+
+```{r kl-make, cache=TRUE}
+kl_fn_var <- make_kl_fun(
+  "Normal",
+  model1 = y ~ a * exp(-b * x), params1 = c("a", "b"),
+  par_values1 = c(1, 0.5), phi1 = 1,
+  family2 = "Normal",
+  model2  = y ~ c * exp(-d * x), params2 = c("c", "d"), phi2 = 4
+)
+
+result_kl_var <- opt_des(
+  "KL-Optimality",
+  model        = y ~ a * exp(-b * x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 0.5),
+  design_space = c(0, 4),
+  kl_fun       = kl_fn_var,
+  rival_pars   = c(1, 1.0),
+  rival_lower  = c(0.5, 0.8),
+  rival_upper  = c(2.0, 1.5)
+)
+result_kl_var
+```
+
+```{r kl-make-plot}
+plot(result_kl_var)
+```
+
+
+## Modelo Hill — error absoluto vs relativo (de la Calle-Arroyo et al., 2025)
+
+> De la Calle-Arroyo, Leorato, Rodríguez-Aragón & Tommasi (2025).
+> *Augmented designs to choose between constant absolute and relative errors
+> and to estimate model parameters.*
+> **Chemometrics and Intelligent Laboratory Systems**, pii S0169743925000474.
+
+**Modelo Hill de 4 parámetros** (dosis-respuesta / cinética de Emax):
+$$\eta(x,\boldsymbol\beta) = \frac{(E_{con}-b)\,(x/IC_{50})^s}{1+(x/IC_{50})^s}+b,
+\quad \boldsymbol\beta=(1.70,\,0.137,\,111,\,-1.03),\quad x\in[0.01,1500]$$
+
+Se discrimina entre:
+
+| | Distribución | Varianza |
+|---|---|---|
+| $f_1$ (referencia) | $\mathcal{N}(\eta,\,c_v^2\eta^2)$ | error relativo constante |
+| $f_2$ (rival) | $\mathcal{N}(\eta,\,\sigma^2)$ | error absoluto constante |
+
+La KL integrada minimizada sobre $\sigma^2$ admite fórmula cerrada:
+$$I_{2,1}(\xi)=\tfrac{1}{2}\bigl[\log\mathbb{E}_\xi[\eta^2]-2\,\mathbb{E}_\xi[\log\eta]\bigr]
+  \quad\text{(AM–GM sobre }\eta^2\text{)}$$
+con mínimo alcanzado en $\sigma^{2*}=\mathbb{E}_\xi[\eta^2]$.
+
+```{r kl-hill, cache=TRUE}
+# KL(N(eta, eta^2) || N(eta, sigma_sq)), rival param = sigma_sq
+kl_fun_hill <- function(x, beta2) {
+  sigma_sq <- beta2[1]
+  eta <- (1.70 - 0.137) * (x / 111)^(-1.03) / (1 + (x / 111)^(-1.03)) + 0.137
+  0.5 * (eta^2 / sigma_sq - 1 + log(sigma_sq / eta^2))
+}
+
+result_kl_hill <- opt_des(
+  "KL-Optimality",
+  model        = y ~ (Econ - b) * (x / IC50)^s / (1 + (x / IC50)^s) + b,
+  parameters   = c("Econ", "b", "IC50", "s"),
+  par_values   = c(1.70, 0.137, 111, -1.03),
+  design_space = c(0.01, 1500),
+  kl_fun       = kl_fun_hill,
+  rival_pars   = c(1.0),
+  rival_lower  = c(1e-4),
+  rival_upper  = c(1e6)
+)
+result_kl_hill
+```
+
+```{r kl-hill-plot}
+plot(result_kl_hill)
+```
+
+```{r kl-hill-check}
+hv <- attr(result_kl_hill, "hidden_value")
+cat("Rival optimo sigma_abs^2 =", round(hv$beta2_star, 4), "\n")
+cat("Resultado del paper:  {0.01 -> 0.23, 1500 -> 0.77}\n")
+cat("Atwood:", result_kl_hill$atwood, "% — diseno exactamente optimo\n")
+
+# KL-eficiencia de un diseno uniforme
+des_unif_hill <- data.frame(
+  Point = c(0.01, 375, 750, 1125, 1500), Weight = rep(1/5, 5))
+design_efficiency(des_unif_hill, result_kl_hill)
+```
+
+El diseño KL-óptimo tiene sólo 2 puntos de soporte: no puede estimar los 4
+parámetros de la Hill.  El paper propone el *diseño KL-aumentado*, que añade
+puntos del D-óptimo garantizando una eficiencia KL mínima.
+
+
 # Caso de estudio — Ecuación de Tait para datos pVT
 
 > Martín-Martín, Rodríguez-Aragón & Torsney (2012). *Multiplicative algorithm
