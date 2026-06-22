@@ -1,0 +1,283 @@
+---
+title: "Introduction to optedr: optimal designs for non-linear models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to optedr: optimal designs for non-linear models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  fig.width  = 6,
+  fig.height = 4,
+  out.width  = "90%"
+)
+```
+
+```{r setup}
+library(optedr)
+```
+
+## The optimal design problem
+
+In non-linear regression the information that an experiment provides about the model parameters depends on *where* observations are taken, not just how many. The Fisher information matrix at a design point $x$ is
+
+$$M(\xi) = \int f(x)\, f(x)^{\top} \, \xi(dx),$$
+
+where $f(x) = \nabla_\theta \mu(x, \theta)$ is the gradient of the mean response. Different optimality criteria summarise $M(\xi)$ into a single number to minimise:
+
+| Criterion | Objective | Key argument |
+|-----------|-----------|-------------|
+| D-Optimality | $-\log\det M$ | — |
+| Ds-Optimality | focuses on a subset of parameters | `par_int` |
+| A-Optimality | $\operatorname{tr} M^{-1}$ | — |
+| I-Optimality | integrated prediction variance over a region | `reg_int` |
+| L-Optimality | $\operatorname{tr}(B \, M^{-1})$ for user-supplied $B$ | `matB` |
+
+All are computed with `opt_des()`, which implements the cocktail algorithm (Yu, 2011).
+
+## A first example: D-Optimality in one factor
+
+The Antoine equation models vapour pressure as a function of temperature. With two parameters and one design variable the D-optimal design has exactly two support points.
+
+```{r d-optimal}
+result_D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422)
+)
+result_D
+```
+
+`plot()` shows the sensitivity function $d(x, \xi)$. By the Equivalence Theorem the design is optimal if and only if $d(x, \xi) \leq k$ everywhere, with equality at every support point.
+
+```{r d-plot, fig.cap = "Sensitivity function for the D-optimal design."}
+plot(result_D)
+```
+
+`summary()` gives a fuller breakdown including the criterion value and convergence diagnostics.
+
+```{r d-summary}
+summary(result_D)
+```
+
+The `$atwood` component reports the Atwood criterion (percentage deviation from the theoretical optimum bound): values close to 100 % confirm convergence.
+
+## Other optimality criteria
+
+### Ds-Optimality
+
+`par_int` selects the indices of the parameters of interest. Here we focus only on `th0`:
+
+```{r ds-optimal}
+result_Ds <- opt_des(
+  criterion    = "Ds-Optimality",
+  model        = y ~ th0 * exp(x / th1),
+  parameters   = c("th0", "th1"),
+  par_values   = c(10.4963, -3.2940),
+  design_space = c(0.94, 30),
+  par_int      = c(1)
+)
+result_Ds
+```
+
+### A-Optimality
+
+Minimises the average variance of the parameter estimators:
+
+```{r a-optimal}
+result_A <- opt_des(
+  criterion    = "A-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422)
+)
+result_A
+```
+
+### I-Optimality
+
+Minimises the integrated prediction variance over a region of interest `reg_int`. Useful when prediction in a specific sub-range matters more than global estimation:
+
+```{r i-optimal}
+result_I <- opt_des(
+  criterion    = "I-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  reg_int      = c(380, 422)
+)
+result_I
+```
+
+### L-Optimality
+
+`matB` is a symmetric positive-semidefinite $k \times k$ matrix that selects which variances to minimise. Setting `matB = diag(c(1, 0))` focuses entirely on the variance of `a`:
+
+```{r l-optimal}
+result_L <- opt_des(
+  criterion    = "L-Optimality",
+  model        = y ~ a * exp(-b / x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 1500),
+  design_space = c(212, 422),
+  matB         = diag(c(1, 0))
+)
+result_L
+```
+
+Comparing D- and L-optimal designs shows how the support points shift when precision is concentrated on one parameter:
+
+```{r l-compare}
+cat("D-optimal support:\n"); print(result_D$optdes)
+cat("L-optimal support:\n"); print(result_L$optdes)
+```
+
+## Multi-dimensional design spaces
+
+For models with two or more design variables pass `design_space` as a named list. Variable names in the list must match those used in `model`.
+
+### Two-factor model: bisubstrate Michaelis-Menten
+
+Enzyme kinetics with two substrates: $\mu = V_{\max} x_1 x_2 / [(K_1 + x_1)(K_2 + x_2)]$.
+
+```{r 2d-optimal}
+result_2D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10))
+)
+result_2D
+```
+
+`plot()` for a two-factor model returns a viridis heatmap of the sensitivity function, with the support points overlaid in red:
+
+```{r 2d-plot, fig.cap = "Sensitivity heatmap for the 2D D-optimal design."}
+plot(result_2D)
+```
+
+L-Optimality extends naturally to multi-dimensional spaces. Here we minimise only the variance of $K_1$:
+
+```{r 2d-l}
+result_2D_L <- opt_des(
+  criterion    = "L-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((K1 + x1) * (K2 + x2)),
+  parameters   = c("Vmax", "K1", "K2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10)),
+  matB         = diag(c(0, 1, 0))
+)
+result_2D_L
+```
+
+### Three factors and beyond
+
+For $d \geq 3$ factors `plot()` switches to a scatter-matrix with $\binom{d}{2}$ panels, one per pair of variables. Point size is proportional to weight.
+
+```{r 3d-optimal}
+result_3D <- opt_des(
+  criterion    = "D-Optimality",
+  model        = y ~ Vmax * x1 * x2 * x3 / ((K1+x1) * (K2+x2) * (K3+x3)),
+  parameters   = c("Vmax", "K1", "K2", "K3"),
+  par_values   = c(1, 1, 1, 1),
+  design_space = list(x1 = c(0.1, 10), x2 = c(0.1, 10), x3 = c(0.1, 10))
+)
+result_3D
+plot(result_3D)
+```
+
+## Compound criterion
+
+Sometimes no single criterion captures the experimental goals. `criterion = "Compound"` combines any set of criteria as a weighted sum of their sensitivity functions. Weights are normalised automatically.
+
+```{r compound}
+result_DI <- opt_des(
+  criterion    = "Compound",
+  model        = y ~ 10^(a - b / (c + x)),
+  parameters   = c("a", "b", "c"),
+  par_values   = c(8.07131, 1730.63, 233.426),
+  design_space = c(1, 100),
+  compound     = list(
+    list(criterion = "D-Optimality", weight = 0.7),
+    list(criterion = "I-Optimality", weight = 0.3, reg_int = c(60, 100))
+  )
+)
+result_DI
+```
+
+Comparing with the pure D-optimal design shows how the composite shifts one support point toward the prediction region:
+
+```{r compound-compare}
+result_D_ant <- opt_des(
+  "D-Optimality",
+  y ~ 10^(a - b / (c + x)), c("a", "b", "c"),
+  c(8.07131, 1730.63, 233.426), c(1, 100)
+)
+cat("D-optimal:\n");         print(result_D_ant$optdes)
+cat("Compound D+I (70/30):\n"); print(result_DI$optdes)
+```
+
+## Design efficiency
+
+`design_efficiency()` measures the fraction of the optimal information that a given design achieves: an efficiency of 0.80 means the design needs $1/0.8 = 1.25\times$ more observations to match the optimal.
+
+```{r efficiency}
+design_ad_hoc <- data.frame(
+  Point  = c(220, 300, 400),
+  Weight = c(1/3, 1/3, 1/3)
+)
+eff <- design_efficiency(design_ad_hoc, result_D)
+cat("Efficiency of ad-hoc design:", round(eff * 100, 2), "%\n")
+```
+
+For multi-dimensional designs pass a data frame with one column per factor plus a `Weight` column:
+
+```{r efficiency-2d}
+corners_2d <- data.frame(
+  x1     = c(0.1, 10,  0.1, 10),
+  x2     = c(0.1, 0.1, 10,  10),
+  Weight = rep(0.25, 4)
+)
+eff_2d <- design_efficiency(corners_2d, result_2D)
+cat("Efficiency of corner design vs 2D D-optimal:", round(eff_2d * 100, 2), "%\n")
+```
+
+## Rounding to exact designs
+
+Optimal designs assign continuous weights. Two functions convert them to integer replication counts for a given total $n$.
+
+### `efficient_round()`
+
+Uses the multiplier $n - l/2$ (where $l$ is the number of support points) and adjusts to guarantee the total is exactly $n$:
+
+```{r efficient-round}
+exact_design <- efficient_round(result_D$optdes, n = 20)
+print(exact_design)
+cat("Total observations:", sum(exact_design$Weight), "\n")
+```
+
+### `combinatorial_round()`
+
+Exhaustive floor/ceiling search: optimal for small $k$ (number of support points) since it checks all $2^k$ combinations. Pass the `optdes` object so the function can use the criterion value for comparison:
+
+```{r combo-round}
+combo_design <- combinatorial_round(result_D, n = 10)
+print(combo_design)
+```
+
+Once rounded, compare the exact design's efficiency against the approximate optimum:
+
+```{r round-eff}
+approx <- exact_design
+approx$Weight <- approx$Weight / sum(approx$Weight)
+cat("Efficiency of rounded design:", round(design_efficiency(approx, result_D) * 100, 2), "%\n")
+```

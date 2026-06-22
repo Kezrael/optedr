@@ -427,6 +427,10 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
 #'   inner optimisation. Defaults to \code{-Inf} for each parameter.
 #' @param rival_upper optional numeric vector of upper bounds for rival parameters in the
 #'   inner optimisation. Defaults to \code{Inf} for each parameter.
+#' @param kl_fun optional user-supplied \code{function(x, beta2)} giving the point
+#'   KL divergence at design point \code{x} for rival parameters \code{beta2}, as built by
+#'   \code{\link{make_kl_fun}}. When provided, bypasses the \code{family}/\code{rival_model}
+#'   path entirely; \code{rival_pars} must still be supplied for the inner optimisation.
 #'
 #' @return a list of class \code{optdes} with components \code{optdes}, \code{convergence},
 #'   \code{sens}, \code{criterion}, \code{crit_value}, and \code{atwood}.

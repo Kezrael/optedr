@@ -1,0 +1,277 @@
+---
+title: "KL-Optimality: designs for model discrimination"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{KL-Optimality: designs for model discrimination}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  fig.width  = 6,
+  fig.height = 4,
+  out.width  = "90%"
+)
+```
+
+```{r setup}
+library(optedr)
+```
+
+## Background
+
+Standard optimality criteria (D, A, I, …) assume the model is correctly specified and aim to estimate its parameters as precisely as possible. KL-Optimality addresses a different question: *given two competing models, where should observations be taken to tell them apart most easily?*
+
+The criterion is based on the Kullback-Leibler divergence between the reference model $f_1$ and the best-fitting version of the rival $f_2$:
+
+$$\Phi_{\text{KL}}(\xi) = \int \min_{\beta_2} \text{KL}(f_1(y \mid x) \,\|\, f_2(y \mid x, \beta_2))\, \xi(dx).$$
+
+The design $\xi^*$ that maximises $\Phi_{\text{KL}}$ places observations where the two models are most distinguishable on average.
+
+**Reference:** López-Fidalgo, Tommasi & Trandafir (2007). *An optimal experimental design criterion for discriminating between non-normal models.* J. R. Stat. Soc. B, 69(2), 231–242.
+
+## API overview
+
+```r
+opt_des(
+  "KL-Optimality",
+  model        = <reference model formula>,
+  parameters   = <reference parameter names>,
+  par_values   = <nominal values>,
+  design_space = <scalar interval or named list>,
+  # rival specification:
+  rival_model  = <rival formula>,       # default: same as model
+  rival_params = <rival param names>,   # default: same as parameters
+  rival_pars   = <starting values for internal optimisation>,
+  rival_lower  = <lower bounds for rival params>,
+  rival_upper  = <upper bounds for rival params>,
+  # GLM family:
+  family       = "Normal",   # "Poisson", "Binomial", "Gamma"
+  phi          = 1,          # dispersion parameter
+  # alternative: supply a custom KL function
+  kl_fun       = NULL
+)
+```
+
+The internal optimisation over rival parameters is done automatically. The optimal rival values are stored as a hidden attribute and shown by `summary()`.
+
+## Example 1: Michaelis-Menten vs linear rival (Normal, 1D)
+
+**Context.** Enzyme kinetics with one substrate. The reference model is Michaelis-Menten $\mu(x) = V_{\max} x / (K_m + x)$ with $V_{\max} = 2$, $K_m = 1$. The rival is a linear rate $\mu(x) = a x$, valid only when $x \ll K_m$. At high concentrations MM saturates while the linear model keeps growing — that is where the models diverge most.
+
+```{r kl-mm}
+result_kl_mm <- opt_des(
+  "KL-Optimality",
+  model        = y ~ Vmax * x / (Km + x),
+  parameters   = c("Vmax", "Km"),
+  par_values   = c(2, 1),
+  design_space = c(0.1, 5),
+  rival_model  = y ~ a * x,
+  rival_params = c("a"),
+  rival_pars   = c(1),
+  rival_lower  = c(0.2),
+  rival_upper  = c(2.5),
+  family       = "Normal",
+  phi          = 1
+)
+result_kl_mm
+```
+
+`summary()` shows the GLM family and the optimal rival parameters found by the internal optimisation:
+
+```{r kl-mm-summary}
+summary(result_kl_mm)
+```
+
+The sensitivity plot shows $d_{\text{KL}}(x, \xi)$ with the Equivalence Theorem bound (dashed). Support points concentrate in the saturation region where MM and the linear rival differ most:
+
+```{r kl-mm-plot, fig.cap = "KL sensitivity function: MM vs linear rival."}
+plot(result_kl_mm)
+```
+
+Efficiency of a five-point uniform design relative to the KL-optimal:
+
+```{r kl-mm-eff}
+design_unif <- data.frame(
+  Point  = c(0.1, 1.3, 2.5, 3.8, 5.0),
+  Weight = rep(1/5, 5)
+)
+eff_kl <- design_efficiency(design_unif, result_kl_mm)
+cat("Efficiency of uniform design:", round(eff_kl * 100, 2), "%\n")
+```
+
+## Example 2: exponential decay, Poisson family
+
+**Context.** A drug clearance study where the event count follows a Poisson process with rate $\mu(x) = \exp(a - bx)$. The reference model has nominal decay rate $b = 0.5$. The rival represents a faster-elimination regime ($b \in [0.8, 1.5]$), which could arise from drug interactions. The KL divergence for Poisson is $\text{KL} = \mu_2 - \mu_1 - \mu_1 \log(\mu_2/\mu_1)$; since the rival decays faster, the gap is largest at long follow-up times.
+
+```{r kl-poisson}
+result_kl_pois <- opt_des(
+  "KL-Optimality",
+  model        = y ~ exp(a - b * x),
+  parameters   = c("a", "b"),
+  par_values   = c(2, 0.5),
+  design_space = c(0, 4),
+  rival_pars   = c(2, 1.0),
+  rival_lower  = c(1.5, 0.8),
+  rival_upper  = c(2.5, 1.5),
+  family       = "Poisson",
+  phi          = 1
+)
+result_kl_pois
+summary(result_kl_pois)
+```
+
+```{r kl-poisson-plot, fig.cap = "KL sensitivity for Poisson decay model."}
+plot(result_kl_pois)
+```
+
+The optimal rival parameters found internally confirm the closest rival within the constraint:
+
+```{r kl-poisson-rival}
+hv <- attr(result_kl_pois, "hidden_value")
+cat("Optimal rival: a =", round(hv$beta2_star[1], 3),
+    " b =", round(hv$beta2_star[2], 3), "\n")
+```
+
+## Using `make_kl_fun()` for custom KL functions
+
+For some discrimination problems the KL divergence does not reduce to the standard cumulant-generating-function form that `opt_des()` uses internally. `make_kl_fun()` automates the construction of the KL function from two model-family pairs.
+
+### Supported pairs
+
+| Combination | Formula |
+|-------------|---------|
+| Same family, same $\phi$ | Standard cumulant form |
+| Normal vs Normal, $\phi_1 \neq \phi_2$ | $\frac{1}{2}\left[\log\frac{\phi_2}{\phi_1} + \frac{\phi_1}{\phi_2} + \frac{(\mu_1-\mu_2)^2}{\phi_2} - 1\right]$ |
+| Gamma vs Gamma, different shape | Closed form with digamma/lgamma |
+
+For other pairs, supply `kl_fun` directly as a function `(x, beta2) -> scalar`.
+
+### Example 3: Normal with different variances (1D)
+
+**Context.** Same exponential decay model, but now the rival has variance $\phi_2 = 4$ (four times larger). The KL function includes a constant term $\frac{1}{2}[\log(\phi_2/\phi_1) + \phi_1/\phi_2 - 1]$ even when the means coincide, so the design must also account for the variance difference.
+
+```{r kl-variances}
+kl_fn_var <- make_kl_fun(
+  "Normal",
+  model1      = y ~ a * exp(-b * x),
+  params1     = c("a", "b"),
+  par_values1 = c(1, 0.5),
+  phi1        = 1,
+  family2     = "Normal",
+  model2      = y ~ c * exp(-d * x),
+  params2     = c("c", "d"),
+  phi2        = 4
+)
+
+result_kl_var <- opt_des(
+  "KL-Optimality",
+  model        = y ~ a * exp(-b * x),
+  parameters   = c("a", "b"),
+  par_values   = c(1, 0.5),
+  design_space = c(0, 4),
+  kl_fun       = kl_fn_var,
+  rival_pars   = c(1, 1.0),
+  rival_lower  = c(0.5, 0.8),
+  rival_upper  = c(2.0, 1.5)
+)
+result_kl_var
+summary(result_kl_var)
+```
+
+```{r kl-var-plot, fig.cap = "KL sensitivity: Normal phi=1 vs Normal phi=4."}
+plot(result_kl_var)
+```
+
+### Example 4: two-factor MM vs linear rival (`make_kl_fun`, 2D)
+
+`make_kl_fun()` works with models that use different subsets of the design variables. Here the reference uses $(x_1, x_2)$ (bisubstrate MM) while the rival depends only on $x_1$ (single-substrate linear approximation):
+
+```{r kl-2d}
+kl_fn_2d <- make_kl_fun(
+  "Normal",
+  model1      = y ~ Vmax * x1 * x2 / ((Km1 + x1) * (Km2 + x2)),
+  params1     = c("Vmax", "Km1", "Km2"),
+  par_values1 = c(1, 1, 1),
+  model2      = y ~ alpha * x1,
+  params2     = "alpha"
+)
+
+result_kl_2d <- opt_des(
+  "KL-Optimality",
+  model        = y ~ Vmax * x1 * x2 / ((Km1 + x1) * (Km2 + x2)),
+  parameters   = c("Vmax", "Km1", "Km2"),
+  par_values   = c(1, 1, 1),
+  design_space = list(x1 = c(0.1, 5), x2 = c(0.1, 5)),
+  kl_fun       = kl_fn_2d,
+  rival_pars   = c(0.5),
+  rival_lower  = c(0.05),
+  rival_upper  = c(2.0)
+)
+result_kl_2d
+```
+
+The heatmap concentrates support where the difference between the bisubstrate hyperbola and the linear rival is greatest (saturation regime in both $x_1$ and $x_2$):
+
+```{r kl-2d-plot, fig.cap = "KL sensitivity heatmap: 2D MM vs linear rival."}
+plot(result_kl_2d)
+```
+
+## Example 5: discriminating error structures — the Hill model
+
+**Reference:** De la Calle-Arroyo, Leorato, Rodríguez-Aragón & Tommasi (2025). *Augmented designs to choose between constant absolute and relative errors.* Chemometrics and Intelligent Laboratory Systems, doi:10.1016/j.chemolab.2025.105374.
+
+**Context.** Dose-response experiments with the Hill (4-parameter Emax) model:
+
+$$\eta(x, \beta) = (E_{\text{con}} - b) \cdot \frac{(x/\text{IC}_{50})^s}{1 + (x/\text{IC}_{50})^s} + b$$
+
+with $E_{\text{con}} = 1.70$, $b = 0.137$, $\text{IC}_{50} = 111$, $s = -1.03$ and $x \in [0.01, 1500]$ nM. Two error structures are competing:
+
+- **Relative error** (reference): $\varepsilon \sim N(0,\, \sigma_{\text{rel}}^2 \cdot \eta^2)$
+- **Absolute error** (rival): $\varepsilon \sim N(0,\, \sigma_{\text{abs}}^2)$
+
+The KL divergence minimised over the rival variance $\sigma_{\text{abs}}^2$ is
+
+$$\text{KL}(x,\, \sigma_{\text{abs}}^2) = \frac{1}{2}\!\left(\frac{\eta^2(x)}{\sigma_{\text{abs}}^2} - 1 + \log\frac{\sigma_{\text{abs}}^2}{\eta^2(x)}\right).$$
+
+We supply this directly as `kl_fun` since it is not covered by the standard Normal-vs-Normal formula (the reference variance is $x$-dependent):
+
+```{r kl-hill}
+kl_fun_hill <- function(x, beta2) {
+  sigma_sq <- beta2[1]
+  eta <- (1.70 - 0.137) * (x / 111)^(-1.03) / (1 + (x / 111)^(-1.03)) + 0.137
+  0.5 * (eta^2 / sigma_sq - 1 + log(sigma_sq / eta^2))
+}
+
+result_kl_hill <- opt_des(
+  "KL-Optimality",
+  model        = y ~ (Econ - b) * (x / IC50)^s / (1 + (x / IC50)^s) + b,
+  parameters   = c("Econ", "b", "IC50", "s"),
+  par_values   = c(1.70, 0.137, 111, -1.03),
+  design_space = c(0.01, 1500),
+  kl_fun       = kl_fun_hill,
+  rival_pars   = c(1.0),
+  rival_lower  = c(1e-4),
+  rival_upper  = c(1e6)
+)
+result_kl_hill
+summary(result_kl_hill)
+```
+
+```{r kl-hill-plot, fig.cap = "KL sensitivity for the Hill model (error structure discrimination)."}
+plot(result_kl_hill)
+```
+
+The KL-optimal design places all weight at the two extremes of the design space. This matches the result reported in the paper (support at $x = 0.01$ with weight 0.23 and $x = 1500$ with weight 0.77). The Atwood criterion at 100 % confirms the design is exactly optimal.
+
+The optimal rival variance recovered internally:
+
+```{r kl-hill-rival}
+hv_hill <- attr(result_kl_hill, "hidden_value")
+cat("Optimal rival sigma_abs^2 =", round(hv_hill$beta2_star, 4), "\n")
+```
+
+Note that with only two support points this design cannot estimate all four parameters of the Hill model. The paper proposes combining it with a D-optimal design via the augmentation workflow described in `vignette("optedr-augment")`.

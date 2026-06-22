@@ -1,4 +1,21 @@
-# optedr 2.5.0.9000
+# optedr 3.0.0
+
+## New features — KL-Optimality (model discrimination)
+- `opt_des()` now accepts `criterion = "KL-Optimality"` to find designs that
+  best discriminate between a reference model and a rival model, maximising
+  the Kullback-Leibler divergence between them (T-optimality generalised to
+  exponential-family GLMs).
+- `make_kl_fun()` builds the point KL-divergence function `kl_fun(x, beta2)`
+  from two model/family specifications, supporting `"Normal"`, `"Poisson"`,
+  `"Binomial"` and `"Gamma"` families, including cross-dispersion Normal vs.
+  Normal and Gamma vs. Gamma pairs. Other family pairs can be supplied via a
+  user-written `kl_fun`.
+- The inner adversarial optimisation searches for the rival parameters that
+  minimise the integrated KL divergence (`rival_pars`, `rival_lower`,
+  `rival_upper`); the cocktail algorithm then finds the design maximising it.
+- `design_efficiency()` and `summary.optdes()` support KL-Optimality results,
+  reporting the family/model information or "user-supplied" for a custom
+  `kl_fun`.
 
 ## New features — compound optimality criteria
 - `opt_des()` now accepts `criterion = "Compound"` with a `compound` argument:

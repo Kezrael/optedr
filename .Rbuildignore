@@ -16,3 +16,6 @@
 ^optedr_dossier_cache$
 ^optedr_dossier_files$
 ^identificabilidad\.tex$
+^doc$
+^Meta$
+^\.claude$

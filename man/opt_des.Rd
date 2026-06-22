@@ -101,6 +101,11 @@ inner optimisation. Defaults to \code{-Inf} for each parameter.}
 
 \item{rival_upper}{optional numeric vector of upper bounds for rival parameters in the
 inner optimisation. Defaults to \code{Inf} for each parameter.}
+
+\item{kl_fun}{optional user-supplied \code{function(x, beta2)} giving the point
+KL divergence at design point \code{x} for rival parameters \code{beta2}, as built by
+\code{\link{make_kl_fun}}. When provided, bypasses the \code{family}/\code{rival_model}
+path entirely; \code{rival_pars} must still be supplied for the inner optimisation.}
 }
 \value{
 a list of class \code{optdes} with components \code{optdes}, \code{convergence},
