@@ -19,3 +19,4 @@
 ^doc$
 ^Meta$
 ^\.claude$
+^tests/testthat/Rplots\.pdf$
