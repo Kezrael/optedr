@@ -1,3 +1,17 @@
+# optedr 3.0.1
+
+## Bug fix
+
+- Fixed a test failure on CRAN's ATLAS platform (R-devel, r90186): when a
+  non-identifiable model causes the gradient to return `NA`/`NaN`, the
+  criterion value `dcrit()` now returns `NA` instead of `Inf` under the
+  ATLAS BLAS/LAPACK implementation. The previous trimming of the convergence
+  vector (`1L:(length(v) - sum(v == 0))`) crashed on `NA` input. The vector
+  is now truncated via `seq_len(index)` and a guard checks for any non-finite
+  criterion value (NA, NaN, or Inf), throwing an informative "not identifiable"
+  error consistently across all BLAS implementations and all optimality criteria
+  (D, Ds, A, I, L, Compound).
+
 # optedr 3.0.0
 
 ## New features — KL-Optimality (model discrimination)

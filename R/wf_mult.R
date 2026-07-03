@@ -104,7 +104,12 @@ DWFMult <- function(init_design, grad, design_space, grid.length,
   cli::cli_progress_update(force = TRUE)
   base::cat("")
   crit_val[index] <- dcrit(M, k)
-  crit_val <- crit_val[1L:(length(crit_val) - sum(crit_val == 0))]
+  crit_val <- crit_val[seq_len(index)]
+  if (!all(is.finite(crit_val)))
+    stop("Criterion function returned non-finite values (NA, NaN or Inf). ",
+         "The model is likely not identifiable in all specified parameters - ",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
   conv_plot <- plot_convergence(data.frame("criteria" = crit_val,
                                            "step"     = seq_along(crit_val)))
 
@@ -178,7 +183,12 @@ DsWFMult <- function(init_design, grad, par_int, design_space, grid.length,
 
   cli::cli_progress_update(force = TRUE)
   crit_val[index] <- dscrit(M, par_int)
-  crit_val <- crit_val[1L:(length(crit_val) - sum(crit_val == 0))]
+  crit_val <- crit_val[seq_len(index)]
+  if (!all(is.finite(crit_val)))
+    stop("Criterion function returned non-finite values (NA, NaN or Inf). ",
+         "The model is likely not identifiable in all specified parameters - ",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
   conv_plot <- plot_convergence(data.frame("criteria" = crit_val,
                                            "step"     = seq_along(crit_val)))
 
@@ -254,7 +264,12 @@ IWFMult <- function(init_design, grad, matB, design_space, grid.length,
   cli::cli_progress_update(force = TRUE)
   M     <- inf_mat(grad, init_design)
   crit_val[index] <- icrit(M, matB)
-  crit_val <- crit_val[1L:(length(crit_val) - sum(crit_val == 0))]
+  crit_val <- crit_val[seq_len(index)]
+  if (!all(is.finite(crit_val)))
+    stop("Criterion function returned non-finite values (NA, NaN or Inf). ",
+         "The model is likely not identifiable in all specified parameters - ",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
   conv_plot <- plot_convergence(data.frame("criteria" = crit_val,
                                            "step"     = seq_along(crit_val)))
 
@@ -332,7 +347,12 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
   cli::cli_progress_update(force = TRUE)
   M     <- inf_mat(grad, init_design)
   crit_val[index] <- ccrit(compound_specs, M)
-  crit_val <- crit_val[1L:(length(crit_val) - sum(crit_val == 0))]
+  crit_val <- crit_val[seq_len(index)]
+  if (!all(is.finite(crit_val)))
+    stop("Criterion function returned non-finite values (NA, NaN or Inf). ",
+         "The model is likely not identifiable in all specified parameters - ",
+         "check for parameter redundancy (see warnings above).",
+         call. = FALSE)
   conv_plot <- plot_convergence(data.frame("criteria" = crit_val,
                                            "step"     = seq_along(crit_val)))
 
