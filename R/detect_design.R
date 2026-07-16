@@ -55,10 +55,19 @@ coord_cols <- function(design) setdiff(names(design), "Weight")
 
 
 # Renames "Point" to the design variable name for single-factor user-supplied designs,
-# enabling backward-compatible use of data.frame(Point, Weight).
-normalize_design_cols <- function(design, design_vars) {
-  if ("Point" %in% names(design) && length(design_vars) == 1L)
-    names(design)[names(design) == "Point"] <- design_vars[1L]
+# enabling backward-compatible use of data.frame(Point, Weight). With `to_point = TRUE`
+# the rename goes the other way (design variable -> "Point"), which is the column name
+# the single-factor cocktail-algorithm loops (update_design(), sens functions, ...)
+# expect for the design threaded through the iterations.
+normalize_design_cols <- function(design, design_vars, to_point = FALSE) {
+  if (length(design_vars) != 1L) return(design)
+  v <- design_vars[1L]
+  if (to_point) {
+    if (v %in% names(design) && !"Point" %in% names(design))
+      names(design)[names(design) == v] <- "Point"
+  } else if ("Point" %in% names(design)) {
+    names(design)[names(design) == "Point"] <- v
+  }
   design
 }
 

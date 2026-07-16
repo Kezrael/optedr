@@ -15,7 +15,8 @@ CWFMult(
   delta_weights,
   tol,
   tol2,
-  max_iter
+  max_iter,
+  log_scale = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,10 @@ CWFMult(
 \item{tol2}{numeric value for the outer stop condition.}
 
 \item{max_iter}{maximum number of outer iterations.}
+
+\item{log_scale}{logical; if \code{TRUE}, combine the individual criteria on the log scale
+(\code{sum_i w_i * log(phi_i)}) instead of linearly (\code{sum_i w_i * phi_i}). See
+\code{\link{opt_des}}.}
 }
 \value{
 An object of class \code{optdes}.

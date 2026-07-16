@@ -20,7 +20,8 @@ WFMult(
   tol2,
   max_iter,
   compound = NULL,
-  kl_spec = NULL
+  kl_spec = NULL,
+  log_scale = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,9 @@ WFMult(
 \item{compound}{preprocessed list of compound criterion specifications (internal use).}
 
 \item{kl_spec}{preprocessed list of KL-Optimality specifications (internal use).}
+
+\item{log_scale}{logical; combine compound criteria on the log scale (internal use, see
+\code{\link{opt_des}}).}
 }
 \value{
 An object of class \code{optdes}.

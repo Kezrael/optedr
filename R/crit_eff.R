@@ -91,20 +91,30 @@ icrit <- function(M, matB) {
 }
 
 
-# Compound criterion value: weighted sum of individual criterion values.
+# Compound criterion value.
 # compound_specs: preprocessed list (each element has criterion, weight, k/par_int/matB).
-ccrit <- function(compound_specs, M) {
+# log_scale = FALSE (default): weighted sum of the individual criterion values, sum_i w_i * phi_i(M).
+# log_scale = TRUE: weighted sum of their logs, sum_i w_i * log(phi_i(M)) - see .compound_component_phi().
+# The log form is scale-invariant (an arbitrary multiplicative rescaling of any phi_i only shifts the
+# criterion by a constant, so it never changes the optimal design), which the additive form is not.
+ccrit <- function(compound_specs, M, log_scale = FALSE) {
   total <- 0
   for (spec in compound_specs) {
-    phi <- if (identical(spec$criterion, "D-Optimality"))
-             dcrit(M, spec$k)
-           else if (identical(spec$criterion, "Ds-Optimality"))
-             dscrit(M, spec$par_int)
-           else
-             icrit(M, spec$matB)
-    total <- total + spec$weight * phi
+    phi <- .compound_component_phi(spec, M)
+    total <- total + spec$weight * (if (log_scale) log(phi) else phi)
   }
   total
+}
+
+
+# Criterion value phi_i(M) of a single compound component (shared by ccrit() and compound_threshold()).
+.compound_component_phi <- function(spec, M) {
+  if (identical(spec$criterion, "D-Optimality"))
+    dcrit(M, spec$k)
+  else if (identical(spec$criterion, "Ds-Optimality"))
+    dscrit(M, spec$par_int)
+  else
+    icrit(M, spec$matB)
 }
 
 
@@ -244,8 +254,12 @@ design_efficiency <- function(design, opt_des_obj) {
     return(eff)
   }
   else if (identical(opt_des_obj$criterion, "Compound")) {
-    specs <- attr(opt_des_obj, "hidden_value")   # compound_specs
-    eff   <- ccrit(specs, mat2) / ccrit(specs, mat1)
+    specs     <- attr(opt_des_obj, "hidden_value")   # compound_specs
+    log_scale <- isTRUE(attr(opt_des_obj, "log_scale"))
+    eff <- if (log_scale)
+             exp(ccrit(specs, mat2, log_scale = TRUE) - ccrit(specs, mat1, log_scale = TRUE))
+           else
+             ccrit(specs, mat2) / ccrit(specs, mat1)
     message(crayon::blue(cli::symbol$info), " The efficiency of the design is ", eff * 100, "%")
     return(eff)
   }

@@ -23,6 +23,7 @@ opt_des(
   distribution = NA,
   weight_fun = function(x) 1,
   compound = NULL,
+  log_scale = FALSE,
   rival_model = NULL,
   rival_params = NULL,
   rival_pars = NULL,
@@ -80,6 +81,17 @@ Each element must be a named list with at least \code{criterion} (character) and
 Weights are normalised to sum to 1. Example:
 \code{list(list(criterion="D-Optimality", weight=0.7),
              list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.}
+
+\item{log_scale}{logical, only used for \code{criterion = "Compound"}. The compound criterion
+is the weighted combination of the individual criterion values \eqn{\phi_i}, which can be on
+very different scales (e.g. D- vs I-optimality), making the \code{weight}s in \code{compound}
+not correspond to the intended relative importance. If \code{TRUE}, the criteria are combined
+on the log scale, \code{sum_i weight_i * log(phi_i)}, instead of linearly,
+\code{sum_i weight_i * phi_i} (the default, \code{FALSE}, kept for backward compatibility).
+The log-scale combination is scale-invariant: it yields the same optimal design as weighting
+each criterion's efficiency relative to its own single-criterion optimum, without needing to
+compute that optimum, because rescaling any \eqn{\phi_i} only shifts the criterion by a
+constant that does not depend on the design.}
 
 \item{rival_model}{optional formula for the rival model used with
 \code{criterion = "KL-Optimality"}. Defaults to \code{model} (same structure, rival

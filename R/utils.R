@@ -707,7 +707,9 @@ summary.optdes <- function(object, ...) {
   multi <- is_multifactor(dvars)
 
   cat("Model:\n")
-  print(attr(object, "model"))
+  mdl <- attr(object, "model")
+  environment(mdl) <- globalenv()
+  print(mdl)
 
   wf     <- attr(object, "weight_fun")
   wf_src <- attr(wf, "srcref")
@@ -727,7 +729,8 @@ summary.optdes <- function(object, ...) {
 
   if (identical(object$criterion, "Compound")) {
     specs <- attr(object, "hidden_value")
-    cat("\nCompound criterion:\n")
+    cat(sprintf("\nCompound criterion%s:\n",
+                if (isTRUE(attr(object, "log_scale"))) " (combined on log scale)" else ""))
     for (s in specs)
       cat(sprintf("  %.2f * %s\n", s$weight, s$criterion))
   }

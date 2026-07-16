@@ -20,6 +20,8 @@
 #' @param max_iter maximum number of outer iterations.
 #' @param compound preprocessed list of compound criterion specifications (internal use).
 #' @param kl_spec preprocessed list of KL-Optimality specifications (internal use).
+#' @param log_scale logical; combine compound criteria on the log scale (internal use, see
+#'   \code{\link{opt_des}}).
 #'
 #' @return An object of class \code{optdes}.
 #'
@@ -27,7 +29,7 @@
 WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
                    design_space, grid.length, join_thresh, delete_thresh,
                    k, delta_weights, tol, tol2, max_iter, compound = NULL,
-                   kl_spec = NULL) {
+                   kl_spec = NULL, log_scale = FALSE) {
   if (identical(criterion, "D-Optimality"))
     return(DWFMult(init_design, grad, design_space, grid.length,
                    join_thresh, delete_thresh, k, delta_weights, tol, tol2, max_iter))
@@ -45,7 +47,8 @@ WFMult <- function(init_design, grad, criterion, par_int = NA, matB = NA,
                    join_thresh, delete_thresh, delta_weights, tol, tol2, "L-Optimality", max_iter))
   else if (identical(criterion, "Compound"))
     return(CWFMult(init_design, grad, compound, design_space, grid.length,
-                   join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter))
+                   join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter,
+                   log_scale = log_scale))
   else if (identical(criterion, "KL-Optimality"))
     return(KLWFMult(init_design,
                     kl_spec$kl_fun, kl_spec$beta2_init,
@@ -301,9 +304,13 @@ IWFMult <- function(init_design, grad, matB, design_space, grid.length,
 #'
 #' @inherit WFMult return params
 #' @param compound_specs preprocessed list of per-criterion specifications.
+#' @param log_scale logical; if \code{TRUE}, combine the individual criteria on the log scale
+#'   (\code{sum_i w_i * log(phi_i)}) instead of linearly (\code{sum_i w_i * phi_i}). See
+#'   \code{\link{opt_des}}.
 #' @family cocktail algorithms
 CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length,
-                    join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter) {
+                    join_thresh, delete_thresh, delta_weights, tol, tol2, max_iter,
+                    log_scale = FALSE) {
   multi   <- is_multifactor(attr(grad, "design_vars"))
   dc      <- coord_cols(init_design)
   maxiter_weights <- 100L
@@ -314,10 +321,10 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
   for (i in seq_len(max_iter)) {
     cli::cli_progress_update()
     M     <- inf_mat(grad, init_design)
-    crit_val[index] <- ccrit(compound_specs, M)
+    crit_val[index] <- ccrit(compound_specs, M, log_scale)
     index <- index + 1L
-    sensC <- csens(compound_specs, grad, M)
-    thrC  <- compound_threshold(compound_specs, M)
+    sensC <- csens(compound_specs, grad, M, log_scale)
+    thrC  <- compound_threshold(compound_specs, M, log_scale)
     xmax  <- findmax(sensC, design_space, grid.length)
     if ((as.numeric(sensC(xmax)) - thrC) < tol2) {
       message("\n", crayon::blue(cli::symbol$info),
@@ -329,10 +336,10 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
     while (!stopw) {
       weightsInit <- init_design$Weight
       M     <- inf_mat(grad, init_design)
-      crit_val[index] <- ccrit(compound_specs, M)
+      crit_val[index] <- ccrit(compound_specs, M, log_scale)
       index <- index + 1L
-      sensC <- csens(compound_specs, grad, M)
-      thrC  <- compound_threshold(compound_specs, M)
+      sensC <- csens(compound_specs, grad, M, log_scale)
+      thrC  <- compound_threshold(compound_specs, M, log_scale)
       init_design$Weight <- update_weightsI(init_design, sensC, thrC, delta_weights)
       stopw <- max(abs(weightsInit - init_design$Weight)) < tol || iter >= maxiter_weights
       iter  <- iter + 1L
@@ -346,7 +353,7 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
 
   cli::cli_progress_update(force = TRUE)
   M     <- inf_mat(grad, init_design)
-  crit_val[index] <- ccrit(compound_specs, M)
+  crit_val[index] <- ccrit(compound_specs, M, log_scale)
   crit_val <- crit_val[seq_len(index)]
   if (!all(is.finite(crit_val)))
     stop("Criterion function returned non-finite values (NA, NaN or Inf). ",
@@ -360,9 +367,9 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
   rownames(init_design) <- NULL
 
   M     <- inf_mat(grad, init_design)
-  sensM <- csens(compound_specs, grad, M)
+  sensM <- csens(compound_specs, grad, M, log_scale)
   xmax  <- findmax(sensM, design_space, grid.length * 10L)
-  thrC  <- compound_threshold(compound_specs, M)
+  thrC  <- compound_threshold(compound_specs, M, log_scale)
   atwood <- thrC / as.numeric(sensM(xmax)) * 100
   check_atwood(atwood)
   message(crayon::blue(cli::symbol$info), " The lower bound for efficiency is ", atwood, "%")
@@ -378,7 +385,8 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
   attr(l_return, "hidden_value")  <- compound_specs
   attr(l_return, "gradient")      <- grad
   attr(l_return, "design_space")  <- design_space
-  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); ccrit(compound_specs, M) }
+  attr(l_return, "log_scale")     <- log_scale
+  attr(l_return, "crit_function") <- function(design) { M <- inf_mat(grad, design); ccrit(compound_specs, M, log_scale) }
   class(l_return) <- "optdes"
   l_return
 }
@@ -433,6 +441,16 @@ CWFMult <- function(init_design, grad, compound_specs, design_space, grid.length
 #'   Weights are normalised to sum to 1. Example:
 #'   \code{list(list(criterion="D-Optimality", weight=0.7),
 #'              list(criterion="I-Optimality", weight=0.3, reg_int=c(380,422)))}.
+#' @param log_scale logical, only used for \code{criterion = "Compound"}. The compound criterion
+#'   is the weighted combination of the individual criterion values \eqn{\phi_i}, which can be on
+#'   very different scales (e.g. D- vs I-optimality), making the \code{weight}s in \code{compound}
+#'   not correspond to the intended relative importance. If \code{TRUE}, the criteria are combined
+#'   on the log scale, \code{sum_i weight_i * log(phi_i)}, instead of linearly,
+#'   \code{sum_i weight_i * phi_i} (the default, \code{FALSE}, kept for backward compatibility).
+#'   The log-scale combination is scale-invariant: it yields the same optimal design as weighting
+#'   each criterion's efficiency relative to its own single-criterion optimum, without needing to
+#'   compute that optimum, because rescaling any \eqn{\phi_i} only shifts the criterion by a
+#'   constant that does not depend on the design.
 #' @param rival_model optional formula for the rival model used with
 #'   \code{criterion = "KL-Optimality"}. Defaults to \code{model} (same structure, rival
 #'   parameters explored by inner optimisation).
@@ -504,6 +522,7 @@ opt_des <- function(criterion, model, parameters,
                     distribution = NA,
                     weight_fun   = function(x) 1,
                     compound     = NULL,
+                    log_scale    = FALSE,
                     rival_model  = NULL,
                     rival_params = NULL,
                     rival_pars   = NULL,
@@ -542,8 +561,10 @@ opt_des <- function(criterion, model, parameters,
       init_design$Weight <- 1 / n0
     }
   } else {
-    # Normalise user-supplied design column names (accepts "Point" for 1D)
-    init_design <- normalize_design_cols(init_design, design_vars)
+    # Normalise user-supplied design column names: accepts either "Point" or the
+    # design variable name (e.g. "x") for 1D, and canonicalises to "Point", which is
+    # what the single-factor cocktail-algorithm loops expect.
+    init_design <- normalize_design_cols(init_design, design_vars, to_point = TRUE)
   }
 
   # -- Input validation ------------------------------------------------------
@@ -571,6 +592,8 @@ opt_des <- function(criterion, model, parameters,
     if (is.null(compound) || length(compound) < 2L)
       stop("criterion = 'Compound' requires compound list with at least 2 specifications.",
            call. = FALSE)
+    if (!is.logical(log_scale) || length(log_scale) != 1L || is.na(log_scale))
+      stop("'log_scale' must be a single logical value (TRUE or FALSE).", call. = FALSE)
     ws <- sapply(compound, function(s) {
       if (is.null(s$weight) || !is.numeric(s$weight) || s$weight <= 0)
         stop("Each compound element must have a positive numeric 'weight'.", call. = FALSE)
@@ -673,7 +696,8 @@ opt_des <- function(criterion, model, parameters,
                    design_space, 1000L,
                    join_thresh, delete_thresh, k, delta, tol, tol2, max_iter,
                    compound = compound_specs,
-                   kl_spec  = kl_spec)
+                   kl_spec  = kl_spec,
+                   log_scale = log_scale)
 
   attr(output, "model")      <- model
   attr(output, "weight_fun") <- weight_fun

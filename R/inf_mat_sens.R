@@ -163,10 +163,12 @@ isens <- function(grad, M, matB) {
 }
 
 
-# Compound sensitivity function: weighted sum of individual sensitivity functions.
+# Compound sensitivity function.
 # compound_specs: list of per-criterion specs (see opt_des compound parameter).
-# Returns a closure that evaluates d_c(xval) = sum_i w_i * d_i(xval).
-csens <- function(compound_specs, grad, M) {
+# log_scale = FALSE (default): d_c(xval) = sum_i w_i * d_i(xval).
+# log_scale = TRUE: d_c(xval) = sum_i [w_i / threshold_i(M)] * d_i(xval), the directional derivative of
+# sum_i w_i * log(phi_i(M)) (see ccrit()). Must stay in sync with compound_threshold(log_scale = TRUE).
+csens <- function(compound_specs, grad, M, log_scale = FALSE) {
   sens_fns <- lapply(compound_specs, function(spec) {
     if (identical(spec$criterion, "D-Optimality"))
       dsens(grad, M)
@@ -176,24 +178,33 @@ csens <- function(compound_specs, grad, M) {
       isens(grad, M, spec$matB)   # A, I, L
   })
   weights <- sapply(compound_specs, `[[`, "weight")
+  if (log_scale)
+    weights <- weights / vapply(compound_specs, .compound_component_threshold, numeric(1L), M)
   function(xval) {
     sum(mapply(function(s, w) w * as.numeric(s(xval)), sens_fns, weights))
   }
 }
 
 
-# Equivalence Theorem threshold for the compound criterion:
-# sum_i w_i * threshold_i, where threshold_i = k (D), s (Ds), tr(B M^{-1}) (A/I/L).
-compound_threshold <- function(compound_specs, M) {
-  total <- 0
-  for (spec in compound_specs) {
-    thr <- if (identical(spec$criterion, "D-Optimality"))
-             spec$k
-           else if (identical(spec$criterion, "Ds-Optimality"))
-             length(spec$par_int)
-           else
-             icrit(M, spec$matB)
-    total <- total + spec$weight * thr
-  }
-  total
+# Equivalence Theorem threshold for the compound criterion.
+# log_scale = FALSE (default): sum_i w_i * threshold_i, where threshold_i = k (D), s (Ds),
+#   tr(B M^{-1}) (A/I/L).
+# log_scale = TRUE: sum_i w_i, i.e. 1 (weights are normalised to sum to 1 by opt_des()) - the
+#   threshold_i factors cancel against the same factors in csens(log_scale = TRUE).
+compound_threshold <- function(compound_specs, M, log_scale = FALSE) {
+  weights <- sapply(compound_specs, `[[`, "weight")
+  if (log_scale) return(sum(weights))
+  sum(weights * vapply(compound_specs, .compound_component_threshold, numeric(1L), M))
+}
+
+
+# threshold_i(M) of a single compound component: k (D), s (Ds), tr(B M^{-1}) (A/I/L) - the latter
+# equals phi_i(M) itself (see .compound_component_phi() in crit_eff.R).
+.compound_component_threshold <- function(spec, M) {
+  if (identical(spec$criterion, "D-Optimality"))
+    spec$k
+  else if (identical(spec$criterion, "Ds-Optimality"))
+    length(spec$par_int)
+  else
+    icrit(M, spec$matB)
 }
