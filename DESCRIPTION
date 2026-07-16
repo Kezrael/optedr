@@ -1,6 +1,6 @@
 Package: optedr
 Title: Calculating Optimal and D-Augmented Designs for Single- and Multi-Factor Models
-Version: 3.0.1
+Version: 3.0.2
 Authors@R: 
     c(person(given = "Carlos",
            family = "de la Calle-Arroyo",

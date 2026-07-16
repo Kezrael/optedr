@@ -3,7 +3,7 @@ bibentry(
   title    = "optedr: an optimal experimental design package",
   author   = "Carlos de la Calle-Arroyo and Jesús López-Fidalgo and Licesio J. Rodríguez Aragón",
   year     = "2026",
-  note     = "R package version 3.0.0",
+  note     = "R package version 3.0.2",
   url      = "https://CRAN.R-project.org/package=optedr"
 )
 

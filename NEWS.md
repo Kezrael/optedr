@@ -1,3 +1,35 @@
+# optedr 3.0.2
+
+## Bug fixes
+
+- `summary.optdes()` no longer prints a stray `<environment: 0x...>` line
+  after the model formula when `opt_des()` is called from inside a function
+  (the formula's captured environment is reset to the global environment
+  before printing; this is display-only and does not affect the fitted
+  design).
+- `opt_des()`: fix `init_design` being unusable for single-factor models.
+  The cocktail-algorithm loops identify the single-factor case by checking
+  for a `"Point"` coordinate column, but a user-supplied `init_design` was
+  renamed to the design variable name (e.g. `"x"`) before reaching them,
+  crashing with `"missing value where TRUE/FALSE needed"`. User-supplied
+  single-factor designs (with either a `"Point"` or a design-variable-named
+  coordinate column) are now canonicalised back to `"Point"`, matching what
+  the algorithm expects. Multi-factor `init_design` was unaffected.
+
+## New features
+
+- `opt_des()` gains a `log_scale` argument for `criterion = "Compound"`
+  (default `FALSE`, preserving prior behaviour). The compound criterion is
+  a weighted sum of the component criteria, which can be on very different
+  scales, so the supplied `weight`s may not reflect the intended relative
+  importance. With `log_scale = TRUE`, criteria are combined as
+  `sum(w_i * log(phi_i))` instead of `sum(w_i * phi_i)`: this is
+  scale-invariant (rescaling any component only shifts the criterion by a
+  constant that doesn't affect the optimal design) and equivalent to
+  weighting by each criterion's efficiency relative to its own optimum,
+  without needing to compute that optimum separately. `design_efficiency()`
+  and `summary.optdes()` account for the scale used.
+
 # optedr 3.0.1
 
 ## Bug fix
