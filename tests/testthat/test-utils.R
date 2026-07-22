@@ -99,6 +99,36 @@ test_that("update_design merges when new point is close to an existing one", {
   expect_equal(nrow(result), 2)   # merged, not added
 })
 
+# update_design_total() --------------------------------------------------
+
+test_that("update_design_total merges close points and weights still sum to 1", {
+  # regression test: a large `delta` (join_thresh) used to trigger a merge
+  # inside update_design_total() that silently lost Weight[i]*(1-Weight[i])
+  # of total mass, because it called update_design() (which rescales the
+  # *rest* of the design by (1 - new_weight) before adding new_weight back)
+  # instead of merging the already-removed row directly.
+  d <- data.frame(Point = c(0.001, 0.01, 0.05), Weight = c(0.2, 0.5, 0.3))
+  result <- optedr:::update_design_total(d, delta = 0.02)
+  expect_equal(sum(result$Weight), 1, tolerance = 1e-10)
+  expect_equal(nrow(result), 2)  # 0.001 and 0.01 merged (distance 0.009 < 0.02)
+  expect_equal(result$Weight[result$Point != 0.05], 0.7, tolerance = 1e-10)
+})
+
+test_that("update_design_total leaves weights summing to 1 with no merges", {
+  d <- data.frame(Point = c(1, 5, 10), Weight = c(0.2, 0.3, 0.5))
+  result <- optedr:::update_design_total(d, delta = 0.001)
+  expect_equal(nrow(result), 3)
+  expect_equal(sum(result$Weight), 1, tolerance = 1e-10)
+})
+
+test_that("update_design_total handles multiple chained merges, weights sum to 1", {
+  # three points all within delta of their neighbour: should collapse to one
+  d <- data.frame(Point = c(1.0, 1.01, 1.02), Weight = c(0.3, 0.3, 0.4))
+  result <- optedr:::update_design_total(d, delta = 0.02)
+  expect_equal(nrow(result), 1)
+  expect_equal(sum(result$Weight), 1, tolerance = 1e-10)
+})
+
 # getPar / getCross2 ----------------------------------------------------
 
 test_that("getPar returns TRUE for even number of crosspoints", {

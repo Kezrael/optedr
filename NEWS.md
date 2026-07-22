@@ -1,3 +1,23 @@
+# optedr 3.0.2.9000
+
+## Bug fixes
+
+- `opt_des()`: fix design weights not summing to 1 after a point merge
+  triggered by `join_thresh` (either via the periodic `update_design_total()`
+  sweep every 5 outer iterations, or a large user-supplied `join_thresh`).
+  `update_design_total()` reinserted the removed row's own weight via
+  `update_design()`, which additionally rescales the *rest* of the design by
+  `(1 - new_weight)` — appropriate when adding a genuinely new point (the
+  main cocktail-algorithm use case), but wrong when re-merging a point that
+  had just been removed from the same design, since the remaining weights
+  already reflected the correct post-removal mass. The result silently lost
+  `Weight[i] * (1 - Weight[i])` of total weight on every such merge, most
+  noticeably with a large `join_thresh` (small values rarely trigger the
+  merge, masking the bug). The merge/append logic is now factored into an
+  internal `.merge_or_add_point()` helper that does not rescale, used
+  directly by `update_design_total()`; `update_design()` (the main-loop path)
+  keeps the rescale-then-merge behaviour unchanged.
+
 # optedr 3.0.2
 
 ## Bug fixes

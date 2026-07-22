@@ -363,25 +363,20 @@ update_weightsI <- function(design, sens, crit, delta) {
 }
 
 
-#' Update Design with new point
+#' Merge a point into a design, or append it
 #'
 #' @description
-#' Updates a design adding a new point to it. If the added point is closer than \code{delta} to an existing
-#' point of the design, the two points are merged together as their arithmetic average. Then updates the weights
-#' to be equal to all points of the design.
+#' If \code{xmax} is closer than \code{delta} to an existing point of \code{design}, the two
+#' points are merged together as their arithmetic average and their weights summed. Otherwise
+#' \code{xmax} is appended as a new point with weight \code{new_weight}. Unlike
+#' \code{\link{update_design}}, this does **not** rescale the existing weights first, so the
+#' caller is responsible for making sure \code{sum(design$Weight) + new_weight} is the intended
+#' total mass after the call.
 #'
-#' @param design Design to update. It's a dataframe with two columns:
-#'   * \code{Point} contains the support points of the design.
-#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
-#' @param xmax The point to add as a numeric value.
-#' @param delta Threshold which defines how close the new point has to be to any of the existing ones in order to
-#'   merge with them.
-#' @param new_weight Number with the weight for the new point.
-#'
+#' @inheritParams update_design
 #' @return The updated design.
-update_design <- function(design, xmax, delta, new_weight) {
+.merge_or_add_point <- function(design, xmax, delta, new_weight) {
   dcols <- coord_cols(design)
-  design$Weight <- design$Weight * (1 - new_weight)
 
   if (identical(dcols, "Point")) {
     # ── Single-factor (current behaviour) ──────────────────────────────────
@@ -408,6 +403,28 @@ update_design <- function(design, xmax, delta, new_weight) {
     }
   }
   design
+}
+
+
+#' Update Design with new point
+#'
+#' @description
+#' Updates a design adding a new point to it. If the added point is closer than \code{delta} to an existing
+#' point of the design, the two points are merged together as their arithmetic average. Then updates the weights
+#' to be equal to all points of the design.
+#'
+#' @param design Design to update. It's a dataframe with two columns:
+#'   * \code{Point} contains the support points of the design.
+#'   * \code{Weight} contains the corresponding weights of the \code{Point}s.
+#' @param xmax The point to add as a numeric value.
+#' @param delta Threshold which defines how close the new point has to be to any of the existing ones in order to
+#'   merge with them.
+#' @param new_weight Number with the weight for the new point.
+#'
+#' @return The updated design.
+update_design <- function(design, xmax, delta, new_weight) {
+  design$Weight <- design$Weight * (1 - new_weight)
+  .merge_or_add_point(design, xmax, delta, new_weight)
 }
 
 
@@ -442,7 +459,14 @@ update_design_total <- function(design, delta) {
       if (any(absdiff)) {
         updated  <- TRUE
         x_i      <- if (use_1d) design$Point[i] else unlist(design[i, dcols])
-        design   <- update_design(design[-i, ], x_i, delta, design$Weight[i])
+        # NB: use .merge_or_add_point(), not update_design() -- the removed
+        # row's weight (design$Weight[i]) already accounts for the full mass
+        # budget of `design[-i, ]` (it sums to 1 - Weight[i]); update_design()
+        # would shrink that remainder by another factor of (1 - Weight[i]),
+        # silently losing Weight[i] * (1 - Weight[i]) of total weight (see
+        # https://github.com/kezrael/optedr/issues -- weights not summing to
+        # 1 after a merge triggered by a large join_thresh).
+        design   <- .merge_or_add_point(design[-i, ], x_i, delta, design$Weight[i])
         break
       }
     }
